@@ -68,6 +68,7 @@
         <div
             class="modal fade"
             id="create-user-modal"
+            data-bs-backdrop="static"
             tabindex="-1"
             aria-labelledby="create-user-modal-label"
             aria-hidden="true"
@@ -82,6 +83,7 @@
                             class="btn-close"
                             data-bs-dismiss="modal"
                             aria-label="Close"
+                            @click="formCleanUp"
                         ></button>
                     </div>
                     <div class="modal-body">
@@ -176,6 +178,7 @@
                             type="button"
                             class="btn btn-secondary me-2"
                             data-bs-dismiss="modal"
+                            @click="formCleanUp"
                         >
                             Close
                         </button>
@@ -195,6 +198,7 @@
         <div
             class="modal fade"
             id="edit-user-modal"
+            data-bs-backdrop="static"
             tabindex="-1"
             aria-labelledby="edit-user-modal-label"
             aria-hidden="true"
@@ -209,6 +213,7 @@
                             class="btn-close"
                             data-bs-dismiss="modal"
                             aria-label="Close"
+                            @click="editFormCleanUp"
                         ></button>
                     </div>
                     <div class="modal-body">
@@ -303,6 +308,7 @@
                             type="button"
                             class="btn btn-secondary me-2"
                             data-bs-dismiss="modal"
+                            @click="editFormCleanUp"
                         >
                             Close
                         </button>
@@ -322,6 +328,7 @@
         <div
             class="modal fade"
             id="edit-permissions-modal"
+            data-bs-backdrop="static"
             tabindex="-1"
             aria-labelledby="edit-user-permissions"
             aria-hidden="true"
@@ -335,6 +342,7 @@
                             class="btn-close"
                             data-bs-dismiss="modal"
                             aria-label="Close"
+                            @click="permissionFormCleanUp"
                         ></button>
                     </div>
                     <div class="modal-body p-10">
@@ -360,6 +368,7 @@
                             type="button"
                             class="btn btn-secondary me-2"
                             data-bs-dismiss="modal"
+                            @click="permissionFormCleanUp"
                         >
                             Close
                         </button>
@@ -572,6 +581,15 @@ export default {
         applyFilter: _debounce(function () {
             this.$refs.usersTable.reloadTable();
         }, 800),
+        formCleanUp () {
+            this.form.reset()
+        },
+        editFormCleanUp () {
+            this.editForm.reset()
+        },
+        permissionFormCleanUp () {
+            this.permissionForm.reset()
+        }
     },
 };
 </script>

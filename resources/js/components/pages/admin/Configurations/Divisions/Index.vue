@@ -80,6 +80,7 @@
         <div
             class="modal fade"
             id="create-division-modal"
+            data-bs-backdrop="static"
             tabindex="-1"
             aria-labelledby="create-division-modal-label"
             aria-hidden="true"
@@ -94,6 +95,7 @@
                             class="btn-close"
                             data-bs-dismiss="modal"
                             aria-label="Close"
+                            @click.prevent="formCleanUp"
                         ></button>
                     </div>
                     <div class="modal-body">
@@ -125,6 +127,7 @@
                             type="button"
                             class="btn btn-secondary me-2"
                             data-bs-dismiss="modal"
+                            @click="formCleanUp"
                         >
                             Close
                         </button>
@@ -144,6 +147,7 @@
         <div
             class="modal fade"
             id="edit-division-modal"
+            data-bs-backdrop="static"
             tabindex="-1"
             aria-labelledby="edit-division-modal-label"
             aria-hidden="true"
@@ -158,6 +162,7 @@
                             class="btn-close"
                             data-bs-dismiss="modal"
                             aria-label="Close"
+                            @click="editFormCleanUp"
                         ></button>
                     </div>
                     <div class="modal-body">
@@ -189,6 +194,7 @@
                             type="button"
                             class="btn btn-secondary me-2"
                             data-bs-dismiss="modal"
+                            @click="editFormCleanUp"
                         >
                             Close
                         </button>
@@ -296,6 +302,12 @@ export default {
         applyFilter: _debounce(function () {
             this.$refs.divisionsTable.reloadTable();
         }, 800),
+        formCleanUp () {
+            this.form.reset()
+        },
+        editFormCleanUp () {
+            this.editForm.reset()
+        },
     },
 }
 </script>

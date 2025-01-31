@@ -12,7 +12,8 @@ const toast = {
             message: message,
             position: position,
             transitionIn: 'fadeIn',
-            icon: 'icon-x',
+            transitionOut: 'fadeOut',
+            icon: 'bx bx-x-circle',
             displayMode: displayMode,
             layout: 2,
             timeout: timeout
@@ -25,11 +26,11 @@ const toast = {
             message: message,
             position: position,
             transitionIn: 'fadeIn',
-            icon: 'uil uil-check',
+            transitionOut: 'fadeOut',
+            icon: 'bx bx-check-circle',
             displayMode: displayMode,
             layout: layout,
             timeout: timeout
-            // image: '/logo_35.jpg',
         })
     },
 
@@ -47,6 +48,7 @@ const toast = {
                 position: 'center',
                 transitionIn: 'fadeIn',
                 transitionOut: 'fadeOut',
+                icon: 'bx bx-info-circle',
                 layout: layout,
                 buttons: [
                     ['<button class="btn btn-danger"><b>Confirm</b></button>', function (instance, toast, button, e, inputs) {
@@ -73,6 +75,7 @@ const toast = {
             position: position,
             transitionIn: 'fadeIn',
             transitionOut: 'fadeOut',
+            icon: 'bx bx-info-circle',
             layout: layout,
             timeout: timeout
         })
@@ -87,6 +90,7 @@ const toast = {
             position: position,
             transitionIn: 'fadeIn',
             transitionOut: 'fadeOut',
+            icon: 'bx bx-error',
             layout: layout,
             timeout: timeout
         })

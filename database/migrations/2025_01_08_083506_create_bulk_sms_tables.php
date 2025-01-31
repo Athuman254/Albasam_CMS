@@ -147,6 +147,6 @@ return new class extends Migration
         Schema::dropIfExists('group_contacts');
         Schema::dropIfExists('contacts');
         Schema::dropIfExists('contact_groups');
-        Schema::dropIfExists('users');
+//        Schema::dropIfExists('users');
     }
 };

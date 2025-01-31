@@ -62,6 +62,7 @@
         <div
             class="modal fade"
             id="create-role-modal"
+            data-bs-backdrop="static"
             tabindex="-1"
             aria-labelledby="create-role-modal-label"
             aria-hidden="true"
@@ -76,6 +77,7 @@
                             class="btn-close"
                             data-bs-dismiss="modal"
                             aria-label="Close"
+                            @click="formCleanUp"
                         ></button>
                     </div>
                     <div class="modal-body">
@@ -118,6 +120,7 @@
                             type="button"
                             class="btn btn-secondary me-2"
                             data-bs-dismiss="modal"
+                            @click="formCleanUp"
                         >
                             Close
                         </button>
@@ -141,6 +144,7 @@
         <div
             class="modal fade"
             id="edit-role-modal"
+            data-bs-backdrop="static"
             tabindex="-1"
             aria-labelledby="edit-role-modal-label"
             aria-hidden="true"
@@ -155,6 +159,7 @@
                             class="btn-close"
                             data-bs-dismiss="modal"
                             aria-label="Close"
+                            @click="editFormCleanUp"
                         ></button>
                     </div>
                     <div class="modal-body">
@@ -192,6 +197,7 @@
                             type="button"
                             class="btn btn-secondary me-2"
                             data-bs-dismiss="modal"
+                            @click="editFormCleanUp"
                         >
                             Close
                         </button>
@@ -341,6 +347,12 @@ export default {
         applyFilter: _debounce(function () {
             this.$refs.rolesTable.reloadTable();
         }, 800),
+        formCleanUp () {
+            this.form.reset()
+        },
+        editFormCleanUp () {
+            this.editForm.reset()
+        },
     },
 }
 </script>

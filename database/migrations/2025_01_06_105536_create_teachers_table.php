@@ -1,0 +1,123 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('employees', function (Blueprint $table) {
+            $table->id();
+            $table->string('staff_number')->unique();
+            $table->date('date_of_hire')->unique();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('employment_type_id');
+            $table->unsignedBigInteger('employment_status_id');
+            $table->unsignedBigInteger('job_title_id');
+            $table->unsignedBigInteger('honorific_id');
+            $table->unsignedBigInteger('marital_status_id');
+            $table->unsignedBigInteger('gender_id');
+            $table->unsignedBigInteger('religion_id');
+            $table->string('first_name');
+            $table->string('middle_name')->nullable();
+            $table->string('last_name');
+            $table->string('email')->unique()->nullable();
+            $table->string('primary_phone')->unique();
+            $table->string('secondary_phone')->nullable();
+            $table->string('permanent_physical_address')->nullable();
+            $table->string('secondary_physical_address')->nullable();
+            $table->string('postal_address')->nullable();
+            $table->string('identification_number');
+            $table->string('tax_identification_pin')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('employment_type_id')->references('id')->on('employment_types');
+            $table->foreign('employment_status_id')->references('id')->on('employment_statuses');
+            $table->foreign('job_title_id')->references('id')->on('job_titles');
+            $table->foreign('honorific_id')->references('id')->on('honorifics');
+            $table->foreign('marital_status_id')->references('id')->on('marital_statuses');
+            $table->foreign('gender_id')->references('id')->on('genders');
+            $table->foreign('religion_id')->references('id')->on('religions');
+
+            $table->index('user_id');
+        });
+
+        Schema::create('teachers', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('employee_id');
+            $table->unsignedBigInteger('specialization_area_id')->nullable();
+            $table->unsignedBigInteger('teacher_title_id')->nullable();
+            $table->string('tsc_number')->nullable();
+            $table->tinyInteger('years_of_experience')->default(0);
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('employee_id')->references('id')->on('employees');
+            $table->foreign('specialization_area_id')->references('id')->on('specialization_areas');
+            $table->foreign('teacher_title_id')->references('id')->on('teacher_titles');
+
+            $table->index('user_id');
+            $table->index('employee_id');
+            $table->index('teacher_title_id');
+        });
+
+        Schema::create('qualifications', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('employee_id');
+            $table->unsignedBigInteger('qualification_type_id')->nullable();
+            $table->string('institution_name');
+            $table->string('course_name');
+            $table->string('year_of_completion')->nullable();
+            $table->timestamps();
+
+            $table->foreign('employee_id')->references('id')->on('employees');
+            $table->foreign('qualification_type_id')->references('id')->on('qualification_types');
+        });
+
+        Schema::create('work_histories', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('employee_id');
+            $table->string('institution_name');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->string('year_of_completion')->nullable();
+            $table->timestamps();
+
+            $table->foreign('employee_id')->references('id')->on('employees');
+        });
+
+        Schema::create('emergency_contacts', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('employee_id');
+            $table->unsignedBigInteger('relationship_id');
+            $table->string('name');
+            $table->string('email')->nullable();
+            $table->string('phone');
+            $table->timestamps();
+
+            $table->foreign('employee_id')->references('id')->on('employees');
+            $table->foreign('relationship_id')->references('id')->on('relationships');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('employees');
+        Schema::dropIfExists('teachers');
+        Schema::dropIfExists('qualifications');
+        Schema::dropIfExists('work_histories');
+        Schema::dropIfExists('emergency_contacts');
+    }
+};

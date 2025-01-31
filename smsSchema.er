@@ -1,0 +1,105 @@
+erDiagram
+    Users {
+        int id PK
+        string email UK
+        string password_hash
+        string first_name
+        string last_name
+        string company_name
+        timestamp created_at
+        timestamp updated_at
+        boolean is_active
+    }
+
+    ContactGroups {
+        int id PK
+        int user_id FK
+        string name
+        string description
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    Contacts {
+        int id PK
+        string phone_number
+        string email
+        string first_name
+        string last_name
+        json custom_fields
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    GroupContacts {
+        int id PK
+        int group_id FK
+        int contact_id FK
+        timestamp added_at
+    }
+
+    MessageTemplates {
+        int id PK
+        int user_id FK
+        string name
+        text content
+        json variables
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    Campaigns {
+        int id PK
+        int user_id FK
+        string name
+        string description
+        timestamp scheduled_at
+        timestamp started_at
+        timestamp completed_at
+        enum status
+        json settings
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    Messages {
+        int id PK
+        int campaign_id FK
+        int contact_id FK
+        int template_id FK
+        text content
+        enum status
+        string error_message
+        timestamp scheduled_at
+        timestamp sent_at
+        timestamp delivered_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MessageLogs {
+        int id PK
+        int message_id FK
+        enum event_type
+        json event_data
+        timestamp created_at
+    }
+
+    OptOuts {
+        int id PK
+        string phone_number UK
+        timestamp opted_out_at
+        string reason
+        int campaign_id FK
+    }
+
+    Users ||--o{ ContactGroups : "creates"
+    Users ||--o{ MessageTemplates : "creates"
+    Users ||--o{ Campaigns : "creates"
+    ContactGroups ||--o{ GroupContacts : "contains"
+    Contacts ||--o{ GroupContacts : "belongs_to"
+    Campaigns ||--o{ Messages : "contains"
+    Messages ||--o{ MessageLogs : "generates"
+    Messages ||--o{ OptOuts : "may_generate"
+    MessageTemplates ||--o{ Messages : "used_in"
+    Contacts ||--o{ Messages : "receives"

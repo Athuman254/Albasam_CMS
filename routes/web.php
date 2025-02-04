@@ -53,6 +53,8 @@ Route::group([
 
         // WEBSITE MANAGEMENT DATATABLES
         Route::get('/website/pages', [\App\Http\Controllers\Website\PageController::class, 'dataTable']);
+        Route::get('/website/page-sections', [\App\Http\Controllers\Website\SectionController::class, 'dataTable']);
+        Route::get('/website/page-sub-sections', [\App\Http\Controllers\Website\SubSectionController::class, 'dataTable']);
     });
 
     Route::resource('/attendance', \App\Http\Controllers\AttendanceController::class)->names('attendace');
@@ -138,7 +140,7 @@ Route::group([
         Route::resource('/institutions', \App\Http\Controllers\InstitutionController::class)->names('institutions');
         Route::resource('/users', \App\Http\Controllers\UserController::class)->names('users');
         Route::resource('/roles', \App\Http\Controllers\RoleController::class)->names('roles');
-        Route::resource('/permissions', \App\Http\Controllers\PermissionController::class)->names('permissions');
+//        Route::resource('/permissions', \App\Http\Controllers\PermissionController::class)->names('permissions');
 
         /**
          * WEBSITE MANAGEMENT ROUTES
@@ -150,6 +152,11 @@ Route::group([
             Route::post('/pages', [\App\Http\Controllers\Website\PageController::class, 'store'])->name('pages.store');
             Route::patch('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'update'])->name('pages.update');
             Route::delete('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'destroy'])->name('pages.destroy');
+            // PAGE SECTION ROUTES
+            Route::get('/pages/{page}/create-sections', [\App\Http\Controllers\Website\SectionController::class, 'create'])->name('pages.sections.create');
+            Route::post('/sections', [\App\Http\Controllers\Website\SectionController::class, 'store'])->name('sections.store');
+            Route::get('/pages/{page}/edit-sections', [\App\Http\Controllers\Website\SectionController::class, 'edit'])->name('pages.sections.edit');
+            Route::patch('/sections/{page}', [\App\Http\Controllers\Website\SectionController::class, 'update'])->name('pages.sections.update');
         });
     });
 });
@@ -158,4 +165,4 @@ Route::group([
  *  WEBSITE ROUTES
  */
 Route::get('/', [\App\Http\Controllers\Website\WebsiteController::class, 'index'])->name('homepage');
-Route::get('/{slug}', [\App\Http\Controllers\Website\WebsiteController::class, 'show'])->name('page.show');
+Route::get('/{slug}', [\App\Http\Controllers\Website\WebsiteController::class, 'page'])->name('page.show');

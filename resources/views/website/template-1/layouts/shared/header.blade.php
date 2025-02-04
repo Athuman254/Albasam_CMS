@@ -32,10 +32,10 @@
     <div class="logo-area">
         <div class="auto-container">
             <div class="row">
-                <div class="col-lg-3 col-12 mx-auto text-lg-left text-center pl-0 mb-lg-0 mb-4">
+                <div class="col-lg-3 col-12 mx-auto text-lg-left text-start pl-0 mb-lg-0 mb-4">
                     <div class="logo">
                         <a href="{{ route('homepage') }}">
-                            <img class="img-fluid" src="{{ asset('logo.png') }}" alt="Shariff Nassir Girls Secondary School" width="258" height="70">
+                            <img class="img-fluid" src="{{ asset('logo.png') }}" alt="logo"> <!-- style="width:285px; height:62px;"> -->
                         </a>
                     </div>
                 </div>

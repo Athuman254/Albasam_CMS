@@ -3,7 +3,7 @@
         <div class="app-brand demo">
             <a href="#" class="app-brand-link">
                 <span class="app-brand-logo demo">
-                    <img src="/public/nassir_logo.png" alt="logo" class="app-brand-logo demo" style="width: 160px; height: auto;"/>
+                    <img src="/public/logo.png" alt="logo" class="app-brand-logo demo" style="width: 160px; height: auto;"/>
                 </span>
             </a>
 
@@ -121,14 +121,14 @@
                 </Link>
             </li>
 
-            <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/permissions') }">
-                <Link href="/admin/permissions" class="menu-link">
-                    <span>
-                        <i class="menu-icon tf-icons bx bxs-key"></i>
-                    </span>
-                    Permissions
-                </Link>
-            </li>
+<!--            <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/permissions') }">-->
+<!--                <Link href="/admin/permissions" class="menu-link">-->
+<!--                    <span>-->
+<!--                        <i class="menu-icon tf-icons bx bxs-key"></i>-->
+<!--                    </span>-->
+<!--                    Permissions-->
+<!--                </Link>-->
+<!--            </li>-->
 
             <!-- Pages -->
             <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/settings') }">
@@ -166,14 +166,14 @@
                 </ul>
             </li>
              <!-- Pages -->
-             <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/website') }">
+             <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/website') }">
                 <a href="#" class="menu-link menu-toggle">
                     <i class="menu-icon tf-icons bx bx-globe"></i>
                     <div class="text-truncate" data-i18n="Account Settings">Web Settings</div>
                 </a>
                 <ul class="menu-sub">
-                    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/website/pages') }">
-                        <Link href="/website/pages" class="menu-link">
+                    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/pages') }">
+                        <Link href="/admin/website/pages" class="menu-link">
                             <div class="text-truncate">Pages</div>
                         </Link>
                     </li>

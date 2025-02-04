@@ -26,7 +26,7 @@ class PageController extends Controller
 
     public function index()
     {
-        return Inertia::render('Website/Pages/Index', []);
+        return Inertia::render('admin/Website/Pages/Index', []);
     }
 
     public function store(Request $request)
@@ -37,7 +37,7 @@ class PageController extends Controller
             'is_published' => 'boolean',
         ]);
 
-        $slug = strtolower(str_replace(' ', '-', $request->title));
+        $slug = strtolower(str_replace(' ', '-', $validated['title']));
 
         Page::create([
             'title' => $validated['title'],
@@ -49,19 +49,20 @@ class PageController extends Controller
         return to_route('pages.index')->with('success', 'Page created.');
     }
 
-    public function update(Request $request, $page)
+    public function update(Request $request, Page $page)
     {
         $validated = $request->validate([
-            'title' => 'required|string|unique:pages,title,' . $page,
-            'slug' => 'required|string|unique:pages,slug,'.$page,
+            'title' => 'required|string|unique:pages,title,' . $page->id,
+            'slug' => 'required|string|unique:pages,slug,'.$page->id,
             'content' => 'nullable|string',
             'is_published' => 'boolean',
         ]);
 
-        $page = Page::findOrFail($page);
+        $slug = strtolower(str_replace(' ', '-', $validated['title']));
+
         $page->update([
             'title' => $validated['title'],
-            'slug' => $validated['slug'],
+            'slug' => $slug,
             'content' => $validated['content'],
             'is_published' => $validated['is_published'] ?? false,
         ]);
@@ -69,10 +70,10 @@ class PageController extends Controller
         return to_route('pages.index')->with('success', 'Page updated successfully.');
     }
 
-    public function destroy($page)
+    public function destroy(Page $page)
     {
-        $page = Page::findOrFail($page);
         $page->delete();
+
         return to_route('pages.index')->with('success', 'Page deleted');
     }
 }

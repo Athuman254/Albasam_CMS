@@ -14,14 +14,15 @@ class WebsiteController extends Controller
         return view('website.template-1.pages.home', []);
     }
 
-    public function show($slug)
+    public function page($slug)
     {
         $page = Page::where('slug', $slug)
             ->where('is_published', '=', true)
             ->with(['sections' => function ($query) {
-                $query->whereNull('parent_id')->where('is_active', true)->orderBy('order')
-                    ->with(['children' => function ($subQuery) {
-                        $subQuery->where('is_active', true)->orderBy('order');
+                $query->where('is_active', true)
+                    ->orderBy('order')
+                    ->with(['subSections' => function ($q) {
+                        $q->where('is_active', true)->orderBy('order');
                     }]);
             }])
             ->firstOrFail();

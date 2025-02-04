@@ -2,11 +2,11 @@
     <div id="top-footer" class="overlay-2 section-back-image-2" data-background="assets/img/bg/footer-bg.jpg">
         <div class="auto-container">
             <div class="row">
-                <div class="col-lg-3 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
+                <div class="col-lg-4 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
                     <div class="footer-widget-title col-12 p-0">
                         <div class="logo">
                             <a href="{{ route('homepage') }}">
-                                <img class="img-fluid" src="{{ asset('logo.png') }}" alt="">
+                                <img class="img-fluid" src="{{ asset('logo.png') }}" alt="logo">
                             </a>
                         </div>
                     </div>
@@ -15,17 +15,17 @@
                         <div class="img-menu float-lg-left float-none mt-3">
                             <div class="footer-social">
                                 <ul>
-                                    <li><a class="social-fb" href="#"><i class="icofont-instagram"></i></a></li>
+                                    <li><a class="social-fb" href="#"><i class="icofont-facebook"></i></a></li>
+                                    <li><a class="social-gp" href="#"><i class="icofont-instagram"></i></a></li>
                                     <li><a class="social-tw" href="#"><i class="icofont-twitter"></i></a></li>
                                     <li><a class="social-gp" href="#"><i class="icofont-youtube"></i></a></li>
-                                    <li><a class="social-fb" href="#"><i class="icofont-linkedin"></i></a></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- end col -->
-                <div class="col-lg-3 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
+                <div class="col-lg-4 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
                     <div class="footer-widget-title col-12 p-0">
                         <h4>Latest Post</h4>
                     </div>
@@ -47,23 +47,7 @@
                     </div>
                 </div>
                 <!-- end col -->
-                <div class="col-lg-3 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-0 mb-sm-5 mb-5">
-                    <div class="footer-widget-title col-12 p-0">
-                        <h4>Useful Links</h4>
-                    </div>
-                    <div class="footer-widget-inner">
-                        <ul>
-                            <li><a href="#"><i class="icofont-circled-right"></i> Our Classes</a></li>
-                            <li><a href="#"><i class="icofont-circled-right"></i> Latest Services</a></li>
-                            <li><a href="#"><i class="icofont-circled-right"></i> Our Teachers</a></li>
-                            <li><a href="#"><i class="icofont-circled-right"></i> Image Gallery</a></li>
-                            <li><a href="#"><i class="icofont-circled-right"></i> Frequently Question</a></li>
-                            <li><a href="#"><i class="icofont-circled-right"></i> Client Testimonial</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <!-- end col -->
-                <div class="col-lg-3 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-0 mb-sm-0 mb-0">
+                <div class="col-lg-4 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-0 mb-sm-0 mb-0">
                     <div class="footer-widget-title col-12 p-0">
                         <h4>Get In Touch</h4>
                     </div>

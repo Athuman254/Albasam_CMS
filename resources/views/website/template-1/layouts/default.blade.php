@@ -10,7 +10,7 @@
     <meta name="keywords" content=""/>
 
     <!--Favicons-->
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon-291*301.png') }}" />
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.png') }}" />
 
     <!--Page Title-->
     <title>SHARIFF NASSIR GIRLS SECONDARY SCHOOL</title>

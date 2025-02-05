@@ -21,23 +21,21 @@
 
     <!-- START PAGE DATA POPULATION -->
     @foreach ($page->sections as $section)
-{{--        @if ($section->subSections->count() === 0)--}}
             <!-- Default layout if no subsections -->
             <section id="section-{{ $section->id }}" class="section-padding @if($section->bg_style === 'color'){{ $section->bg_color }} @endif"
-                     @if($section->bg_style === 'image') style="background: {{ $section->bg_style }} url('{{ asset('website-assets/template-1/assets/img/bg/about-img.png') }}') no-repeat center center;"> @endif
+                     @if($section->bg_style === 'image')  data-background="{{ asset('website-assets/template-1/assets/img/bg/mission.jpeg') }}" @endif>
                 <div class="auto-container">
                     <div class="row">
-                        <div class="col-lg-7 col-md-7 col-12 mx-auto text-center">
+                        <div class="col-lg-7 col-md-7 col-12 mx-auto text-start">
                             <div class="section-title">
                                 <h6 class="theme-color">{{ $section->sub_title }}</h6>
                                 <h2>{{ $section->title }}</h2>
-                                <p>{{ $section->content }}</p>
+                                <p>{!! $section->content !!}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
-{{--        @endif--}}
         @if ($section->subSections->count() === 2)
             <!-- Two-subsections layout -->
             <section id="section-{{ $section->id }}" class="section-padding">
@@ -66,11 +64,31 @@
                                 <div class="welcome-section-title">
                                     <h6 class="theme-color">{{ $secondSub->sub_title }}</h6>
                                     <h2>{{ $secondSub->title }}</h2>
-                                    <p>{{ $secondSub->content }}</p>
+                                    <p>{!! $secondSub->content !!}</p>
                                 </div>
                             @endif
                         </div>
                         <!-- end col -->
+                    </div>
+                </div>
+            </section>
+        @else
+            <section id="section-{{ $section->id }}" class="section-padding @if($section->bg_style === 'color'){{ $section->bg_color }} @endif"
+                     @if($section->bg_style === 'image') style="background: {{ $section->bg_style }} url('{{ asset('website-assets/template-1/assets/img/bg/about-img.png') }}') no-repeat center center;"> @endif
+                <div class="auto-container">
+                    <div class="row">
+                        <div class="col-lg-7 col-md-7 col-12 mx-auto text-start">
+                            <div class="section-title">
+                                @php $subSection = $section->subSections[0]; @endphp
+                                @if ($subSection->type == 2) {{-- Image type --}}
+                                <img class="img-fluid" src="{{ asset('website-assets/template-1/assets/img/bg/about-img.png')}}" alt=""/>
+                                @else
+                                    <h6 class="theme-color">{{ $subSection->sub_title }}</h6>
+                                    <h2>{{ $subSection->title }}</h2>
+                                    <p>{!! $subSection->content !!}</p>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

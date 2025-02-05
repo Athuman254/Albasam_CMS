@@ -82,7 +82,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4 col-12" v-if="section.bg_style">
+                                <div :class="section.bg_style === 'image' ? 'col-12' : 'col-12 col-md-4'" v-if="section.bg_style">
                                     <div class="mb-3">
                                         <div v-if="section.bg_style === 'color'">
                                             <label for="sectionBgColor" class="form-label">Background Color</label>
@@ -99,7 +99,7 @@
                                         </div>
                                         <div v-if="section.bg_style === 'image'">
                                             <label for="" class="form-label">Background Image</label>
-                                            <input type="file" @change="bgImageUpload($event, section)" class="form-control">
+                                            <drag-and-drop :multiple="false"  @update:files="(files) => bgImageUpload(files, index)"/>
                                             <div v-if="getSectionError(index, 'bg_image')" class="text-danger">
                                                 {{ getSectionError(index, 'bg_image') }}
                                             </div>
@@ -125,15 +125,17 @@
                                     <div class="mb-3">
                                         <div v-if="section.type === 1">
                                             <label for="sectionContent" class="form-label">Section Content</label>
-                                            <textarea rows="3" class="form-control" v-model="section.content"></textarea>
-<!--                                            <QuillEditor v-model="section.content" />-->
+                                            <quill-editor toolbar="full" contentType="html" theme="snow"
+                                            v-model:content="section.content"
+                                            :options="{ placeholder: 'Write something...' }" />
                                             <div v-if="getSectionError(index, 'content')" class="text-danger">
                                                 {{ getSectionError(index, 'content') }}
                                             </div>
                                         </div>
                                         <div v-if="section.type === 2">
                                             <label for="sectionImage" class="form-label">Section Image</label>
-                                            <input type="file" @change="typeImageUpload($event, section)" class="form-control">
+                                            <!-- <input type="file" @change="typeImageUpload($event, section)" class="form-control"> -->
+                                            <drag-and-drop :multiple="false"  @update:files="(files) => typeImageUpload(files, index)"/>
                                             <div v-if="getSectionError(index, 'type_image')" class="text-danger">
                                                 {{ getSectionError(index, 'type_image') }}
                                             </div>
@@ -202,14 +204,17 @@
                                                     <div v-if="sub.type === 1">
                                                         <label for="subSectionContent" class="form-label">Content</label>
                                                         <textarea rows="3" class="form-control" v-model="sub.content"></textarea>
-<!--                                                        <QuillEditor v-model="sub.content" />-->
+                                                        <quill-editor toolbar="full" contentType="html" theme="snow"
+                                            v-model:content="sub.content"
+                                            :options="{ placeholder: 'Write something...' }" />
                                                         <div v-if="getSubSectionError(index, subIndex, 'content')" class="text-danger">
                                                             {{ getSubSectionError(index, subIndex, 'content') }}
                                                         </div>
                                                     </div>
                                                     <div v-if="sub.type === 2">
                                                         <label for="subSectionImage" class="form-label">Section Image</label>
-                                                        <input type="file" id="subSectionImage" @change="subSectionImageUpload($event, sub)" class="form-control">
+                                                        <!-- <input type="file" id="subSectionImage" @change="subSectionImageUpload($event, sub)" class="form-control"> -->
+                                                        <drag-and-drop :multiple="false"  @update:files="(files) => subSectionImageUpload(files, index, subIndex)"/>
                                                         <div v-if="getSubSectionError(index, subIndex, 'type_image')" class="text-danger">
                                                             {{ getSubSectionError(index, subIndex, 'type_image') }}
                                                         </div>
@@ -241,9 +246,12 @@
 
 <script>
 import { useForm } from "@inertiajs/vue3";
-
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+import DragAndDrop from "../../../../global/DragAndDrop.vue";
 export default {
     props: ['page'],
+    components:{QuillEditor, DragAndDrop},
     data() {
         return {
             form: useForm({
@@ -336,16 +344,19 @@ export default {
         removeSubSection(sectionIndex, subIndex) {
             this.form.sections[sectionIndex].subSections.splice(subIndex, 1);
         },
-        bgImageUpload(event, section) {
-            let files = event.target.files;
-            section.bg_image = URL.createObjectURL(files[0]);
+        bgImageUpload(files,sectionIndex) {
+            this.form.sections[sectionIndex].bg_image = files[0];
         },
-        typeImageUpload(event, section, subSection) {
-            let files = event.target.files;
-            section.type_image = URL.createObjectURL(files[0]);
+        typeImageUpload(files, sectionIndex) {
+            this.form.sections[sectionIndex].type_image = files[0];
         },
-        subSectionImageUpload() {
-            let files = event.target.files;
+        // typeImageUpload(event, section, subSection) {
+        //     let files = event.target.files;
+        //     section.type_image = URL.createObjectURL(files[0]);
+        // },
+        subSectionImageUpload(files, sectionIndex, subIndex) {
+            this.form.sections[sectionIndex].subSections[subIndex].type_image = files[0];
+            // let files = event.target.files;
         },
         getSectionError(index, field) {
             return this.form.errors[`sections.${index}.${field}`];

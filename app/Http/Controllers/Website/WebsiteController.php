@@ -10,8 +10,11 @@ class WebsiteController extends Controller
     public function index(): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
     {
         $institution = Institution::orderBy('id')->first() ?? new Institution();
-
-        return view('website.template-1.pages.home', []);
+        // $pages = Page::all();
+        // dd($pages);
+        return view('website.template-1.pages.home', [
+            // 'pages' =>  $pages
+        ]);
     }
 
     public function page($slug)

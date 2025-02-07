@@ -1,4 +1,5 @@
 <template>
+    {{ $props.logoUrl }}
     <div class="profile">
         <h3 class="mb-0">Institution Profile</h3>
         <nav class="mb-3">
@@ -51,6 +52,47 @@
                             <!-- Profile Edit Form -->
                             <div>
                                 <div class="row">
+                                    <div class="col-md-6">
+                                        <div v-if="logoUrl" class="mb-6">
+                                            <img class="card-img" :src="logoUrl" alt="">
+<!--                                            <div class="card mb-3">-->
+<!--                                            </div>-->
+                                        </div>
+                                        <div v-else class="mb-6 form-group">
+                                            <label class="form-label" for="instituteLogo">Logo</label>
+                                            <input
+                                                @change="handleLogoUpload"
+                                                id="instituteLogo"
+                                                type="file"
+                                                accept="image/*"
+                                                required
+                                                class="form-control mb-3"
+                                            />
+                                            <button type="button" class="btn btn-success" @click.prevent="uploadMedia">
+                                                Upload Logo
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div v-if="faviconUrl" class="mb-6">
+                                            <img class="card-img" :src="faviconUrl" alt="">
+<!--                                            <div class="card">-->
+<!--                                            </div>-->
+                                        </div>
+                                        <div v-else class="mb-6 form-group">
+                                            <label class="form-label" for="instituteFavicon">Favicon</label>
+                                            <input
+                                                @change="handleFaviconUpload"
+                                                id="instituteFavicon"
+                                                type="file"
+                                                accept="image/*"
+                                                class="form-control mb-3"
+                                            />
+                                            <button type="button" class="btn btn-success" @click.prevent="uploadMedia">
+                                                Upload Favicon
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div class="divider">
                                         <div class="divider-text">GENERAL INFORMATION</div>
                                     </div>
@@ -66,7 +108,7 @@
                                                     id="instituteName"
                                                     type="text"
                                                     class="form-control"
-                                                    placeholder="ACME Inc."/>
+                                                    placeholder="Institute Name"/>
                                             </div>
                                             <div v-if="form.errors.name" class="text-danger">{{ form.errors.name }}</div>
                                         </div>
@@ -353,19 +395,14 @@ import {Inertia} from "@inertiajs/inertia";
 import axios from "axios";
 
 export default {
-    props: {
-        // institution: {
-        //     type: Object,
-        //     required: true,
-        //     default: () => ({})
-        // },
-        divisions: {
-            type: Array,
-            required: true,
-        },
-    },
+    props: ['logoUrl', 'faviconUrl'],
     data() {
         return {
+            mediaForm: useForm({
+                institution_id: '',
+                logo: '',
+                favicon: '',
+            }),
             form: useForm({
                 id: '',
                 name: '',
@@ -449,7 +486,6 @@ export default {
                 onSuccess: () => {
                     this.form.clearErrors();
                     this.$toast.success('Institution details updated', 'Updated');
-                    // this.$inertia.visit('/admin/institutions');
                     this.institutionDetails();
                 },
                 onError: (errors) => {
@@ -457,6 +493,38 @@ export default {
                     this.$toast.error('An error occurred. Please try again', 'Error');
                 },
             });
+        },
+        handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                this.mediaForm.logo = file;
+            }
+        },
+        handleFaviconUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                this.mediaForm.favicon = file;
+            }
+        },
+        uploadMedia() {
+            this.mediaForm.institution_id = this.institution.id;
+
+            this.mediaForm.post('/admin/institution-media/', {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+                onSuccess: () => {
+                    this.mediaForm.reset();
+                    this.mediaForm.clearErrors();
+                    this.$toast.success('Media uploaded', 'Updated');
+                    this.$inertia.visit('/admin/institutions');
+                    this.institutionDetails();
+                },
+                onError: (errors) => {
+                    console.log(errors);
+                    this.$toast.error('An error occurred. Please try again', 'Error');
+                },
+            })
         },
     },
 }

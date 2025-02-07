@@ -53,12 +53,12 @@ class PageController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|unique:pages,title,' . $page->id,
-            'slug' => 'required|string|unique:pages,slug,'.$page->id,
+            'slug' => 'nullable|string|unique:pages,slug,'.$page->id,
             'content' => 'nullable|string',
             'is_published' => 'boolean',
         ]);
 
-        $slug = strtolower(str_replace(' ', '-', $validated['title']));
+        $slug = strtolower(str_replace(' ', '-', $validated['slug']));
 
         $page->update([
             'title' => $validated['title'],

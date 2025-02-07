@@ -14,19 +14,25 @@ class InstitutionController extends Controller
 {
     public function dataTable()
     {
-        return Institution::orderBy('id')->first();
-
-//        return response()->json($institution);
+        $institution = Institution::orderBy('id')->first();
+        $institution->load('media');
+        return $institution;
     }
 
     public function index()
     {
-        $institution = Institution::first() ?: (object) [];
-        $divisions = Division::activated()->orderBy('name')->get();
+        $institution = Institution::orderBy('id')->first();
+        $institution->load('media');
+        $logoUrl = '';
+        $faviconUrl = '';
+        if($institution->id) {
+            $logoUrl = $institution->getFirstMediaUrl('logo');
+            $faviconUrl = $institution->getFirstMediaUrl('favicon');
+        }
 
         return Inertia::render('admin/Institutions/Index', [
-            'institution' => $institution,
-            'divisions' => $divisions,
+            'logoUrl' => $logoUrl,
+            'faviconUrl' => $faviconUrl,
         ]);
     }
 
@@ -81,5 +87,27 @@ class InstitutionController extends Controller
 
         return to_route('institutions.index')->with('success', 'Institution updated successfully.');
 //        return response()->noContent();
+    }
+
+    public function uploadMedia(Request $request)
+    {
+        $validated = $request->validate([
+            'institution_id' => 'required',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'favicon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+        $institution = Institution::findOrFail($validated['institution_id']);
+
+        if($request->hasFile('logo')) {
+            $institution->addMedia($validated['logo'])
+                ->toMediaCollection('logo');
+        }
+
+        if($request->hasFile('favicon')) {
+            $institution->addMedia($validated['favicon'])
+                ->toMediaCollection('favicon');
+        }
+
+        return to_route('institutions.index')->with('success', 'Institution media uploaded successfully.');
     }
 }

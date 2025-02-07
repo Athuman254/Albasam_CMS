@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
             }
         }
         if(Schema::hasTable('pages')) {
-            $pages = \App\Models\Page::where('is_published', true)->get();
+            $pages = \App\Models\Page::where('is_published', true)->where('is_home', false)->get();
 
             if ($pages) {
                 View::share('pages', $pages);

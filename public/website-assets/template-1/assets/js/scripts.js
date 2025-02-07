@@ -93,7 +93,7 @@ Table Of Contents end
 		$('.home-slides').owlCarousel({
 			loop: true,
 			autoplay: false,
-			autoplayTimeout: 4000,
+			autoplayTimeout: 2000,
 			dots: true,
 			nav: true,
 			navText: ["<i class='icofont-simple-left'></i>", "<i class='icofont-simple-right'></i>"],

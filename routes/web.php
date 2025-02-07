@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -88,6 +89,7 @@ Route::group([
         //    Route::post('student-admissions/fourth-step', [\App\Http\Controllers\StudentAdmissionController::class, 'fourthStep'])->name('admissions.fourth.step');
 
         Route::post('/users/{user}/permissions', [\App\Http\Controllers\UserController::class, 'updatePermission']);
+        Route::post('/institution-media', [\App\Http\Controllers\InstitutionController::class, 'uploadMedia']);
 
         Route::group([
             'prefix' => 'employees',

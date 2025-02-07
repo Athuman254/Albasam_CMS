@@ -341,7 +341,7 @@ class DatabaseSeeder extends Seeder
             'country' => 'KENYA',
             'state' => 'MOMBASA',
             'city' => 'MOMBASA',
-            'physical_address' => 'WMXC+PGR, Kisauni Rd, Off Sheik Abdullas Rd, Mombasa',
+            'physical_address' => 'Kisauni Rd, Off Sheikh Abdullas Rd, Mombasa',
             'postal_address' => '86716-80100',
             'tax_identification_pin' => '',
             'mission' => 'To empower students to become productive members of the society by providing a conducive environment that will nurture them academically, socially and emotionally.',

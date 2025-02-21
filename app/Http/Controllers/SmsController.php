@@ -52,12 +52,13 @@ class SmsController extends Controller
         if($validated['group'] == "Parents"){
             $validated["re"] = "";
         }
-        dd($request->validated());
+
         $messageService = new MessageService();
         $result = $messageService->sendMessages(
             $user,
             $request->validated()
         );
+        dd($result);
         return response()->json([
             'message' => 'Messages queued successfully',
             'message_count' => $result['message_count'],

@@ -15,7 +15,7 @@ class Page extends Model
     protected $casts = ['is_published' => 'bool', 'is_home' => 'bool'];
     protected $appends = ['hashid'];
     protected $fillable = [
-        'title', 'content', 'slug', 'is_published'
+        'title', 'content', 'slug', 'is_published', 'is_home'
     ];
 
     public function sections(): \Illuminate\Database\Eloquent\Relations\HasMany

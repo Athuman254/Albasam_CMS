@@ -11,12 +11,12 @@ class StudentAdmissionRequest extends FormRequest
     {
         return [
             'registration_details.date' => ['required', 'date'],
-            'registration_details.admission_number' => ['required', 'string', 'max:255'],
-            'registration_details.division_id' => ['required'],
-            'registration_details.rank_id' => ['required'],
+            'registration_details.division_id' => ['required', Rule::exists('divisions', 'id')],
             'student.first_name' => ['required', 'string', 'max:255'],
             'student.middle_name' => ['nullable', 'string', 'max:255'],
             'student.last_name' => ['required', 'string', 'max:255'],
+            'student.admission_number' => ['required', 'string', 'max:255'],
+            'student.rank_id' => ['required', Rule::exists('ranks', 'id')],
             'student.date_of_birth' => ['required', 'date', 'max:255'],
             'student.birth_certificate_number' => ['nullable', 'string', 'max:255'],
             'student.gender_id' => ['required', Rule::exists('genders', 'id')],

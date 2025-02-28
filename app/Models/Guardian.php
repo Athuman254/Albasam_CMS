@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Guardian extends Model
 {
-    use SoftDeletes, HasHashid, HashidRouting;
+    use HasHashid, HashidRouting;
 
     protected $table = 'guardians';
     protected $primaryKey = 'id';

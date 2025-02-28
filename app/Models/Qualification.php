@@ -18,7 +18,7 @@ class Qualification extends Model
         'qualification_type_id', 'employee_id', 'institution_name', 'course_name', 'year_of_completion'
     ];
 
-    public function qualificationType()
+    public function qualification_type()
     {
         return $this->belongsTo(QualificationType::class, 'qualification_type_id', 'id');
     }

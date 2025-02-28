@@ -14,7 +14,7 @@ class ProfileController extends Controller
         $user = auth()->user();
         $user->load('roles');
 
-        return Inertia::render('admin/Profile/Index', [
+        return Inertia::render('Profile/Index', [
             'user' => $user,
         ]);
     }

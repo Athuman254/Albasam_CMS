@@ -53,8 +53,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('employee_id');
-            $table->unsignedBigInteger('specialization_area_id')->nullable();
+            $table->string('first_name');
+            $table->string('middle_name')->nullable();
+            $table->string('last_name');
+            $table->unsignedBigInteger('honorific_id');
             $table->unsignedBigInteger('teacher_title_id')->nullable();
+            $table->unsignedBigInteger('specialization_area_id')->nullable();
             $table->string('tsc_number')->nullable();
             $table->tinyInteger('years_of_experience')->default(0);
             $table->timestamps();

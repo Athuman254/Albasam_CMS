@@ -17,7 +17,7 @@ class StudentAdmission extends Model
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
     protected $fillable = [
-        'date', 'admission_number', 'division_id', 'rank_id', 'physical_disability', 'hobby'
+        'date', 'division_id', 'physical_disability', 'hobby'
     ];
 
     public function student(): HasOne
@@ -28,10 +28,5 @@ class StudentAdmission extends Model
     public function division(): BelongsTo
     {
         return $this->belongsTo(Division::class, 'division_id');
-    }
-
-    public function rank(): BelongsTo
-    {
-        return $this->belongsTo(Rank::class, 'rank_id');
     }
 }

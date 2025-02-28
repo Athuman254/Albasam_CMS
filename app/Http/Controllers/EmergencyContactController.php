@@ -13,7 +13,7 @@ class EmergencyContactController extends Controller
     public function dataTable()
     {
         $emergencyContacts = QueryBuilder::for(
-            EmergencyContact::orderBy('id')
+            EmergencyContact::with('relationship')->orderBy('id')
         )->allowedFilters([
             AllowedFilter::exact('employee_id'),
         ])->jsonPaginate();

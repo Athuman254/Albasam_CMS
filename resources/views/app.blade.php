@@ -38,5 +38,7 @@
 
     @inertia
 
+    <!-- Place this tag before closing body tag for github widget button. -->
+    <script async defer src="{{ asset('assets/js/buttons.js') }}"></script>
 </body>
 </html>

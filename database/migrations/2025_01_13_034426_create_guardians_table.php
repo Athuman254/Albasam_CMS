@@ -23,7 +23,6 @@ return new class extends Migration
             $table->string('identification_number')->unique()->nullable();  // ID or Passport number
             $table->text('profession')->nullable();
             $table->timestamps();
-            $table->softDeletes();
 
             $table->foreign('student_id')->references('id')->on('students');
             $table->foreign('relationship_id')->references('id')->on('relationships');
@@ -49,7 +48,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('guardians');
         Schema::dropIfExists('siblings');
+        Schema::dropIfExists('guardians');
     }
 };

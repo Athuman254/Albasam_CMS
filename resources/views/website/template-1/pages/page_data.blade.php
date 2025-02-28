@@ -22,7 +22,8 @@
     <!-- END PAGE BANNER -->
 
     <!-- START PAGE DATA POPULATION -->
-    @foreach ($page->sections as $section)
+    @if($page->sections->isNotEmpty())
+        @foreach ($page->sections as $section)
             <!-- Default layout if no subsections -->
             <section id="section-{{ $section->id }}" class="section-padding @if($section->bg_style === 'color'){{ $section->bg_color }} @endif"
                      @if($section->bg_style === 'image')  data-background="{{ asset('website-assets/template-1/assets/img/bg/mission.jpeg') }}" @endif>
@@ -38,64 +39,72 @@
                     </div>
                 </div>
             </section>
-        @if ($section->subSections->count() === 2)
-            <!-- Two-subsections layout -->
-            <section id="section-{{ $section->id }}" class="section-padding">
-                <div class="auto-container">
-                    <div class="row">
-                        <!-- First Subsection -->
-                        <div class="col-lg-6 col-md-6 col-sm-12 col-12 mb-lg-0 mb-5">
-                            @php $firstSub = $section->subSections[0]; @endphp
-                            @if ($firstSub->type == 2) {{-- Image type --}}
-                                <img class="img-fluid" src="{{ asset('website-assets/template-1/assets/img/bg/about-img.png')}}" alt=""/>
-                            @else
-                                <div class="welcome-section-title">
-                                    <h6 class="theme-color">{{ $firstSub->sub_title }}</h6>
-                                    <h2>{{ $firstSub->title }}</h2>
-                                    <p>{{ $firstSub->content }}</p>
+            @if($section->subSections->isNotEmpty())
+                @if ($section->subSections->count() === 2)
+                    <!-- Two-subsections layout -->
+                    <section id="section-{{ $section->id }}" class="section-padding">
+                        <div class="auto-container">
+                            <div class="row">
+                                <!-- First Subsection -->
+                                <div class="col-lg-6 col-md-6 col-sm-12 col-12 mb-lg-0 mb-5">
+                                    @php $firstSub = $section->subSections[0]; @endphp
+                                    @if ($firstSub->type == 2) {{-- Image type --}}
+                                        <img class="img-fluid" src="{{ asset('website-assets/template-1/assets/img/bg/about-img.png')}}" alt=""/>
+                                    @else
+                                        <div class="welcome-section-title">
+                                            <h6 class="theme-color">{{ $firstSub->sub_title }}</h6>
+                                            <h2>{{ $firstSub->title }}</h2>
+                                            <p>{{ $firstSub->content }}</p>
+                                        </div>
+                                    @endif
                                 </div>
-                            @endif
-                        </div>
 
-                        <!-- Second Subsection -->
-                        <div class="col-lg-6 col-md-6 col-sm-12 col-12">
-                            @php $secondSub = $section->subSections[1]; @endphp
-                            @if ($secondSub->type == 2) {{-- Image type --}}
-                                <img class="img-fluid" src="{{ asset('website-assets/template-1/assets/img/bg/about-img.png')}}" alt=""/>
-                            @else
-                                <div class="welcome-section-title">
-                                    <h6 class="theme-color">{{ $secondSub->sub_title }}</h6>
-                                    <h2>{{ $secondSub->title }}</h2>
-                                    <p>{{ $secondSub->content }}</p>
+                                <!-- Second Subsection -->
+                                <div class="col-lg-6 col-md-6 col-sm-12 col-12">
+                                    @php $secondSub = $section->subSections[1]; @endphp
+                                    @if ($secondSub->type == 2) {{-- Image type --}}
+                                        <img class="img-fluid" src="{{ asset('website-assets/template-1/assets/img/bg/about-img.png')}}" alt=""/>
+                                    @else
+                                        <div class="welcome-section-title">
+                                            <h6 class="theme-color">{{ $secondSub->sub_title }}</h6>
+                                            <h2>{{ $secondSub->title }}</h2>
+                                            <p>{{ $secondSub->content }}</p>
+                                        </div>
+                                    @endif
                                 </div>
-                            @endif
-                        </div>
-                        <!-- end col -->
-                    </div>
-                </div>
-            </section>
-        @else
-            <section id="section-{{ $section->id }}" class="section-padding @if($section->bg_style === 'color'){{ $section->bg_color }} @endif"
-                     @if($section->bg_style === 'image') style="background: {{ $section->bg_style }} url('{{ asset('website-assets/template-1/assets/img/bg/about-img.png') }}') no-repeat center center;"> @endif
-                <div class="auto-container">
-                    <div class="row">
-                        <div class="col-lg-7 col-md-7 col-12 mx-auto text-center">
-                            <div class="section-title">
-                                @php $subSection = $section->subSections[0]; @endphp
-                                @if ($subSection->type == 2) {{-- Image type --}}
-                                <img class="img-fluid" src="{{ asset('website-assets/template-1/assets/img/bg/about-img.png')}}" alt=""/>
-                                @else
-                                    <h6 class="theme-color">{{ $subSection->sub_title }}</h6>
-                                    <h2>{{ $subSection->title }}</h2>
-                                    <p>{{ $subSection->content }}</p>
-                                @endif
+                                <!-- end col -->
                             </div>
                         </div>
-                    </div>
-                </div>
-            </section>
-        @endif
-    @endforeach
+                    </section>
+                @elseif($section->subSections->count() === 1)
+                    <section id="section-{{ $section->id }}" class="section-padding @if($section->bg_style === 'color'){{ $section->bg_color }} @endif"
+                             @if($section->bg_style === 'image') style="background: {{ $section->bg_style }} url('{{ asset('website-assets/template-1/assets/img/bg/about-img.png') }}') no-repeat center center;"> @endif
+                        <div class="auto-container">
+                            <div class="row">
+                                <div class="col-lg-7 col-md-7 col-12 mx-auto text-center">
+                                    <div class="section-title">
+                                        @php
+                                            $subSection = $section->subSections[0]; // todo: Use first() instead of [0]
+                                        @endphp
+
+                                        @if ($subSection->type == 2) {{-- Image type --}}
+                                        <img class="img-fluid" src="{{ asset('website-assets/template-1/assets/img/bg/about-img.png')}}" alt=""/>
+                                        @else
+                                            <h6 class="theme-color">{{ $subSection->sub_title }}</h6>
+                                            <h2>{{ $subSection->title }}</h2>
+                                            <p>{{ $subSection->content }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                @else
+                    <div style="display: none;"></div>
+                @endif
+            @endif
+      @endforeach
+    @endif
     @php
     $slugs = ['contact', 'contact-us', 'reach-out'];
     @endphp
@@ -144,7 +153,7 @@
                             <h2>Join With Us</h2>
                         </div>
                         <div class="contact-form-wrap">
-                            <form id="main-form" class="contact-form form" name="enq" method="POST" action="form-process.php">
+                            <form id="main-form" class="contact-form form" name="enq" method="POST" action="">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">

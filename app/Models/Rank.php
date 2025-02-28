@@ -17,22 +17,28 @@ class Rank extends Model
     protected $casts = ['activated' => 'bool'];
     protected $fillable = ['name', 'division_id', 'stream_id', 'teacher_id', 'activated'];
 
-    public function division()
+    public function division(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Division::class, 'division_id', 'id');
     }
 
-    public function stream()
+    public function stream(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Stream::class, 'stream_id', 'id');
     }
 
-    public function teacher()
+    public function teacher(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Teacher::class, 'teacher_id', 'id');
     }
-
-    public function scopeActivated($query)
+    
+    public function subjects(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Subject::class, 'rank_subjects', 'rank_id', 'subject_id');
+    }
+    
+    
+    public function scopeActivated($query): void
     {
         $query->where('activated', '=', true);
     }

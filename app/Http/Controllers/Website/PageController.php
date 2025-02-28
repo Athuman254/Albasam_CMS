@@ -36,6 +36,11 @@ class PageController extends Controller
             'content' => 'nullable|string',
             'is_published' => 'boolean',
         ]);
+        
+        $isHome = false;
+        if ($validated['title'] == 'Home' || $validated['slug'] == 'home') {
+            $isHome = true;
+        }
 
         $slug = strtolower(str_replace(' ', '-', $validated['title']));
 
@@ -44,6 +49,7 @@ class PageController extends Controller
             'slug' => $slug,
             'content' => $validated['content'],
             'is_published' => $validated['is_published'] ?? false,
+            'is_home' => $isHome,
         ]);
 
         return to_route('pages.index')->with('success', 'Page created.');
@@ -57,6 +63,12 @@ class PageController extends Controller
             'content' => 'nullable|string',
             'is_published' => 'boolean',
         ]);
+        
+        $isHome = false;
+        
+        if ($validated['title'] == 'Home' || $validated['slug'] == 'home') {
+            $isHome = true;
+        }
 
         $slug = strtolower(str_replace(' ', '-', $validated['slug']));
 
@@ -65,6 +77,7 @@ class PageController extends Controller
             'slug' => $slug,
             'content' => $validated['content'],
             'is_published' => $validated['is_published'] ?? false,
+            'is_home' => $isHome,
         ]);
 
         return to_route('pages.index')->with('success', 'Page updated successfully.');

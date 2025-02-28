@@ -27,8 +27,8 @@ class WebsiteController extends Controller
    public function page($slug)
    {
       $page = Page::where('slug', '=', $slug)
-         ->where('is_published', '=', true)
          ->where('is_home', '=', false)
+         ->where('is_published', '=', true)
          ->with(['sections' => function ($query) {
             $query->where('is_active', '=', true)
                ->orderBy('order')

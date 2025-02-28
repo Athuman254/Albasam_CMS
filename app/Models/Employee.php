@@ -35,7 +35,7 @@ class Employee extends Model
         return $this->belongsTo(EmploymentStatus::class, 'employment_status_id', 'id');
     }
 
-    public function jobTitle(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function job_title(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(JobTitle::class, 'job_title_id', 'id');
     }
@@ -45,7 +45,7 @@ class Employee extends Model
         return $this->belongsTo(Honorific::class, 'honorific_id', 'id');
     }
 
-    public function maritalStatus(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function marital_status(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(MaritalStatus::class, 'marital_status_id', 'id');
     }
@@ -78,5 +78,16 @@ class Employee extends Model
     public function histories(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(WorkHistory::class);
+    }
+    
+    public function scopeSearch($query, string $terms = null)
+    {
+        collect(explode(' ', $terms))->filter()->each(function ($term) use ($query) {
+            $term = '%'.$term.'%';
+            
+            $query->where('first_name', 'like', $term)
+                ->orwhere('last_name', 'like', $term)
+                ->orwhere('staff_number', 'like', $term);
+        });
     }
 }

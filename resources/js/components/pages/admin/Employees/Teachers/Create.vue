@@ -15,7 +15,7 @@
                </li>
             </ol>
          </nav>
-         
+
          <div class="card">
             <div class="card-header border-bottom">
                <div class="form-header">
@@ -40,7 +40,7 @@
                </div>
                <!-- Steps End -->
             </div>
-            
+
             <div class="card-body">
                <div class="row">
                   <div class="col-md-12">
@@ -236,7 +236,7 @@
                            </div>
                         </div>
                      </transition>
-                     
+
                      <transition name="fade">
                         <div v-if="currentStep === 2" class="step">
                            <div class="row">
@@ -318,7 +318,7 @@
                                     </div>
                                  </div>
                               </div>
-                              
+
                               <div class="mb-3 mt-4">
                                  <h5 class="mb-0">Emergency Contact Details</h5>
                                  <small>Capture The Teacher's Emergency Contact</small>
@@ -396,7 +396,7 @@
                            </div>
                         </div>
                      </transition>
-                     
+
                      <transition name="fade">
                         <div v-if="currentStep === 3" class="step">
                            <div class="row">
@@ -454,7 +454,7 @@
                                     </div>
                                  </div>
                               </div>
-                              
+
                               <div class="mb-3 mt-4">
                                  <h5 class="mb-0">Qualification Details</h5>
                                  <small>Enter Teacher's Qualification Details</small>
@@ -535,7 +535,7 @@
                                     Add Qualification
                                  </button>
                               </div>
-                              
+
                               <div class="mb-3 mt-4">
                                  <h5 class="mb-0">Work History</h5>
                                  <small>Enter Teacher's Work History</small>
@@ -615,7 +615,7 @@
                            </div>
                         </div>
                      </transition>
-                     
+
                      <!-- Navigation Start -->
                      <div class="form-footer px-0">
                         <div class="col-md-6">
@@ -666,60 +666,60 @@ export default {
       return {
          form: useForm({
             personal_details: {
-               first_name: '',
-               middle_name: '',
-               last_name: '',
-               honorific_id: '',
-               marital_status_id: '',
-               gender_id: '',
-               religion_id: '',
-               email: '',
-               primary_phone: '',
-               secondary_phone: '',
-               permanent_physical_address: '',
-               secondary_physical_address: '',
-               postal_address: '',
-               identification_number: '',
-               tax_identification_pin: '',
+               first_name: null,
+               middle_name: null,
+               last_name: null,
+               honorific_id: null,
+               marital_status_id: null,
+               gender_id: null,
+               religion_id: null,
+               email: null,
+               primary_phone: null,
+               secondary_phone: null,
+               permanent_physical_address: null,
+               secondary_physical_address: null,
+               postal_address: null,
+               identification_number: null,
+               tax_identification_pin: null,
             },
             employee_details: {
-               staff_number: '',
+               staff_number: null,
                date_of_hire: new Date().toISOString().slice(0, 10),
-               employment_type_id: '',
-               employment_status_id: '',
-               job_title_id: '',
+               employment_type_id: null,
+               employment_status_id: null,
+               job_title_id: null,
                emergency_contacts: [
                   // {
-                  //    name: '',
-                  //    email: '',
-                  //    phone: '',
-                  //    relationship_id: '',
+                  //    name: null',
+                  //    email: null',
+                  //    phone: null',
+                  //    relationship_id: null',
                   // }
                ],
             },
             other_details: {
-               specialization_area_id: '',
-               teacher_title_id: '',
-               tsc_number: '',
-               years_of_experience: '',
+               specialization_area_id: null,
+               teacher_title_id: null,
+               tsc_number: null,
+               years_of_experience: null,
                qualifications: [
                   // {
-                  //    institution_name: '',
-                  //    course_name: '',
-                  //    qualification_type_id: '',
-                  //    year_of_completion: '',
+                  //    institution_name: null',
+                  //    course_name: null',
+                  //    qualification_type_id: null',
+                  //    year_of_completion: null',
                   // },
                ],
                work_histories: [
                   // {
-                  //    institution_name: '',
-                  //    start_date: '',
-                  //    end_date: '',
+                  //    institution_name: null',
+                  //    start_date: null',
+                  //    end_date: null',
                   // }
                ],
             },
          }),
-         
+
          employmentTypes: [],
          employmentStatuses: [],
          jobTitles: [],
@@ -731,7 +731,7 @@ export default {
          specializationAreas: [],
          teacherTitles: [],
          qualificationTypes: [],
-         
+
          currentStep: 1,
          routes: {
             1: "/admin/employees/teacher-registration/first-step",
@@ -739,7 +739,7 @@ export default {
             3: "/admin/employees/teachers",
             // 4: "/admin/employees/teacher-registration/fourth-step",
          },
-         
+
          dataFetched: false,
       }
    },
@@ -778,7 +778,7 @@ export default {
          this.fetchedSpecializationAreas();
          this.fetchedTeacherTitles();
          this.fetchedQualificationTypes();
-         
+
          this.dataFetched = true;
       },
       fetchedEmploymentTypes() {

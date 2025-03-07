@@ -22,10 +22,10 @@ class RankSubjectController extends Controller
             AllowedFilter::exact('subject_id'),
             AllowedFilter::exact('teacher_id'),
         ])->jsonPaginate();
-        
+
         return Resource::collection($rankSubjects);
     }
-    
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -33,18 +33,18 @@ class RankSubjectController extends Controller
             'subject_id' => ['required', Rule::exists('subjects', 'id')],
             'teacher_id' => ['nullable', Rule::exists('teachers', 'id')],
         ]);
-        
+
         $rank = Rank::findOrFail($validated['rank_id']);
-        
+
         RankSubject::create([
             'rank_id' => $validated['rank_id'],
             'subject_id' => $validated['subject_id'],
             'teacher_id' => $validated['teacher_id'],
         ]);
-        
+
         return to_route('ranks.show', $rank->hashid);
     }
-    
+
     public function update(Request $request, RankSubject $rank_subject)
     {
         $validated = $request->validate([
@@ -52,18 +52,18 @@ class RankSubjectController extends Controller
             'subject_id' => ['required', Rule::exists('subjects', 'id')],
             'teacher_id' => ['nullable', Rule::exists('teachers', 'id')],
         ]);
-        
+
         $rank = Rank::findOrFail($validated['rank_id']);
-        
-        $rank_subject::update([
+
+        $rank_subject->update([
             'rank_id' => $validated['rank_id'],
             'subject_id' => $validated['subject_id'],
             'teacher_id' => $validated['teacher_id'],
         ]);
-        
+
         return to_route('ranks.show', $rank->hashid);
     }
-    
+
     public function syncSubjects(Request $request)
     {
         $validated = $request->validate([
@@ -71,17 +71,17 @@ class RankSubjectController extends Controller
             'subjects' => ['nullable', 'array'],
             'subjects.*.subject_id' => [Rule::exists('subjects', 'id')],
         ]);
-        
+
         $rank = Rank::findOrFail($validated['rank_id']);
         $rank->subjects()->sync($validated['subjects']);
-        
+
         return to_route('ranks.show', $rank->hashid);
     }
-    
+
     public function destroy(RankSubject $rank_subject)
     {
         $rank_subject->delete();
-        
+
         return response()->noContent();
     }
 }

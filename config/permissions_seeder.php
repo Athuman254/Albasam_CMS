@@ -7,6 +7,15 @@ return [
     'truncate_tables' => true,
 
     'modules' => [
+        'Configurations' => [
+            'institution-workspace' => 'a',
+            'divisions-workspace' => 'a',
+            'divisions' => 'c,e,d',
+            'streams-workspace' => 'a',
+            'streams' => 'c,e,d',
+            'subjects-workspace' => 'a',
+            'subjects' => 'c,e,d',
+        ],
         'User Management' => [
             'users-workspace' => 'a',
             'users' => 'c,e,r,d',

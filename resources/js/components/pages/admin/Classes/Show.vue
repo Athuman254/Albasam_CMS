@@ -101,25 +101,24 @@
                         <div class="d-flex align-items-center">
                            <div>
                               <p class="fw-medium mb-0">{{ rankSubject.subject.name }}</p>
-                              <small class="text-primary">{{ rankSubject.teacher.honorific?.name + ' ' + rankSubject.teacher.first_name + ' ' + rankSubject.teacher.last_name }}</small>
+                              <small v-if="rankSubject.teacher_id" class="text-primary">{{ rankSubject.teacher?.honorific?.name + ' ' + rankSubject.teacher?.first_name + ' ' + rankSubject.teacher?.last_name }}</small>
+                              <small v-else>-</small>
                            </div>
                         </div>
                         <div class="ms-auto">
-                           <div class="card-action-element">
-                              <div class="dropdown">
-                                 <button type="button" class="btn btn-icon btn-text-secondary dropdown-toggle hide-arrow p-0" data-bs-toggle="dropdown">
-                                    <i class="icon-base bx bx-dots-vertical-rounded icon-md text-body-secondary"></i>
-                                 </button>
-                                 <div class="dropdown-menu dropdown-menu-end">
-                                    <a class="dropdown-item" href="#" @click.prevent="editRankSubject(rankSubject)">
-                                       <i class="bx bx-edit-alt me-2"></i>
-                                       Edit
-                                    </a>
-                                    <a class="dropdown-item text-danger" href="#">
-                                       <i class="bx bx-trash me-2"></i>
-                                       Delete
-                                    </a>
-                                 </div>
+                           <div class="dropdown">
+                              <button type="button" class="btn align-text-top py-1" data-bs-toggle="dropdown">
+                                 <i class="bx bx-dots-vertical-rounded"></i>
+                              </button>
+                              <div class="dropdown-menu dropdown-menu-end">
+                                 <a class="dropdown-item" href="#" @click.prevent="editRankSubject(rankSubject)">
+                                    <i class="bx bx-edit-alt me-2"></i>
+                                    Edit
+                                 </a>
+                                 <a class="dropdown-item text-danger" href="#">
+                                    <i class="bx bx-trash me-2"></i>
+                                    Delete
+                                 </a>
                               </div>
                            </div>
                         </div>
@@ -473,7 +472,7 @@ export default {
          modalInstance.show();
       },
       updateRankSubject() {
-         this.editForm.patch(`/admin/rank_subjects/` + this.editForm.id, {
+         this.editForm.patch('/admin/rank_subjects/' + this.editForm.id, {
             onSuccess: () => {
                this.editForm.reset();
                this.editForm.clearErrors();
@@ -487,8 +486,25 @@ export default {
                console.log(errors)
                this.$toast.error('An error occurred. Please try again', 'Error')
             },
-         })
+         });
       },
+      // updateRankSubject() {
+      //    this.editForm.patch(`/admin/rank_subjects/` + this.editForm.id, {
+      //       onSuccess: () => {
+      //          this.editForm.reset();
+      //          this.editForm.clearErrors();
+      //          const modalElement = this.$refs.editRankSubject;
+      //          const modalInstance = Modal.getInstance(modalElement);
+      //          modalInstance.hide();
+      //          this.fetchRankSubjects();
+      //          this.$toast.success('Class Subject Updated Successfully', 'Success')
+      //       },
+      //       onError: (errors) => {
+      //          console.log(errors)
+      //          this.$toast.error('An error occurred. Please try again', 'Error')
+      //       },
+      //    })
+      // },
       applyFilter: _debounce(function () {
          this.$refs.studentsTable.reloadTable()
       }, 800),

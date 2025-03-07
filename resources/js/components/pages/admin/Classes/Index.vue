@@ -42,6 +42,10 @@
                ref="classTable"
                :append-params="appendParams"
             >
+               <template #name="props">
+                  <span class="me-1">{{ props.rowData.name }}</span> {{ props.rowData.stream?.name }}
+               </template>
+               
                <template #teacher="props">
                   {{ props.rowData.teacher?.honorific?.name }} {{ props.rowData.teacher?.first_name }} {{ props.rowData.teacher?.last_name }}
                </template>
@@ -317,7 +321,7 @@ export default {
       return {
          fields: [
             {
-               name: 'name',
+               name: '__slot:name',
                title: 'NAME',
             },
             {
@@ -328,10 +332,10 @@ export default {
                name: 'division.name',
                title: 'DIVISION',
             },
-            {
-               name: 'stream.name',
-               title: 'STREAM',
-            },
+            // {
+            //    name: 'stream.name',
+            //    title: 'STREAM',
+            // },
             {
                name: '__slot:status',
                title: 'STATUS',

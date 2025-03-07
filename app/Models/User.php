@@ -39,6 +39,7 @@ class User extends Authenticatable implements LaratrustUser
         'branch_id',
         'password',
         'activated',
+        'is_admin',
         'is_teacher',
         'is_parent',
     ];
@@ -64,6 +65,7 @@ class User extends Authenticatable implements LaratrustUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'activated' => 'boolean',
+            'is_admin' => 'boolean',
             'is_teacher' => 'boolean',
             'is_parent' => 'boolean',
         ];
@@ -79,7 +81,12 @@ class User extends Authenticatable implements LaratrustUser
         $query->where('activated', '=', true);
     }
 
-    public function scopeSupplier($query)
+    public function scopeAdmin($query)
+    {
+        $query->where('is_admin', '=', true);
+    }
+
+    public function scopeTeacher($query)
     {
         $query->where('is_teacher', '=', true);
     }

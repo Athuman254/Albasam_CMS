@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('branch_id')->nullable();
             $table->string('password');
             $table->boolean('activated')->default(true);
+            $table->boolean('is_admin')->default(false);
             $table->boolean('is_teacher')->default(false);
             $table->boolean('is_parent')->default(false);
             $table->rememberToken();

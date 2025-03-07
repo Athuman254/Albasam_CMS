@@ -17,7 +17,7 @@
             <div class="card-header flex-column flex-md-row">
                <div class="row row-gap-1">
                   <div class="col-md-3 col-9">
-                     <input type="search" id="search" class="form-control bg-muted-lt rounded-2" placeholder="Search..."
+                     <input type="search" id="search" class="form-control bg-muted-lt rounded-2" placeholder="Search Users"
                             @input="applyFilter" v-model="appendParams.filter.name">
                   </div>
                   <div v-if="can('add-users')" class="col-md-6 col-3 ms-lg-auto">
@@ -134,42 +134,56 @@
                      
                      <div class="mb-3">
                         <label class="row d-flex">
-                                    <span class="col">
-                                        <span class="fw-bold me-3">Activate Account</span>
-                                    </span>
+                           <span class="col">
+                              <span class="fw-bold me-3">Activate Account</span>
+                           </span>
                            <span class="col-auto">
-                                        <label class="form-check form-switch">
-                                            <input v-model="form.activated" class="form-check-input" type="checkbox">
-                                        </label>
-                                    </span>
+                              <label class="form-check form-switch">
+                                 <input v-model="form.activated" class="form-check-input" type="checkbox">
+                              </label>
+                           </span>
                            <span class="form-check-description">When enabled, the user can login into the system.</span>
                         </label>
                      </div>
                      
                      <div class="mb-3">
                         <label class="row d-flex">
-                                    <span class="col">
-                                        <span class="fw-bold me-3">Teacher</span>
-                                    </span>
+                           <span class="col">
+                              <span class="fw-bold me-3">Admin</span>
+                           </span>
                            <span class="col-auto">
-                                        <label class="form-check form-switch">
-                                            <input v-model="form.is_teacher" class="form-check-input" type="checkbox">
-                                        </label>
-                                    </span>
+                              <label class="form-check form-switch">
+                                 <input v-model="form.is_admin" class="form-check-input" type="checkbox">
+                              </label>
+                           </span>
+                           <span class="form-check-description">When enabled, the user can login into the system as an admin.</span>
+                        </label>
+                     </div>
+                     
+                     <div class="mb-3">
+                        <label class="row d-flex">
+                           <span class="col">
+                              <span class="fw-bold me-3">Teacher</span>
+                           </span>
+                           <span class="col-auto">
+                              <label class="form-check form-switch">
+                                 <input v-model="form.is_teacher" class="form-check-input" type="checkbox">
+                              </label>
+                           </span>
                            <span class="form-check-description">When enabled, the user can login into the system as a teacher.</span>
                         </label>
                      </div>
                      
                      <div class="mb-3">
                         <label class="row">
-                                    <span class="col">
-                                        <span class="fw-bold">Parent</span>
-                                    </span>
+                           <span class="col">
+                              <span class="fw-bold">Parent</span>
+                           </span>
                            <span class="col-auto">
-                                        <label class="form-check form-switch">
-                                            <input v-model="form.is_parent" class="form-check-input" type="checkbox">
-                                        </label>
-                                    </span>
+                              <label class="form-check form-switch">
+                                 <input v-model="form.is_parent" class="form-check-input" type="checkbox">
+                              </label>
+                           </span>
                            <span class="form-check-description">When enabled, the user can login into the system as a parent.</span>
                         </label>
                      </div>
@@ -264,45 +278,59 @@
                      
                      <div class="mb-3">
                         <label class="row d-flex">
-                                    <span class="col">
-                                        <span class="fw-bold me-3">Activate Account</span>
-                                    </span>
+                           <span class="col">
+                              <span class="fw-bold me-3">Activate Account</span>
+                           </span>
                            <span class="col-auto">
-                                        <label class="form-check form-switch">
-                                            <input v-model="editForm.activated" class="form-check-input"
-                                                   type="checkbox">
-                                        </label>
-                                    </span>
+                              <label class="form-check form-switch">
+                                 <input v-model="editForm.activated" class="form-check-input"
+                                        type="checkbox">
+                              </label>
+                           </span>
                            <span class="form-check-description">When enabled, the user can login into the system.</span>
                         </label>
                      </div>
                      
                      <div class="mb-3">
                         <label class="row d-flex">
-                                    <span class="col">
-                                        <span class="fw-bold me-3">Teacher</span>
-                                    </span>
+                           <span class="col">
+                              <span class="fw-bold me-3">Admin</span>
+                           </span>
                            <span class="col-auto">
-                                        <label class="form-check form-switch">
-                                            <input v-model="editForm.is_teacher" class="form-check-input"
-                                                   type="checkbox">
-                                        </label>
-                                    </span>
+                              <label class="form-check form-switch">
+                                 <input v-model="editForm.is_admin" class="form-check-input"
+                                        type="checkbox">
+                              </label>
+                           </span>
+                           <span class="form-check-description">When enabled, the user can login into the system as an admin.</span>
+                        </label>
+                     </div>
+                     
+                     <div class="mb-3">
+                        <label class="row d-flex">
+                           <span class="col">
+                              <span class="fw-bold me-3">Teacher</span>
+                           </span>
+                           <span class="col-auto">
+                              <label class="form-check form-switch">
+                                 <input v-model="editForm.is_teacher" class="form-check-input"
+                                        type="checkbox">
+                              </label>
+                           </span>
                            <span class="form-check-description">When enabled, the user can login into the system as a teacher.</span>
                         </label>
                      </div>
                      
                      <div class="mb-3">
                         <label class="row">
-                                    <span class="col">
-                                        <span class="fw-bold">Parent</span>
-                                    </span>
+                           <span class="col">
+                              <span class="fw-bold">Parent</span>
+                           </span>
                            <span class="col-auto">
-                                        <label class="form-check form-switch">
-                                            <input v-model="editForm.is_parent" class="form-check-input"
-                                                   type="checkbox">
-                                        </label>
-                                    </span>
+                              <label class="form-check form-switch">
+                                 <input v-model="editForm.is_parent" class="form-check-input" type="checkbox">
+                              </label>
+                           </span>
                            <span class="form-check-description">When enabled, the user can login into the system as a parent.</span>
                         </label>
                      </div>
@@ -440,6 +468,7 @@ export default {
             role_id: '',
             password: '',
             activated: '',
+            is_admin: '',
             is_teacher: '',
             is_parent: '',
          }),
@@ -452,6 +481,7 @@ export default {
             role_id: '',
             password: '',
             activated: '',
+            is_admin: '',
             is_teacher: '',
             is_parent: '',
          }),
@@ -530,6 +560,7 @@ export default {
          this.editForm.email = rowData.email;
          this.editForm.phone = rowData.phone;
          this.editForm.activated = rowData.activated;
+         this.editForm.is_admin = rowData.is_admin;
          this.editForm.is_teacher = rowData.is_teacher;
          this.editForm.is_parent = rowData.is_parent;
          

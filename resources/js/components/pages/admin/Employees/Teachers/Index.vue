@@ -11,7 +11,7 @@
             </li>
          </ol>
       </nav>
-      
+
       <div class="col-xxl-12">
          <div class="card">
             <div class="card-header flex-column flex-md-row">
@@ -36,7 +36,7 @@
                   </div>
                </div>
             </div>
-            
+
             <VueTable
                api-url="datatable/teachers"
                :fields="fields"
@@ -54,9 +54,9 @@
                         <i class="bx bx-dots-vertical"></i>
                      </button>
                      <div class="dropdown-menu dropdown-menu-end">
-                        <a class="dropdown-item" :href="'/admin/employees/teachers/' + props.rowData.hashid">
+                        <Link class="dropdown-item" :href="'/admin/employees/teachers/' + props.rowData.hashid">
                            <i class="bx bx-detail me-2"></i> Details
-                        </a>
+                        </Link>
                         <Link class="dropdown-item"
                               :href="'/admin/employees/teachers/' + props.rowData.hashid + '/edit'">
                            <i class="bx bx-edit-alt me-2"></i> Edit
@@ -85,6 +85,10 @@ export default {
             {
                name: '__slot:name',
                title: 'NAME',
+            },
+            {
+               name: 'employee.email',
+               title: 'EMAIL',
             },
             {
                name: 'employee.staff_number',

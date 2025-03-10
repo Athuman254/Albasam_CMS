@@ -11,6 +11,7 @@ import {createInertiaApp, Link, router} from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import DefaultLayout from '@components/layouts/DefaultLayout.vue';
 import { VueTable } from '@components/pages/Datable.vue';
+// import { QuillEditor } from '@components/global/QuillEditor.vue';
 import toast from '@plugins/notifications.js';
 import vSelect from 'vue-select';
 import filters from '@plugins/filter.js';
@@ -42,6 +43,8 @@ createInertiaApp({
             .component('Link', Link)
             .component('VueTable', VueTable)
             .component('v-select', vSelect)
+            // .component('QuillEditor', QuillEditor)
+            // .component('ckeditor', CKEditor.component)
             .mount(el);
     },
     progress: {

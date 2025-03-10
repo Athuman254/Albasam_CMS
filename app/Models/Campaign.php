@@ -11,4 +11,8 @@ class Campaign extends Model
     protected $casts = [
         'settings' => 'array'
     ];
+
+    public function messages(){
+        return $this->hasMany(Message::class);
+    }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\SiteSetting;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,9 +21,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-//        $institution = \App\Models\Institution::first();
-//        $web_setting = SiteSetting::first();
-//        View::share('institution', $institution);
-//        View::share('web_setting', $web_setting);
+        if (Schema::hasTable('institutions')) {
+            $institution = \App\Models\Institution::first(); // Fetch the first institution
+
+            if ($institution) {
+                View::share('institution', $institution);
+            }
+        }
+        if(Schema::hasTable('pages')) {
+            $pages = \App\Models\Page::where('is_published', true)->get();
+
+            if ($pages) {
+                View::share('pages', $pages);
+            }
+        }
     }
 }

@@ -1,70 +1,10 @@
 <?php
 
-use Inertia\Inertia;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Route;
-use Spatie\QueryBuilder\QueryBuilder;
-use App\Http\Controllers\SmsController;
-use App\Http\Controllers\BlogController;
-use App\Http\Controllers\WebsiteController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\SiteSettingController;
-use App\Http\Middleware\ThrottleAdmissionRequests;
-use App\Http\Controllers\StudentAdmissionController;
 
-
-Route::get('/', [WebsiteController::class, 'index'])->name('homepage.index');
-Route::get('about', [WebsiteController::class,'about'])->name('about-page');
-Route::get('services', [ServiceController::class,'services'])->name('services');
-Route::get('services/{slug}', [ServiceController::class,'single_service'])->name('services.single');
-Route::get('blog/{post}', [BlogController::class,'single_blog']);
-Route::get('blog', [BlogController::class,'blog_post']);
-Route::post('request-admission', [StudentAdmissionController::class, 'requestForAdmission'])->middleware(ThrottleAdmissionRequests::class);
-
-
-Route::get('data', function(Request $request){
-    $data = collect([
-        ['id'=>1,'name' => 'Alice Johnson', 'email' => 'alice@example.com', 'role' => 'Admin'],
-        ['id'=>2,'name' => 'Bob Smith', 'email' => 'bob@example.com', 'role' => 'User'],
-        ['id'=>3,'name' => 'Carol Lee', 'email' => 'carol@example.com', 'role' => 'Moderator'],
-        ['id'=>4,'name' => 'Carol3 Lee', 'email' => 'carol@example.com', 'role' => 'Moderator'],
-        ['id'=>5,'name' => 'Carol4 Lee', 'email' => 'carol@example.com', 'role' => 'Moderator'],
-        ['id'=>6,'name' => 'Carol6 Lee', 'email' => 'carol@example.com', 'role' => 'Moderator'],
-        ['id'=>7,'name' => 'Carol5 Lee', 'email' => 'carol@example.com', 'role' => 'Moderator'],
-    ]);
-
-    // Simulate search
-    if ($search = $request->query('search')) {
-        $data = $data->filter(function ($row) use ($search) {
-            return stripos($row['name'], $search) !== false ||
-                stripos($row['email'], $search) !== false ||
-                stripos($row['role'], $search) !== false;
-        });
-    }
-
-    // Simulate pagination
-    $perPage = $request->query('per_page', 5);
-    $currentPage = $request->query('pageN', 1);
-    $paginated = $data->slice(($currentPage - 1) * $perPage, $perPage)->values();
-    $last_page = ceil($data->count() / $perPage);
-
-    return response()->json([
-        'data' => $paginated,
-        'total' => $data->count(),
-        'last_page' => $last_page,
-        'current_page' => (int)$currentPage,
-        'per_page' => (int)$perPage,
-    ]);
-});
-
-Route::group([
-    'middleware' => 'guest'
-], function () {
-    Route::get('login', [\App\Http\Controllers\LoginController::class,'index'])->name('login-index');
-    Route::post('login', [\App\Http\Controllers\LoginController::class,'store'])->name('login');
-});
+Route::get('/login', [\App\Http\Controllers\LoginController::class,'index'])->name('login.index');
+Route::post('/login', [\App\Http\Controllers\LoginController::class,'store'])->name('login');
 
 // SYSTEM DASHBOARD ROUTES
 Route::group([
@@ -111,11 +51,10 @@ Route::group([
         Route::get('/employee-qualifications', [\App\Http\Controllers\QualificationController::class, 'dataTable']);
         Route::get('/work-histories', [\App\Http\Controllers\WorkHistoryController::class, 'dataTable']);
 
-        // WEBSITE DATATABLE
-        Route::get('/blogs', [\App\Http\Controllers\BlogController::class,'datatable']);
-        Route::get('/blog-categories', [\App\Http\Controllers\BlogController::class,'categories_datatable']);
-        Route::get('services', [\App\Http\Controllers\ServiceController::class,'datatable']);
-
+        // WEBSITE MANAGEMENT DATATABLES
+        Route::get('/website/pages', [\App\Http\Controllers\Website\PageController::class, 'dataTable']);
+        Route::get('/website/page-sections', [\App\Http\Controllers\Website\SectionController::class, 'dataTable']);
+        Route::get('/website/page-sub-sections', [\App\Http\Controllers\Website\SubSectionController::class, 'dataTable']);
     });
 
     Route::resource('/attendance', \App\Http\Controllers\AttendanceController::class)->names('attendace');
@@ -171,9 +110,9 @@ Route::group([
         });
 
         Route::group(['prefix' => 'sms'], function (){
-            Route::get('compose', [SmsController::class, 'create']);
-            Route::post('send', [SmsController::class,  'store'])->name('sms.send');
-            Route::get('outbox', [SmsController::class,  'index'])->name('sms.outbox');
+            Route::get('compose', [\App\Http\Controllers\SmsController::class, 'create']);
+            Route::post('send', [\App\Http\Controllers\SmsController::class,  'store'])->name('sms.send');
+            Route::get('outbox', [\App\Http\Controllers\SmsController::class,  'index'])->name('sms.outbox');
         });
 
         Route::group([
@@ -197,68 +136,33 @@ Route::group([
             Route::resource('/teacher-titles', \App\Http\Controllers\TeacherTitleController::class)->names('teacher.titles');
         });
 
-
         Route::resource('/employees', \App\Http\Controllers\EmployeeController::class)->names('employees');
         Route::resource('/institutions', \App\Http\Controllers\InstitutionController::class)->names('institutions');
         Route::resource('/users', \App\Http\Controllers\UserController::class)->names('users');
-//            ->middleware([
-//                'index' => 'permission:access-users-workspace', // View users list
-//                'create' => 'permission:create-user',          // Show create form
-//                'store' => 'permission:create-user',           // Handle user creation
-//                'edit' => 'permission:edit-user',              // Show edit form
-//                'update' => 'permission:edit-user',            // Handle user update
-//                'destroy' => 'permission:delete-user',         // Delete user
-//            ]);
         Route::resource('/roles', \App\Http\Controllers\RoleController::class)->names('roles');
-        Route::resource('/permissions', \App\Http\Controllers\PermissionController::class)->names('permissions');
-    });
+//        Route::resource('/permissions', \App\Http\Controllers\PermissionController::class)->names('permissions');
 
-    /**
-     * WEBSITE MANAGEMENT ROUTES
-     */
-    Route::group([
-      'prefix' => 'website'
-    ], function () {
-        Route::get('pages', [WebsiteController::class, 'pages']);
-        Route::get('pages/homepage', [WebsiteController::class, 'homepage']);
-
-        Route::post('pages/homepage/slide', [WebsiteController::class, 'store_slide'])->name('homepage.slide');
-        Route::delete('pages/homepage/slide/{slide}', [WebsiteController::class, 'delete_slide'])->name('homepage.slide_delete');
-
-        Route::post('pages/homepage/quotes', [WebsiteController::class, 'store_quotes'])->name('homepage.quotes');
-        Route::delete('pages/homepage/quotes/{quote}', [WebsiteController::class, 'delete_quotes'])->name('homepage.quotes_delete');
-
-        Route::post('pages/homepage/about', [WebsiteController::class, 'store_about'])->name('homepage.about');
-        Route::patch('pages/homepage/about/{about}', [WebsiteController::class, 'update_about'])->name('homepage.about_update');
-
-        Route::post('pages/homepage/whyus', [WebsiteController::class, 'store_whyus'])->name('homepage.whyus');
-        Route::delete('pages/homepage/whyus/{reason}', [WebsiteController::class, 'delete_whyus'])->name('homepage.whyus_delete');
-
-        Route::post('pages/homepage/testimonials', [WebsiteController::class, 'store_testimonials'])->name('homepage.testimonials');
-        Route::delete('pages/homepage/testimonials/{testimonial}', [WebsiteController::class, 'delete_testimonial'])->name('homepage.testimonial_delete');
-
-        Route::post('pages/homepage/events', [WebsiteController::class, 'store_events'])->name('homepage.events');
-        Route::delete('pages/homepage/events/{event}', [WebsiteController::class, 'delete_events'])->name('homepage.event_delete');
-
-        Route::post('pages/homepage/quick-links', [WebsiteController::class, 'store_quicklinks'])->name('homepage.quick-links');
-        Route::delete('pages/homepage/quick-links/{link}', [WebsiteController::class, 'delete_quicklinks'])->name('homepage.quick-links_delete');
-
-
-        Route::get('pages/blogs', [BlogController::class,'index'])->name('website.blog.index');
-
-        Route::post('pages/blogs', [BlogController::class,'store'])->name('website.blog.store');
-        Route::put('pages/blogs/{post}', [BlogController::class,'update'])->name('website.blog.update');
-        Route::delete('pages/blogs/{post}', [BlogController::class,'destroy'])->name('website.blog.delete');
-        Route::post('pages/blogs/category', [BlogController::class,'store_category'])->name('website.blog.category');
-
-        Route::get('settings', [SiteSettingController::class,'index'])->name('site-settings');
-        Route::post('settings', [SiteSettingController::class,'store'])->name('site-settings.store');
-
-        Route::get('pages/services', [ServiceController::class,'index'])->name('website.service.index');
-        Route::post('pages/services', [ServiceController::class,'store'])->name('website.service.index.store');
-        Route::put('pages/services/{service}', [ServiceController::class,'update'])->name('website.service.update');
-        Route::delete('pages/services/{service}', [ServiceController::class,'destroy'])->name('website.service.delete');
-
-        Route::post('pages/blogs', [BlogController::class,'store'])->name('website.blog.store');
+        /**
+         * WEBSITE MANAGEMENT ROUTES
+         */
+        Route::group([
+            'prefix' => 'website'
+        ], function () {
+            Route::get('/pages', [\App\Http\Controllers\Website\PageController::class, 'index'])->name('pages.index');
+            Route::post('/pages', [\App\Http\Controllers\Website\PageController::class, 'store'])->name('pages.store');
+            Route::patch('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'update'])->name('pages.update');
+            Route::delete('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'destroy'])->name('pages.destroy');
+            // PAGE SECTION ROUTES
+            Route::get('/pages/{page}/create-sections', [\App\Http\Controllers\Website\SectionController::class, 'create'])->name('pages.sections.create');
+            Route::post('/sections', [\App\Http\Controllers\Website\SectionController::class, 'store'])->name('sections.store');
+            Route::get('/pages/{page}/edit-sections', [\App\Http\Controllers\Website\SectionController::class, 'edit'])->name('pages.sections.edit');
+            Route::patch('/sections/{page}', [\App\Http\Controllers\Website\SectionController::class, 'update'])->name('pages.sections.update');
+        });
     });
 });
+
+/**
+ *  WEBSITE ROUTES
+ */
+Route::get('/', [\App\Http\Controllers\Website\WebsiteController::class, 'index'])->name('homepage');
+Route::get('/{slug}', [\App\Http\Controllers\Website\WebsiteController::class, 'page'])->name('page.show');

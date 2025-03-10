@@ -34,9 +34,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         Model::unguard();
-        $this->call(AttendanceSeeder::class);
-        $this->call(ServiceSeeder::class);
-        $this->call(SiteSettingSeeder::class);
+//        $this->call(AttendanceSeeder::class);
+//        $this->call(ServiceSeeder::class);
 
         Schema::disableForeignKeyConstraints();
 
@@ -69,8 +68,6 @@ class DatabaseSeeder extends Seeder
         $this->salaryGrades();
 
         $this->salaryScales();
-
-//        $this->teacherTitles();
 
         $this->institution();
 

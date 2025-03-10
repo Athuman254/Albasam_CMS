@@ -10,7 +10,7 @@
 
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('favicon-291*301.png') }}" type="image/x-icon"/>
-    <link rel="shortcut icon" href="{{ asset('favicon-291*301.png') }}" type="image/x-icon"/>
+    <link rel="shortcut icon" href="{{ asset('favicon.png') }}" type="image/x-icon"/>
 
     <!-- Fonts -->
     <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/boxicons.css') }}" />

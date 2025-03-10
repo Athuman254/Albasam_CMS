@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('senior_high_student_details');
     }
 };

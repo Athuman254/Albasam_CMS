@@ -165,6 +165,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('departments');
         Schema::dropIfExists('genders');
         Schema::dropIfExists('religions');
         Schema::dropIfExists('relationships');
@@ -176,9 +177,9 @@ return new class extends Migration
         Schema::dropIfExists('job_titles');
         Schema::dropIfExists('specialization_areas');
         Schema::dropIfExists('qualification_types');
-        Schema::dropIfExists('salary_grades');
-        Schema::dropIfExists('salary_scales');
         Schema::dropIfExists('teacher_titles');
+        Schema::dropIfExists('salary_scales');
+        Schema::dropIfExists('salary_grades');
         Schema::dropIfExists('institutions');
     }
 };

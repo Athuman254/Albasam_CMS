@@ -1,8 +1,8 @@
 <template>
-    <div class="dropzone" :class="{ dragging: isDragging }" @dragover.prevent="onDragOver"
+    <div class="dropzone" :class="{ dragging: isDragging, w100:w100,  }" @dragover.prevent="onDragOver"
       @dragleave.prevent="onDragLeave" @drop.prevent="onDrop" @click="openFileInput">
 
-      <div v-if="!profileImagePreview">
+      <div v-if="!imageLoaded && !availablePic">
         <div><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M32 32L24 24L16 32" stroke="#ADB2BA" stroke-width="3" stroke-linecap="round"
               stroke-linejoin="round" />
@@ -16,28 +16,28 @@
         </div>
         <span class="fw-bold">
           Browse photo </span>or drop here
-        <p>A photo larger than 400 pixels work best. Max photo size 5 MB.</p>
+        <p class="px-3">{{ placeHolder }}</p>
       </div>
-      <ul v-else>
-        <li>
-          <div class="d-flex">
-          <img  :src="profileImagePreview" alt="">
+      <div :class="{ w100:w100 }" v-else>
+
+          <div   class="d-flex" :class="{ w100:w100 }">
+          <img :class="{ w100:w100 }"  :src="profileImagePreview" alt="">
         </div>
-        </li>
+
 
         <!-- <li v-for="(file, index) in files" :key="index" :class="{ invalid: file.error }">
           {{ file.name }}
           <span v-if="file.error"> - {{ file.error }}</span>
           <span v-else> ({{ formatSize(file.size) }})</span>
         </li> -->
-      </ul>
-      <input type="file" :accept="accept" :multiple="multiple" ref="fileInput" @change="onFileSelect"
+    </div>
+      <input type="file" :accept="accept" ref="fileInput" @change="onFileSelect"
         style="display: none" />
     </div>
   </template>
 
   <script setup>
-  import { ref, watch, computed } from "vue";
+  import { ref, watch, computed, onMounted } from "vue";
 
   // Props
   const props = defineProps({
@@ -55,8 +55,16 @@
     },
     placeHolder: {
       type: Text,
-      default: ' Drag and drop your files here or click to upload',
+      default: 'A photo larger than 400 pixels work best. Max photo size 5 MB.',
     },
+    w100:{
+       type: Boolean,
+       default: false
+    },
+    availablePic: {
+        type: Text,
+        default: ""
+    }
   });
 
   // Emits
@@ -64,18 +72,17 @@
 
 
   const files = [];
-  let profileImagePreview = null;
+  let profileImagePreview = props.availablePic;
 
   const imageLoaded = ref(false);
   const isDragging = ref(false);
   const fileInput = ref(null);
 
   // Watch files and emit updates
-  // watch(files, (newFiles) => {
-  //   console.log('File list updated:', newFiles);
-  //   emit("update:files", newFiles); // Emit the updated files
-  // });
-  watch(files, ()=>console.log('sdds'),{ deep: true });
+  watch(files, (newFiles) => {
+    console.log('File list updated:', newFiles);
+  });
+//   watch(files, ()=>console.log('sdds'),{ deep: true });
   // Handlers for drag-and-drop
   const onDragOver = () => {
     isDragging.value = true;
@@ -93,6 +100,7 @@
 
   // Handler for file selection via input
   const onFileSelect = (event) => {
+    imageLoaded.value = false
     const selectedFiles = Array.from(event.target.files);
     addFiles(selectedFiles);
   };
@@ -107,8 +115,14 @@
 
     // files.value = Array.from(event.target.files);
     files.push(...newFiles);
+
+    profileImagePreview = URL.createObjectURL(newFiles[0])
+    console.log(profileImagePreview)
+    imageLoaded.value = true
     emit("update:files", files);
-    profileImagePreview = URL.createObjectURL(newFiles[0]);
+
+
+    // console.log(files)
     // const validatedFiles = newFiles.map((file) => validateFile(file));
     // if (!props.multiple) files.value = validatedFiles.slice(0, 1);
     // else files.value.push(...validatedFiles);
@@ -133,13 +147,17 @@
     if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   };
+  onMounted(()=>{
+    profileImagePreview = props.availablePic
+    console.log(profileImagePreview)
+  })
   </script>
 
   <style scoped>
   .dropzone {
     border: 2px dashed #ccc;
     border-radius: 10px;
-    padding: 20px;
+    /* padding: 20px; */
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -147,32 +165,19 @@
     justify-content: center;
     transition: border-color 0.3s ease, background-color 0.3s ease;
     cursor: pointer;
-    width: 100%;
-    min-height: 200px;
+    width: 210px;
+    height: 210px;
   }
   .dropzone img{
-    width: 100%;
+    width: 205px;
     height: 205px;
+  }
+  .w100{
+    width:100% !important;
+    padding:0px !important;
   }
   .dropzone.dragging {
     border-color: #007bff;
     background-color: #f0f8ff;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-
-  li {
-    margin: 5px 0;
-  }
-
-  li.invalid {
-    color: red;
-  }
-
-  li span {
-    margin-left: 10px;
   }
   </style>

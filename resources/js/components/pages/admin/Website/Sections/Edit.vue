@@ -100,7 +100,7 @@
                                         <div v-if="section.bg_style === 'image'">
                                             <label for="" class="form-label">Background Image</label>
                                             <!-- <input type="file" @change="bgImageUpload($event, section)" class="form-control"> -->
-                                            <drag-and-drop :multiple="false"  @update:files="(files) => bgImageUpload(files, index)"/>
+                                            <drag-and-drop :w100="true" :multiple="false"  @update:files="(files) => bgImageUpload(files, index)"/>
                                             <div v-if="getSectionError(index, 'bg_image')" class="text-danger">
                                                 {{ getSectionError(index, 'bg_image') }}
                                             </div>
@@ -252,7 +252,8 @@
 import { useForm } from "@inertiajs/vue3";
 import { Inertia } from "@inertiajs/inertia";
 import { QuillEditor } from '@vueup/vue-quill'
-import DragAndDrop from "../../../../global/DragAndDrop.vue";
+// import DragAndDrop from "../../../../global/DragAndDrop.vue";
+import DragAndDrop from "../../../../global/FileUploader.vue";
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import axios from "axios";
 

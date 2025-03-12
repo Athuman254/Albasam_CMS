@@ -14,10 +14,10 @@ use App\Exceptions\MessageException;
 
 class MessageService
 {
-    public function createDraft(User $user, array $data): Campaign
+    public function createDraft(User $user, array $data): \App\Models\Campaign
     {
         return DB::transaction(function () use ($user, $data) {
-            $campaign = Campaign::create([
+            $campaign = \App\Models\Campaign::create([
                 'user_id' => $user->id,
                 'name' => $data['campaign']['name'],
                 'description' => $data['campaign']['description'] ?? null,
@@ -28,7 +28,6 @@ class MessageService
                     'template_id' => $data['template_id'] ?? null,
                 ]
             ]);
-            dd($campaign);
             $this->createMessages($campaign, $data['recipients'], $data['content']);
 
             return $campaign;

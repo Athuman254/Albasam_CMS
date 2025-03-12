@@ -483,7 +483,12 @@ fieldset {
 .bg-theme {
    background-color: #25615a;
 }
-
+.bg-theme p{
+    color: #cac8c8;
+}
+.bg-theme h1, .bg-theme h2, .bg-theme h3, .bg-theme h4, .bg-theme h5, .bg-theme h6{
+ color: #000;
+}
 .theme-color {
    color: #25615a;
 }

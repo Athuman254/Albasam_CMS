@@ -17,6 +17,7 @@ class StreamController extends Controller
         $streams = QueryBuilder::for(
             Stream::orderBy('id')
         )->allowedFilters([
+            AllowedFilter::exact('activated'),
             AllowedFilter::partial('name'),
         ])->jsonPaginate();
 

@@ -14,9 +14,8 @@ class RankController extends Controller
 {
     public function dataTable()
     {
-//        dd('Data');
         $classes = QueryBuilder::for(
-            Rank::with(['division', 'stream', 'teacher.employee'])->orderBy('name')
+            Rank::with(['division', 'stream', 'teacher.honorific'])->orderBy('name')
         )->allowedFilters([
             AllowedFilter::exact('activated'),
             AllowedFilter::partial('name'),
@@ -27,7 +26,7 @@ class RankController extends Controller
 
     public function index()
     {
-        return Inertia::render('admin/Configurations/Classes/Index', []);
+        return Inertia::render('admin/Classes/Index', []);
     }
 
     public function store(Request $request)
@@ -49,6 +48,15 @@ class RankController extends Controller
         ]);
 
         return to_route('ranks.index')->with('success', 'Class created.');
+    }
+    
+    public function show(Rank $rank)
+    {
+        $rank->load('division', 'stream', 'teacher.honorific');
+        
+        return Inertia::render('admin/Classes/Show', [
+            'rank' => $rank,
+        ]);
     }
 
     public function update(Rank $rank, Request $request)

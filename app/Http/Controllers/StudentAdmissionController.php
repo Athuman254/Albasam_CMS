@@ -30,9 +30,9 @@ class StudentAdmissionController extends Controller
     public function dataTable()
     {
         $admissions =  QueryBuilder::for(
-            StudentAdmission::with(['division', 'rank', 'student'])->orderBy('id', 'desc')
+            StudentAdmission::with(['division', 'student'])->orderBy('date')
         )->allowedFilters([
-            AllowedFilter::partial('admission_number'),
+            AllowedFilter::partial('id'),
         ])->jsonPaginate();
 
         return Resource::collection($admissions);
@@ -63,16 +63,15 @@ class StudentAdmissionController extends Controller
         try {
             $admission = StudentAdmission::create([
                 'date' => $validated['registration_details']['date'],
-                'admission_number' => $validated['registration_details']['admission_number'],
                 'division_id' => $validated['registration_details']['division_id'],
-                'rank_id' => $validated['registration_details']['rank_id'],
                 'physical_disability' => $validated['other_details']['physical_disability'],
                 'hobby' => $validated['other_details']['hobby'],
             ]);
-//            dd($admission);
 
             $student = Student::create([
                 'student_admission_id' => $admission->id,
+                'admission_number' => $validated['student']['admission_number'],
+                'rank_id' => $validated['student']['rank_id'],
                 'first_name' => $validated['student']['first_name'],
                 'middle_name' => $validated['student']['middle_name'],
                 'last_name' => $validated['student']['last_name'],
@@ -174,9 +173,7 @@ class StudentAdmissionController extends Controller
         try {
             $studentAdmission->update([
                 'date' => $request->input('registration_details.date'),
-                'admission_number' => $request->input('registration_details.admission_number'),
                 'division_id' => $request->input('registration_details.division_id'),
-                'rank_id' => $request->input('registration_details.rank_id'),
                 'physical_disability' => $validated['other_details']['physical_disability'],
                 'hobby' => $validated['other_details']['hobby'],
             ]);
@@ -187,6 +184,8 @@ class StudentAdmissionController extends Controller
                 'first_name' => $request->input('student.first_name'),
                 'middle_name' => $request->input('student.middle_name'),
                 'last_name' => $request->input('student.last_name'),
+                'admission_number' => $request->input('student.admission_number'),
+                'rank_id' => $request->input('student.rank_id'),
                 'date_of_birth' => $request->input('student.date_of_birth'),
                 'birth_certificate_number' => $request->input('student.birth_certificate_number'),
                 'gender_id' => $request->input('student.gender_id'),
@@ -208,6 +207,8 @@ class StudentAdmissionController extends Controller
             if (isset($request->guardians) && is_array($request->guardians)) {
 
                 $student->guardians()->delete();
+                
+//                dd("Guardian Details Deleted");
 
                 $guardianDetails = collect($request->guardians)
                     ->filter(function ($guardian) {
@@ -268,16 +269,12 @@ class StudentAdmissionController extends Controller
     {
         $errorMessages = [
             'registration_details.date' => 'Please select the registration date.',
-            'registration_details.admission_number' => 'You must provide an admission number.',
             'registration_details.division_id' => 'Please select a division.',
-            'registration_details.rank_id' => 'Please select a class.',
         ];
 
         $request->validate([
             'registration_details.date' => ['required', 'date', 'max:255'],
-            'registration_details.admission_number' => ['required', 'string', 'max:255'],
-            'registration_details.division_id' => ['required'],
-            'registration_details.rank_id' => ['required'],
+            'registration_details.division_id' => ['required', Rule::exists('divisions', 'id')],
         ], $errorMessages);
 
         if($studentAdmission)
@@ -290,10 +287,63 @@ class StudentAdmissionController extends Controller
 
     public function secondStep(Request $request, StudentAdmission $studentAdmission = null)
     {
+        $errorMessages = [
+            'student.first_name.required' => 'The first name is required.',
+            'student.first_name.string' => 'The first name must be a valid string.',
+            'student.first_name.max' => 'The first name may not be greater than 255 characters.',
+            'student.middle_name.string' => 'The middle name must be a valid string.',
+            'student.middle_name.max' => 'The middle name may not be greater than 255 characters.',
+            'student.last_name.required' => 'The last name is required.',
+            'student.last_name.string' => 'The last name must be a valid string.',
+            'student.last_name.max' => 'The last name may not be greater than 255 characters.',
+            'student.admission_number.required' => 'The admission number is required.',
+            'student.admission_number.string' => 'The admission number must be a valid string.',
+            'student.admission_number.max' => 'The admission number may not be greater than 255 characters.',
+            'student.rank_id.required' => 'Please select a class first.',
+            'student.rank_id.exists' => 'The selected class does not exist.',
+            'student.gender_id.required' => 'The gender is required.',
+            'student.gender_id.exists' => 'The selected gender is invalid.',
+            'student.religion_id.required' => 'The religion is required.',
+            'student.religion_id.exists' => 'The selected religion is invalid.',
+            'student.date_of_birth.required' => 'The date of birth is required.',
+            'student.date_of_birth.string' => 'The date of birth must be a valid string.',
+            'student.date_of_birth.max' => 'The date of birth may not be greater than 255 characters.',
+            'student.birth_certificate_number.string' => 'The birth certificate number must be a valid string.',
+            'student.birth_certificate_number.max' => 'The birth certificate number may not be greater than 255 characters.',
+            'student.citizenship.required' => 'The citizenship is required.',
+            'student.citizenship.string' => 'The citizenship must be a valid string.',
+            'student.citizenship.max' => 'The citizenship may not be greater than 255 characters.',
+            'student.county.string' => 'The county must be a valid string.',
+            'student.county.max' => 'The county may not be greater than 255 characters.',
+            'student.ward.string' => 'The ward must be a valid string.',
+            'student.ward.max' => 'The ward may not be greater than 255 characters.',
+            'student.permanent_address.required' => 'The permanent address is required.',
+            'student.permanent_address.string' => 'The permanent address must be a valid string.',
+            'student.permanent_address.max' => 'The permanent address may not be greater than 255 characters.',
+            'student.kpsea_score.string' => 'The KPSEA score must be a valid string.',
+            'student.kpsea_score.max' => 'The KPSEA score may not be greater than 255 characters.',
+            'student.kjsea_score.string' => 'The KJSEA score must be a valid string.',
+            'student.kjsea_score.max' => 'The KJSEA score may not be greater than 255 characters.',
+            'student.kcpe_score.string' => 'The KCPE score must be a valid string.',
+            'student.kcpe_score.max' => 'The KCPE score may not be greater than 255 characters.',
+            'student.upi_number.string' => 'The UPI number must be a valid string.',
+            'student.upi_number.max' => 'The UPI number may not be greater than 255 characters.',
+            'student.nemis.string' => 'The NEMIS number must be a valid string.',
+            'student.nemis.max' => 'The NEMIS number may not be greater than 255 characters.',
+            'student.assessment_number.string' => 'The assessment number must be a valid string.',
+            'student.assessment_number.max' => 'The assessment number may not be greater than 255 characters.',
+            'student.previous_school.string' => 'The previous school must be a valid string.',
+            'student.previous_school.max' => 'The previous school may not be greater than 255 characters.',
+            'student.specialization.string' => 'The specialization must be a valid string.',
+            'student.specialization.max' => 'The specialization may not be greater than 255 characters.',
+        ];
+        
         $request->validate([
             'student.first_name' => ['required', 'string', 'max:255'],
             'student.middle_name' => ['nullable', 'string', 'max:255'],
             'student.last_name' => ['required', 'string', 'max:255'],
+            'student.admission_number' => ['required', 'string', 'max:255'],
+            'student.rank_id' => ['required', Rule::exists('ranks', 'id')],
             'student.gender_id' => ['required', Rule::exists('genders', 'id')],
             'student.religion_id' => ['required', Rule::exists('religions', 'id')],
             'student.date_of_birth' => ['required', 'string', 'max:255'],
@@ -310,7 +360,7 @@ class StudentAdmissionController extends Controller
             'student.assessment_number' => ['nullable', 'string', 'max:255'],
             'student.previous_school' => ['nullable', 'string', 'max:255'],
             'student.specialization' => ['nullable', 'string', 'max:255'],
-        ]);
+        ], $errorMessages);
 
         if($studentAdmission)
         {

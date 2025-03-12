@@ -12,12 +12,14 @@ use App\Models\Institution;
 use App\Models\JobTitle;
 use App\Models\MaritalStatus;
 use App\Models\QualificationType;
+use App\Models\Rank;
 use App\Models\Relationship;
 use App\Models\Religion;
 use App\Models\SalaryGrade;
 use App\Models\SalaryScale;
 use App\Models\Specialization;
 use App\Models\Stream;
+use App\Models\Subject;
 use App\Models\TeacherTitle;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -50,6 +52,10 @@ class DatabaseSeeder extends Seeder
         $this->streams();
 
         $this->divisions();
+        
+        $this->ranks();
+        
+        $this->subjects();
 
         $this->maritalStatuses();
 
@@ -144,10 +150,10 @@ class DatabaseSeeder extends Seeder
             ['name' => 'South'],
             ['name' => 'East'],
             ['name' => 'West'],
-            ['name' => 'Red'],
-            ['name' => 'Green'],
-            ['name' => 'Blue'],
-            ['name' => 'Yellow'],
+//            ['name' => 'Red'],
+//            ['name' => 'Green'],
+//            ['name' => 'Blue'],
+//            ['name' => 'Yellow'],
         ]);
     }
 
@@ -156,10 +162,146 @@ class DatabaseSeeder extends Seeder
         Division::truncate();
 
         Division::insert([
-            ['name' => 'Pre-Primary'],
-            ['name' => 'Primary'],
-            ['name' => 'Junior Secondary'],
-            ['name' => 'Senior Secondary'],
+//            ['name' => 'Pre-Primary'],
+//            ['name' => 'Primary'],
+//            ['name' => 'Junior Secondary'],
+//            ['name' => 'Senior Secondary'],
+            ['name' => 'Secondary School'],
+            ['name' => 'High School'],
+        ]);
+    }
+    
+    public function ranks(): void
+    {
+        Rank::truncate();
+        
+        $divisions = Division::all();
+        $streams = Stream::all();
+        
+        Rank::insert([
+            [
+                'name' => 'Form 1',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'North')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 1',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'South')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 1',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'East')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 1',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'West')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 2',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'North')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 2',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'South')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 2',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'East')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 2',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'West')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 3',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'North')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 3',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'South')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 3',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'East')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 3',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'West')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 4',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'North')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 4',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'South')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 4',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'East')->first()->id,
+                'activated' => true,
+            ],
+            [
+                'name' => 'Form 4',
+                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
+                'stream_id' => $streams->where('name', '=', 'West')->first()->id,
+                'activated' => true,
+            ],
+        ]);
+    }
+    
+    public function subjects(): void
+    {
+        Subject::truncate();
+        
+        Subject::insert([
+            ['name' => 'English', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'Kiswahili', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'Arabic', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'French', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'German', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'Mathematics', 'group' => Subject::SCIENCE, 'activated' => true],
+            ['name' => 'Chemistry', 'group' => Subject::SCIENCE, 'activated' => true],
+            ['name' => 'Physics', 'group' => Subject::SCIENCE, 'activated' => true],
+            ['name' => 'Biology', 'group' => Subject::SCIENCE, 'activated' => true],
+            ['name' => 'Home Science', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
+            ['name' => 'Agriculture', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
+            ['name' => 'Computer Studies', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
+            ['name' => 'History', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Geography', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Religious Education', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Business Studies', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Life Skills', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Music', 'group' => Subject::CREATIVE_ARTS, 'activated' => true],
+            ['name' => 'Art and Design', 'group' => Subject::CREATIVE_ARTS, 'activated' => true],
         ]);
     }
 
@@ -341,7 +483,7 @@ class DatabaseSeeder extends Seeder
             'country' => 'KENYA',
             'state' => 'MOMBASA',
             'city' => 'MOMBASA',
-            'physical_address' => 'WMXC+PGR, Kisauni Rd, Off Sheik Abdullas Rd, Mombasa',
+            'physical_address' => 'Kisauni Rd, Off Sheikh Abdullas Rd, Mombasa',
             'postal_address' => '86716-80100',
             'tax_identification_pin' => '',
             'mission' => 'To empower students to become productive members of the society by providing a conducive environment that will nurture them academically, socially and emotionally.',

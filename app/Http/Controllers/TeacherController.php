@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TeacherRequest;
 use App\Http\Resources\Resource;
 use App\Models\EmergencyContact;
 use App\Models\Employee;
@@ -20,12 +21,12 @@ class TeacherController extends Controller
 {
     public function dataTable()
     {
-//        $teachers = Teacher::all();
         $teachers = QueryBuilder::for(
-            Employee::with(['employment_type', 'employment_status', 'honorific', 'teacher'])->orderBy('id', 'desc')
-        )->jsonPaginate();
-
-//        dd($teachers);
+            Teacher::with(['employee.employment_type', 'employee.employment_status', 'honorific', 'specialization', 'title'])
+                ->orderBy('first_name')
+        )->allowedFilters([
+            AllowedFilter::scope('search', 'Search'),
+        ])->jsonPaginate();
 
         return Resource::collection($teachers);
     }
@@ -40,46 +41,49 @@ class TeacherController extends Controller
         return Inertia::render('admin/Employees/Teachers/Create');
     }
 
-    public function store(Request $request)
+    public function store(TeacherRequest $request)
     {
-        $validatedData = $this->otherDetailsValidation($request);
-
+        $validatedData = $request->validated();
+        
         DB::beginTransaction();
 
         try {
             $employee = Employee::create([
-                'first_name' => $request->input('personal_details.first_name'),
-                'middle_name' => $request->input('personal_details.middle_name'),
-                'last_name' => $request->input('personal_details.last_name'),
-                'honorific_id' => $request->input('personal_details.honorific_id'),
-                'marital_status_id' => $request->input('personal_details.marital_status_id'),
-                'gender_id' => $request->input('personal_details.gender_id'),
-                'religion_id' => $request->input('personal_details.religion_id'),
-                'email' => $request->input('personal_details.email'),
-                'primary_phone' => $request->input('personal_details.primary_phone'),
-                'secondary_phone' => $request->input('personal_details.secondary_phone'),
-                'permanent_physical_address' => $request->input('personal_details.permanent_physical_address'),
-                'secondary_physical_address' => $request->input('personal_details.secondary_physical_address'),
-                'postal_address' => $request->input('personal_details.postal_address'),
-                'identification_number' => $request->input('personal_details.identification_number'),
-                'tax_identification_pin' => $request->input('personal_details.tax_identification_pin'),
-                'staff_number' => $request->input('employee_details.staff_number'),
-                'date_of_hire' => $request->input('employee_details.date_of_hire'),
-                'employment_status_id' => $request->input('employee_details.employment_status_id'),
-                'employment_type_id' => $request->input('employee_details.employment_type_id'),
-                'job_title_id' => $request->input('employee_details.job_title_id'),
+                'first_name' => $validatedData['personal_details']['first_name'],
+                'middle_name' => $validatedData['personal_details']['middle_name'],
+                'last_name' => $validatedData['personal_details']['last_name'],
+                'honorific_id' => $validatedData['personal_details']['honorific_id'],
+                'marital_status_id' => $validatedData['personal_details']['marital_status_id'],
+                'gender_id' => $validatedData['personal_details']['gender_id'],
+                'religion_id' => $validatedData['personal_details']['religion_id'],
+                'email' => $validatedData['personal_details']['email'],
+                'primary_phone' => $validatedData['personal_details']['primary_phone'],
+                'secondary_phone' => $validatedData['personal_details']['secondary_phone'],
+                'permanent_physical_address' => $validatedData['personal_details']['permanent_physical_address'],
+                'secondary_physical_address' => $validatedData['personal_details']['secondary_physical_address'],
+                'postal_address' => $validatedData['personal_details']['postal_address'],
+                'identification_number' => $validatedData['personal_details']['identification_number'],
+                'tax_identification_pin' => $validatedData['personal_details']['tax_identification_pin'],
+                'staff_number' => $validatedData['employee_details']['staff_number'],
+                'date_of_hire' => $validatedData['employee_details']['date_of_hire'],
+                'employment_status_id' => $validatedData['employee_details']['employment_status_id'],
+                'employment_type_id' => $validatedData['employee_details']['employment_type_id'],
+                'job_title_id' => $validatedData['employee_details']['job_title_id'],
             ]);
             
             Teacher::create([
                 'employee_id' => $employee->id,
+                'first_name' => $validatedData['personal_details']['first_name'],
+                'middle_name' => $validatedData['personal_details']['middle_name'],
+                'last_name' => $validatedData['personal_details']['last_name'],
+                'honorific_id' => $validatedData['personal_details']['honorific_id'],
                 'specialization_area_id' => $validatedData['other_details']['specialization_area_id'],
-//                'teacher_title_id' => $validatedData['other_details']['teacher_title_id'],
                 'tsc_number' => $validatedData['other_details']['tsc_number'],
                 'years_of_experience' => $validatedData['other_details']['years_of_experience'],
             ]);
 
-            if (isset($request->employee_details['emergency_contacts']) && is_array($request->employee_details['emergency_contacts'])) {
-                $emergencyContacts = collect($request->employee_details['emergency_contacts'])
+            if (isset($validatedData['employee_details']['emergency_contacts']) && is_array($validatedData['employee_details']['emergency_contacts'])) {
+                $emergencyContacts = collect($validatedData['employee_details']['emergency_contacts'])
                     ->filter(function ($contact) {
                         return isset($contact['relationship_id'], $contact['name']);
                     })
@@ -99,10 +103,28 @@ class TeacherController extends Controller
             }
 
             if (isset($validatedData['other_details']['qualifications']) && is_array($validatedData['other_details']['qualifications'])) {
-                $this->insertQualifications($validatedData['other_details']['qualifications'], $employee);
+//                $this->insertQualifications($validatedData['other_details']['qualifications'], $employee);
+                $teacherQualifications = collect($validatedData['other_details']['qualifications'])
+                    ->filter(function ($qualification) {
+                        return isset($qualification['institution_name']);
+                    })
+                    ->map(function ($qualification) use ($employee) {
+                        return [
+                            'employee_id' => $employee->id,
+                            'institution_name' => $qualification['institution_name'],
+                            'course_name' => $qualification['course_name'],
+                            'year_of_completion' => $qualification['year_of_completion'],
+                            'qualification_type_id' => $qualification['qualification_type_id'],
+                        ];
+                    })->toArray();
+                
+                if (!empty($teacherQualifications)) {
+                    
+                    Qualification::insert($teacherQualifications);
+                }
             }
 
-            if (isset($validatedData['other_details']['work_histories']) && is_array($validatedData['other_details']['work_histories'])) {
+            if (isset($validatedData['other_details']['work_histories']) && !empty($validated['other_details']['work_histories']) && is_array($validatedData['other_details']['work_histories'])) {
                 $workHistories = collect($validatedData['other_details']['work_histories'])
                     ->filter(function ($history) {
                         return isset($history['institution_name']);
@@ -131,49 +153,64 @@ class TeacherController extends Controller
             return redirect()->back()->withInput()->withErrors(['message' => 'Failed to save teacher details. Please try again.']);
         }
     }
-
-    public function edit(Employee $employee)
+    
+    public function show(Teacher $teacher)
     {
-//        dd($employee);
-        $employee->load('teacher');
-
-        return Inertia::render('admin/Employees/Teachers/Edit', [
+        $teacher->load('specialization');
+        $employee = Employee::findOrFail($teacher->employee_id);
+        $employee->load('employment_type', 'employment_status', 'job_title', 'honorific', 'marital_status', 'gender', 'religion', 'teacher');
+        
+        return Inertia::render('admin/Employees/Teachers/Show', [
+            'teacher' => $teacher,
             'employee' => $employee,
         ]);
     }
 
-    public function update(Employee $employee, Request $request)
+    public function edit(Teacher $teacher)
     {
-        $validated = $this->otherDetailsValidation($request);
+        $employee = Employee::findOrFail($teacher->employee_id);
+
+        return Inertia::render('admin/Employees/Teachers/Edit', [
+            'teacher' => $teacher,
+            'employee' => $employee,
+        ]);
+    }
+
+    public function update(Teacher $teacher, TeacherRequest $request)
+    {
+        $validated = $request->validated();
 
         DB::beginTransaction();
         try {
+            $employee = Employee::findOrFail($teacher->employee_id);
             $employee->update([
-                'first_name' => $request->input('personal_details.first_name'),
-                'middle_name' => $request->input('personal_details.middle_name'),
-                'last_name' => $request->input('personal_details.last_name'),
-                'honorific_id' => $request->input('personal_details.honorific_id'),
-                'marital_status_id' => $request->input('personal_details.marital_status_id'),
-                'gender_id' => $request->input('personal_details.gender_id'),
-                'religion_id' => $request->input('personal_details.religion_id'),
-                'email' => $request->input('personal_details.email'),
-                'primary_phone' => $request->input('personal_details.primary_phone'),
-                'secondary_phone' => $request->input('personal_details.secondary_phone'),
-                'permanent_physical_address' => $request->input('personal_details.permanent_physical_address'),
-                'secondary_physical_address' => $request->input('personal_details.secondary_physical_address'),
-                'postal_address' => $request->input('personal_details.postal_address'),
-                'identification_number' => $request->input('personal_details.identification_number'),
-                'tax_identification_pin' => $request->input('personal_details.tax_identification_pin'),
-                'staff_number' => $request->input('employee_details.staff_number'),
-                'date_of_hire' => $request->input('employee_details.date_of_hire'),
-                'employment_status_id' => $request->input('employee_details.employment_status_id'),
-                'employment_type_id' => $request->input('employee_details.employment_type_id'),
-                'job_title_id' => $request->input('employee_details.job_title_id'),
+                'first_name' => $validated['personal_details']['first_name'],
+                'middle_name' => $validated['personal_details']['middle_name'],
+                'last_name' => $validated['personal_details']['last_name'],
+                'honorific_id' => $validated['personal_details']['honorific_id'],
+                'marital_status_id' => $validated['personal_details']['marital_status_id'],
+                'gender_id' => $validated['personal_details']['gender_id'],
+                'religion_id' => $validated['personal_details']['religion_id'],
+                'email' => $validated['personal_details']['email'],
+                'primary_phone' => $validated['personal_details']['primary_phone'],
+                'secondary_phone' => $validated['personal_details']['secondary_phone'],
+                'permanent_physical_address' => $validated['personal_details']['permanent_physical_address'],
+                'secondary_physical_address' => $validated['personal_details']['secondary_physical_address'],
+                'postal_address' => $validated['personal_details']['postal_address'],
+                'identification_number' => $validated['personal_details']['identification_number'],
+                'tax_identification_pin' => $validated['personal_details']['tax_identification_pin'],
+                'staff_number' => $validated['employee_details']['staff_number'],
+                'date_of_hire' => $validated['employee_details']['date_of_hire'],
+                'employment_status_id' => $validated['employee_details']['employment_status_id'],
+                'employment_type_id' => $validated['employee_details']['employment_type_id'],
+                'job_title_id' => $validated['employee_details']['job_title_id'],
             ]);
 
-            $teacher = Teacher::where('employee_id', '=', $employee->id)->first();
-
             $teacher->update([
+                'first_name' => $validated['personal_details']['first_name'],
+                'middle_name' => $validated['personal_details']['middle_name'],
+                'last_name' => $validated['personal_details']['last_name'],
+                'honorific_id' => $validated['personal_details']['honorific_id'],
                 'specialization_area_id' => $validated['other_details']['specialization_area_id'],
                 'teacher_title_id' => $validated['other_details']['teacher_title_id'],
                 'tsc_number' => $validated['other_details']['tsc_number'],
@@ -204,11 +241,28 @@ class TeacherController extends Controller
 
             if (isset($validated['other_details']['qualifications']) && is_array($validated['other_details']['qualifications'])) {
                 $employee->qualifications()->delete();
-
-                $this->insertQualifications($validated['other_details']['qualifications'], $employee);
+                
+                $qualifications = collect($validated['other_details']['qualifications'])
+                    ->filter(function ($qualification) {
+                        return isset($qualification['institution_name']);
+                    })
+                    ->map(function ($qualification) use ($employee) {
+                        return [
+                            'employee_id' => $employee->id,
+                            'institution_name' => $qualification['institution_name'],
+                            'course_name' => $qualification['course_name'],
+                            'year_of_completion' => $qualification['year_of_completion'],
+                            'qualification_type_id' => $qualification['qualification_type_id'],
+                        ];
+                    })->toArray();
+                
+                if (!empty($qualifications)) {
+                    
+                    Qualification::insert($qualifications);
+                }
             }
 
-            if (!empty($validated['other_details']['work_histories'])) {
+            if (!empty($validated['other_details']['work_histories']) && is_array($validated['other_details']['work_histories'])) {
 
                 $employee->histories()->delete();
 
@@ -390,30 +444,30 @@ class TeacherController extends Controller
         ]);
     }
 
-    /**
-     * @param $qualifications
-     * @param Employee $employee
-     * @return void
-     */
-    public function insertQualifications($qualifications, Employee $employee): void
-    {
-        $qualifications = collect($qualifications['other_details']['qualifications'])
-            ->filter(function ($qualification) {
-                return isset($qualification['institution_name']);
-            })
-            ->map(function ($qualification) use ($employee) {
-                return [
-                    'employee_id' => $employee->id,
-                    'institution_name' => $qualification['institution_name'],
-                    'course_name' => $qualification['course_name'],
-                    'year_of_completion' => $qualification['year_of_completion'],
-                    'qualification_type_id' => $qualification['qualification_type_id'],
-                ];
-            })->toArray();
-
-        if (!empty($qualifications)) {
-
-            Qualification::insert($qualifications);
-        }
-    }
+//    /**
+//     * @param $qualifications
+//     * @param Employee $employee
+//     * @return void
+//     */
+//    public function insertQualifications($qualifications, Employee $employee): void
+//    {
+//        $qualifications = collect($qualifications['other_details']['qualifications'])
+//            ->filter(function ($qualification) {
+//                return isset($qualification['institution_name']);
+//            })
+//            ->map(function ($qualification) use ($employee) {
+//                return [
+//                    'employee_id' => $employee->id,
+//                    'institution_name' => $qualification['institution_name'],
+//                    'course_name' => $qualification['course_name'],
+//                    'year_of_completion' => $qualification['year_of_completion'],
+//                    'qualification_type_id' => $qualification['qualification_type_id'],
+//                ];
+//            })->toArray();
+//
+//        if (!empty($qualifications)) {
+//
+//            Qualification::insert($qualifications);
+//        }
+//    }
 }

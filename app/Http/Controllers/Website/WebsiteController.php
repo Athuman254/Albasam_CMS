@@ -7,31 +7,38 @@ use App\Models\Page;
 
 class WebsiteController extends Controller
 {
-    public function index(): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
-    {
-        $institution = Institution::orderBy('id')->first() ?? new Institution();
-        // $pages = Page::all();
-        // dd($pages);
-        return view('website.template-1.pages.home', [
-            // 'pages' =>  $pages
-        ]);
-    }
-
-    public function page($slug)
-    {
-        $page = Page::where('slug', $slug)
-            ->where('is_published', '=', true)
-            ->with(['sections' => function ($query) {
-                $query->where('is_active', true)
-                    ->orderBy('order')
-                    ->with(['subSections' => function ($q) {
-                        $q->where('is_active', true)->orderBy('order');
-                    }]);
-            }])
-            ->firstOrFail();
-
-        return view('website.template-1.pages.page_data', [
-            'page' => $page,
-        ]);
-    }
+   public function index(): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
+   {
+      $homePage = Page::where('is_home', '=', true)
+         ->where('is_published', '=', true)
+         ->with(['sections' => function ($query) {
+            $query->where('is_active', '=', true)
+               ->orderBy('order')
+               ->with(['subSections' => function ($q) {
+                  $q->where('is_active', '=', true)->orderBy('order');
+               }]);
+         }])->firstOrFail();
+      
+      return view('website.template-1.pages.home', [
+           'homePage' => $homePage,
+      ]);
+   }
+   
+   public function page($slug)
+   {
+      $page = Page::where('slug', '=', $slug)
+         ->where('is_home', '=', false)
+         ->where('is_published', '=', true)
+         ->with(['sections' => function ($query) {
+            $query->where('is_active', '=', true)
+               ->orderBy('order')
+               ->with(['subSections' => function ($q) {
+                  $q->where('is_active', '=', true)->orderBy('order');
+               }]);
+         }])->firstOrFail();
+   
+      return view('website.template-1.pages.page_data', [
+         'page' => $page,
+      ]);
+   }
 }

@@ -1,85 +1,179 @@
 <template>
-    <div class="row">
-        <h3 class="mb-0">Website Pages</h3>
-        <nav class="mb-3">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <Link href="/admin/dashboard">Home</Link>
-                </li>
-                <li class="breadcrumb-item">
-                    Website Settings
-                </li>
-                <li class="breadcrumb-item">
-                    <Link href="/admin/website/pages">Website Pages</Link>
-                </li>
-                <li class="breadcrumb-item">
-                    Page Sections
-                </li>
-            </ol>
-        </nav>
-
-        <div class="col-xl-12 col-md-12">
-            <div class="card">
-                <div class="card-header border-bottom">
-                    <h5 class="card-title mb-0">
-                        {{ page.title }} - Edit Page Contents
-                    </h5>
-                </div>
-                <div v-for="(section, index) in form.sections" :key="index" class="card-body pt-6 border-bottom">
-                    <div class="mb-3">
-                        <div class="mb-4 d-flex align-items-center justify-content-between">
-                            <div>
-                                <h5 class="mb-0">Section {{ index + 1 }}</h5>
-                                <small class="me-2">Enter Section Details</small>
-                            </div>
-                            <div>
-                                <button type="button" class="btn btn-sm btn-danger ms-auto" @click="removeSection(index)">
-                                    <i class="bx bx-trash"></i>
-                                </button>
-                            </div>
+   <div class="row">
+      <h3 class="mb-0">Website Pages</h3>
+      <nav class="mb-3">
+         <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+               <Link href="/admin/dashboard">Home</Link>
+            </li>
+            <li class="breadcrumb-item">
+               Website Settings
+            </li>
+            <li class="breadcrumb-item">
+               <Link href="/admin/website/pages">Website Pages</Link>
+            </li>
+            <li class="breadcrumb-item text-primary">
+               Page Sections
+            </li>
+         </ol>
+      </nav>
+      
+      <div class="col-xl-12 col-md-12">
+         <div class="card">
+            <div class="card-header border-bottom">
+               <h5 class="card-title mb-0">
+                  {{ page.title }} - Edit Page Contents
+               </h5>
+            </div>
+            <div v-for="(section, index) in form.sections" :key="index" class="card-body pt-6 border-bottom">
+               <div class="mb-3">
+                  <div class="mb-4 d-flex align-items-center justify-content-between">
+                     <div>
+                        <h5 class="mb-0">Section {{ index + 1 }}</h5>
+                        <small class="me-2">Enter Section Details</small>
+                     </div>
+                     <div>
+                        <button type="button" class="btn btn-sm btn-danger ms-auto" @click="removeSection(index)">
+                           <i class="bx bx-trash"></i>
+                        </button>
+                     </div>
+                  </div>
+                  <div class="mb-3">
+                     <div class="row">
+                        <div class="col-md-4 col-12">
+                           <div class="mb-3">
+                              <label for="sectionTitle" class="form-label">Title</label>
+                              <input id="sectionTitle" type="text" class="form-control" v-model="section.title">
+                              <div v-if="getSectionError(index, 'title')" class="text-danger">
+                                 {{ getSectionError(index, 'title') }}
+                              </div>
+                           </div>
                         </div>
-                        <div class="mb-3">
-                            <div class="row">
-                                <div class="col-md-4 col-12">
+                        <div class="col-md-4 col-12">
+                           <div class="mb-3">
+                              <label for="sectionSubTitle" class="form-label">Sub-Title</label>
+                              <input id="sectionSubTitle" type="text" class="form-control" v-model="section.sub_title">
+                              <div v-if="getSectionError(index, 'sub_title')" class="text-danger">
+                                 {{ getSectionError(index, 'sub_title') }}
+                              </div>
+                           </div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                           <div class="mb-3">
+                              <label for="sectionOrder" class="form-label">Order</label>
+                              <input id="sectionOrder" type="number" class="form-control" v-model="section.order">
+                              <div v-if="getSectionError(index, 'order')" class="text-danger">
+                                 {{ getSectionError(index, 'order') }}
+                              </div>
+                           </div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                           <div class="mb-3">
+                              <label for="sectionBgStyle" class="form-label">Section Background</label>
+                              <v-select
+                                 id="sectionBgStyle"
+                                 v-model="section.bg_style"
+                                 :options="sectionBgStyles"
+                                 label="label"
+                                 :reduce="(option) => option.value"
+                              ></v-select>
+                              <div v-if="getSectionError(index, 'bg_style')" class="text-danger">
+                                 {{ getSectionError(index, 'bg_style') }}
+                              </div>
+                           </div>
+                        </div>
+                        <div class="col-md-4 col-12" v-if="section.bg_style">
+                           <div class="mb-3">
+                              <div v-if="section.bg_style === 'color'">
+                                 <label for="sectionBgColor" class="form-label">Background Color</label>
+                                 <v-select
+                                    id="sectionBgColor"
+                                    v-model="section.bg_color"
+                                    :options="sectionBgColors"
+                                    label="label"
+                                    :reduce="(option) => option.value"
+                                 ></v-select>
+                                 <div v-if="getSectionError(index, 'bg_color')" class="text-danger">
+                                    {{ getSectionError(index, 'bg_color') }}
+                                 </div>
+                              </div>
+                              <div v-if="section.bg_style === 'image'">
+                                 <label for="" class="form-label">Background Image</label>
+                                 <input type="file" @change="bgImageUpload($event, section)" class="form-control">
+                                 <div v-if="getSectionError(index, 'bg_image')" class="text-danger">
+                                    {{ getSectionError(index, 'bg_image') }}
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                           <div class="mb-3">
+                              <label for="sectionType" class="form-label">Section Type</label>
+                              <v-select
+                                 id="sectionType"
+                                 v-model="section.type"
+                                 :options="sectionTypes"
+                                 label="label"
+                                 :reduce="(option) => option.value"
+                              ></v-select>
+                              <div v-if="getSectionError(index, 'type')" class="text-danger">
+                                 {{ getSectionError(index, 'type') }}
+                              </div>
+                           </div>
+                        </div>
+                        <div v-if="section.type" class="col-md-12 col-12 ">
+                           <div class="mb-3">
+                              <div v-if="section.type === 1">
+                                 <label for="sectionContent" class="form-label">Section Content</label>
+                                 <textarea rows="3" class="form-control" v-model="section.content"></textarea>
+                                 <!--                                            <QuillEditor v-model="section.content" />-->
+                                 <div v-if="getSectionError(index, 'content')" class="text-danger">
+                                    {{ getSectionError(index, 'content') }}
+                                 </div>
+                              </div>
+                              <div v-if="section.type === 2">
+                                 <label for="sectionImage" class="form-label">Section Image</label>
+                                 <input type="file" @change="typeImageUpload($event, section)" class="form-control">
+                                 <div v-if="getSectionError(index, 'type_image')" class="text-danger">
+                                    {{ getSectionError(index, 'type_image') }}
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        <!-- Sub-Sections -->
+                        <div v-if="section.subSections && section.subSections.length" class="col-12 mb-3">
+                           <div v-for="(sub, subIndex) in section.subSections" :key="subIndex"
+                                class="sub-section sub-md-section sub-sm-section">
+                              <div class="mb-4 d-flex align-items-center justify-content-between">
+                                 <div>
+                                    <h5 class="mb-0">Sub Section {{ subIndex + 1 }}</h5>
+                                    <small class="me-2">Enter Sub-Section Details</small>
+                                 </div>
+                                 <div>
+                                    <button type="button" class="btn btn-sm btn-danger ms-auto"
+                                            @click="removeSubSection(index, subIndex)">
+                                       <i class="bx bx-trash"></i>
+                                    </button>
+                                 </div>
+                              </div>
+                              <div class="row">
+                                 <div class="col-md-4 col-12">
                                     <div class="mb-3">
-                                        <label for="sectionTitle" class="form-label">Title</label>
-                                        <input id="sectionTitle" type="text" class="form-control" v-model="section.title">
-                                        <div v-if="getSectionError(index, 'title')" class="text-danger">
-                                            {{ getSectionError(index, 'title') }}
-                                        </div>
+                                       <label for="subSectionTitle" class="form-label">Title</label>
+                                       <input id="subSectionTitle" type="text" class="form-control" v-model="sub.title">
+                                       <div v-if="getSubSectionError(index, subIndex, 'title')" class="text-danger">
+                                          {{ getSubSectionError(index, subIndex, 'title') }}
+                                       </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4 col-12">
+                                 </div>
+                                 <div class="col-md-4 col-12">
                                     <div class="mb-3">
-                                        <label for="sectionSubTitle" class="form-label">Sub-Title</label>
-                                        <input id="sectionSubTitle" type="text" class="form-control" v-model="section.sub_title">
-                                        <div v-if="getSectionError(index, 'sub_title')" class="text-danger">
-                                            {{ getSectionError(index, 'sub_title') }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 col-12">
-                                    <div class="mb-3">
-                                        <label for="sectionOrder" class="form-label">Order</label>
-                                        <input id="sectionOrder" type="number" class="form-control" v-model="section.order">
-                                        <div v-if="getSectionError(index, 'order')" class="text-danger">
-                                            {{ getSectionError(index, 'order') }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 col-12">
-                                    <div class="mb-3">
-                                        <label for="sectionBgStyle" class="form-label">Section Background</label>
-                                        <v-select
-                                            id="sectionBgStyle"
-                                            v-model="section.bg_style"
-                                            :options="sectionBgStyles"
-                                            label="label"
-                                            :reduce="(option) => option.value"
-                                        ></v-select>
-                                        <div v-if="getSectionError(index, 'bg_style')" class="text-danger">
-                                            {{ getSectionError(index, 'bg_style') }}
-                                        </div>
+                                       <label for="subSectionSubTitle" class="form-label">Sub-Title</label>
+                                       <input id="subSectionSubTitle" type="text" class="form-control"
+                                              v-model="sub.sub_title">
+                                       <div v-if="getSubSectionError(index, subIndex, 'sub_title')" class="text-danger">
+                                          {{ getSubSectionError(index, subIndex, 'sub_title') }}
+                                       </div>
                                     </div>
                                 </div>
                                 <div :class="section.bg_style === 'image' ? 'col-12' : 'col-12 col-md-4'" v-if="section.bg_style">
@@ -106,23 +200,23 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4 col-12">
+                                 </div>
+                                 <div class="col-md-4 col-12">
                                     <div class="mb-3">
-                                        <label for="sectionType" class="form-label">Section Type</label>
-                                        <v-select
-                                            id="sectionType"
-                                            v-model="section.type"
-                                            :options="sectionTypes"
-                                            label="label"
-                                            :reduce="(option) => option.value"
-                                        ></v-select>
-                                        <div v-if="getSectionError(index, 'type')" class="text-danger">
-                                            {{ getSectionError(index, 'type') }}
-                                        </div>
+                                       <label for="subSectionType" class="form-label">Section Type</label>
+                                       <v-select
+                                          id="subSectionType"
+                                          v-model="sub.type"
+                                          :options="sectionTypes"
+                                          label="label"
+                                          :reduce="(option) => option.value"
+                                       ></v-select>
+                                       <div v-if="getSubSectionError(index, subIndex, 'type')" class="text-danger">
+                                          {{ getSubSectionError(index, subIndex, 'type') }}
+                                       </div>
                                     </div>
-                                </div>
-                                <div v-if="section.type" class="col-md-12 col-12 ">
+                                 </div>
+                                 <div v-if="sub.type" class="col-md-12 col-12">
                                     <div class="mb-3">
                                         <div v-if="section.type === 1">
                                             <label for="sectionContent" class="form-label">Section Content</label>
@@ -227,25 +321,29 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <button @click="addSubSection(index)" class="btn btn-light mt-3">
-                                <i class="bx bx-plus-circle me-2"></i>Add Sub-Section
-                            </button>
+                                 </div>
+                              </div>
+                           </div>
                         </div>
-                    </div>
-                </div>
-                <div class="card-footer pt-6">
-                    <button @click="addSection" type="button" class="btn btn-light me-3">
-                        <i class="bx bx-plus-circle me-2"></i>Add Section
-                    </button>
-                    <button v-if="form.sections.length" @click="updateSections" type="button" class="btn btn-success float-end">
-                        Submit
-                    </button>
-                </div>
+                     </div>
+                     <button @click="addSubSection(index)" class="btn btn-light mt-3">
+                        <i class="bx bx-plus-circle me-2"></i>Add Sub-Section
+                     </button>
+                  </div>
+               </div>
             </div>
-        </div>
-    </div>
+            <div class="card-footer pt-6">
+               <button @click="addSection" type="button" class="btn btn-light me-3">
+                  <i class="bx bx-plus-circle me-2"></i>Add Section
+               </button>
+               <button v-if="form.sections.length" @click="updateSections" type="button"
+                       class="btn btn-success float-end">
+                  Submit
+               </button>
+            </div>
+         </div>
+      </div>
+   </div>
 </template>
 
 <script>
@@ -446,16 +544,18 @@ export default {
 
 <style scoped>
 .sub-section {
-    margin-left: 3rem;
+   margin-left: 3rem;
 }
+
 @media (max-width: 768px) {
-    .sub-md-section {
-        margin-left: 1.5rem !important;
-    }
+   .sub-md-section {
+      margin-left: 1.5rem !important;
+   }
 }
+
 @media (max-width: 576px) {
-    .sub-sm-section {
-        margin-left: 0 !important;
-    }
+   .sub-sm-section {
+      margin-left: 0 !important;
+   }
 }
 </style>

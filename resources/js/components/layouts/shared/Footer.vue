@@ -1,6 +1,3 @@
-<script>
-</script>
-
 <template>
     <div>
         <footer class="content-footer footer bg-footer-theme">
@@ -11,28 +8,12 @@
                         © 2025, made by
                         <a href="https://ecobiz.co.ke" target="_blank" class="footer-link">Ecobiz</a>
                     </div>
-<!--                    <div class="d-none d-lg-inline-block">-->
-<!--                        <a href="https://themeselection.com/license/" class="footer-link me-4" target="_blank">License</a>-->
-<!--                        <a href="https://themeselection.com/" target="_blank" class="footer-link me-4">More Themes</a>-->
-
-<!--                        <a-->
-<!--                            href="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/documentation/"-->
-<!--                            target="_blank"-->
-<!--                            class="footer-link me-4"-->
-<!--                        >Documentation</a-->
-<!--                        >-->
-
-<!--                        <a-->
-<!--                            href="https://github.com/themeselection/sneat-html-admin-template-free/issues"-->
-<!--                            target="_blank"-->
-<!--                            class="footer-link"-->
-<!--                        >Support</a-->
-<!--                        >-->
-<!--                    </div>-->
                 </div>
             </div>
         </footer>
     </div>
 </template>
+
+<script></script>
 
 <style></style>

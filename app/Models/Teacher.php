@@ -16,7 +16,7 @@ class Teacher extends Model
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
     protected $fillable = [
-        'user_id', 'employee_id', 'specialization_area_id', 'teacher_title_id', 'tsc_number', 'years_of_experience',
+        'user_id', 'employee_id', 'first_name', 'middle_name', 'last_name', 'honorific_id', 'specialization_area_id', 'teacher_title_id', 'tsc_number', 'years_of_experience',
     ];
 
     public function user(): BelongsTo
@@ -28,6 +28,11 @@ class Teacher extends Model
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'id');
     }
+    
+    public function honorific(): BelongsTo
+    {
+        return $this->belongsTo(Honorific::class, 'honorific_id', 'id');
+    }
 
     public function specialization(): BelongsTo
     {
@@ -37,5 +42,18 @@ class Teacher extends Model
     public function title(): BelongsTo
     {
         return $this->belongsTo(TeacherTitle::class, 'teacher_title_id', 'id');
+    }
+    
+    public function scopeSearch($query, string $terms = null)
+    {
+        collect(explode(' ', $terms))->filter()->each(function ($term) use ($query) {
+            $term = '%'.$term.'%';
+            
+            $query->where('first_name', 'like', $term)
+                ->orwhere('last_name', 'like', $term)
+                ->orWhereHas('employee', function($q) use ($term) {
+                    $q->where('staff_number', 'like', $term);
+                });
+        });
     }
 }

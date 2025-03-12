@@ -17,7 +17,7 @@ class Student extends Model
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
     protected $fillable = [
-        'student_admission_id', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'birth_certificate_number', 'gender_id', 'religion_id',
+        'student_admission_id', 'admission_number', 'rank_id', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'birth_certificate_number', 'gender_id', 'religion_id',
         'citizenship', 'county', 'ward', 'permanent_address', 'kpsea_score', 'kjsea_score', 'kcpe_score', 'upi_number', 'nemis', 'assessment_number',
         'previous_school', 'specialization',
     ];
@@ -25,6 +25,11 @@ class Student extends Model
     public function admission(): BelongsTo
     {
         return $this->belongsTo(StudentAdmission::class, 'student_admission_id', 'id');
+    }
+    
+    public function rank(): BelongsTo
+    {
+        return $this->belongsTo(Rank::class, 'rank_id', 'id');
     }
 
     public function gender(): BelongsTo
@@ -52,8 +57,8 @@ class Student extends Model
 
             $term = '%'.$term.'%';
 
-            return $query->whereHas('admission.rank', function ($q) use ($term) {
-                $q->where('id', 'like', $term);
+            return $query->whereHas('rank', function ($q) use ($term) {
+                $q->where('name', 'like', $term);
             });
         });
     }

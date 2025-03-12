@@ -2,31 +2,47 @@
 <html lang="en">
 
 <head>
-    <!--Meta Tags-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content=""/>
-    <meta name="keywords" content=""/>
+   <!--Meta Tags-->
+   <meta charset="utf-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta name="description" content=""/>
+   <meta name="keywords" content=""/>
 
-    <!--Favicons-->
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.png') }}" />
+   <!--Favicons-->
+   <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.png') }}" />
 
-    <!--Page Title-->
-    <title>SHARIFF NASSIR GIRLS SECONDARY SCHOOL</title>
+   <!--Page Title-->
+   <title>SHARIFF NASSIR GIRLS SECONDARY SCHOOL</title>
 
-    <link href="https://fonts.googleapis.com/css?family=Dosis:300,400,500,600,700,800|Roboto:300,400,400i,500,500i,700,700i,900,900i" rel="stylesheet">
-    <!-- Core CSS -->
-    <link href="{{ asset('website-assets/custom.css') }}">
-    <link href="{{ asset('website-assets/template-1/assets/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/icofont.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/meanmenu.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/owlcarousel/css/owl.carousel.min.css')}}">
-    <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/owlcarousel/css/owl.theme.default.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/animate.css') }}">
-    <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/venobox/css/venobox.min.css')}}" />
-    <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/responsive.css') }}">
+   <!-- Core CSS -->
+   <link rel="stylesheet" href="{{ asset('website-assets/template-1/fonts.css') }}">
+   <link rel="stylesheet" href="{{ asset('website-assets/template-1/custom.css') }}">
+   <link rel="stylesheet" href="{{ asset('website-assets/template-1/assets/bootstrap/css/bootstrap.min.css') }}">
+   <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/style.css') }}">
+   <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/icofont.min.css') }}">
+   <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/meanmenu.min.css') }}">
+   <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/owlcarousel/css/owl.carousel.min.css')}}">
+   <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/owlcarousel/css/owl.theme.default.min.css') }}">
+   <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/animate.css') }}">
+   <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/venobox/css/venobox.min.css')}}" />
+   <link rel="stylesheet" href="{{ asset('/website-assets/template-1/assets/css/responsive.css') }}">
+
+   <style>
+      /* CSS */
+      :root {
+         font-family: 'Roboto', 'Dosis', sans-serif !important;
+         font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+      }
+      body {
+         font-family: 'Roboto', 'Dosis', sans-serif !important;
+      }
+      h1, h2, h3, h4, h5, h6 {
+         color: #333;
+         font-family: 'Roboto', 'Dosis', sans-serif !important;
+         font-weight: 700;
+      }
+   </style>
 </head>
 
 <body id="main">

@@ -5,7 +5,7 @@
                 <div class="col-lg-4 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
                     <div class="footer-widget-title col-12 p-0">
                         <div class="logo">
-                            <a href="{{ route('homepage') }}">
+                            <a href="#">
                                 <img class="img-fluid" src="{{ asset('logo.png') }}" alt="logo">
                             </a>
                         </div>

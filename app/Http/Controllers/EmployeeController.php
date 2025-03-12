@@ -13,9 +13,10 @@ class EmployeeController extends Controller
     public function dataTable()
     {
         $employees = QueryBuilder::for(
-            Employee::orderBy('id')
+            Employee::with(['employment_type', 'employment_status', 'job_title', 'honorific', 'marital_status', 'gender', 'religion', 'teacher'])
+                ->orderBy('first_name')
         )->allowedFilters([
-            AllowedFilter::partial('name'),
+            AllowedFilter::scope('search', 'Search'),
         ])->jsonPaginate();
 
         return Resource::collection($employees);

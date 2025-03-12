@@ -13,7 +13,7 @@ class QualificationController extends Controller
     public function dataTable()
     {
         $qualifications = QueryBuilder::for(
-            Qualification::orderBy('id')
+            Qualification::with('qualification_type')->orderBy('id')
         )->allowedFilters([
             AllowedFilter::exact('employee_id'),
         ])->jsonPaginate();

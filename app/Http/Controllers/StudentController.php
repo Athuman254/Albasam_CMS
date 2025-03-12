@@ -14,13 +14,12 @@ class StudentController extends Controller
     public function dataTable()
     {
         $students =  QueryBuilder::for(
-            Student::with(['admission.rank'])->orderBy('id', 'desc')
+            Student::with(['rank', 'gender', 'religion', 'guardians', 'siblings'])->orderBy('first_name')
         )->allowedFilters([
+            AllowedFilter::exact('rank_id'),
             AllowedFilter::partial('admission_number'),
-            AllowedFilter::scope('classfilter'),
         ])->jsonPaginate();
 
-        // dd($students);
         return Resource::collection($students);
     }
 }

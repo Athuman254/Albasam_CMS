@@ -26,7 +26,7 @@ class RankController extends Controller
 
     public function index()
     {
-        return Inertia::render('admin/Classes/Index', []);
+        return Inertia::render('Admin/Classes/Index', []);
     }
 
     public function store(Request $request)
@@ -54,7 +54,7 @@ class RankController extends Controller
     {
         $rank->load('division', 'stream', 'teacher.honorific');
         
-        return Inertia::render('admin/Classes/Show', [
+        return Inertia::render('Admin/Classes/Show', [
             'rank' => $rank,
         ]);
     }

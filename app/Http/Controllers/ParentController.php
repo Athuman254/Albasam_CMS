@@ -9,6 +9,6 @@ class ParentController extends Controller
 {
     public function index()
     {
-        return Inertia::render('admin/Parents/Index', []);
+        return Inertia::render('Admin/Parents/Index', []);
     }
 }

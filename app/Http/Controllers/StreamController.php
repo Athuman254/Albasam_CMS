@@ -26,7 +26,7 @@ class StreamController extends Controller
 
     public function index()
     {
-        return Inertia::render('admin/Configurations/Streams/Index', []);
+        return Inertia::render('Admin/Configurations/Streams/Index', []);
     }
 
     public function store(Request $request)

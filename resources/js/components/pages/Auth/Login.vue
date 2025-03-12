@@ -87,14 +87,24 @@ export default {
          showPassword: false,
       }
    },
-   computed: {
-      buttonLabel() {
-         return (this.showPassword) ? "Hide" : "Show";
-      }
-   },
    methods: {
       login() {
+         // axios.post('/login', this.form)
+         //    .then(({ data }) => {
+         //       localStorage.setItem('loggedInAs', this.form.loginAs);
+         //       window.location.href = data.redirect;
+         //    })
+         //    .catch((error) => {
+         //       this.$toast.error('Login failed');
+         //    });
          this.form.post('login', {
+            onSuccess: () => {
+               localStorage.setItem('loggedInAs', this.form.loginAs);
+               this.form.reset('password')
+            },
+            onError: () => {
+               this.$toast.error('Login failed');
+            },
             onFinish: () => this.form.reset('password'),
          });
       },

@@ -16,7 +16,7 @@
       
       <div class="menu-inner-shadow"></div>
       
-      <ul class="menu-inner py-1">
+      <ul v-if="loggedInAs === 'admin'" class="menu-inner py-1">
          <!-- Dashboard -->
          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/dashboard') }">
             <Link href="/admin/dashboard" class="menu-link">
@@ -36,7 +36,7 @@
             </a>
          </li>
          
-         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/student-admissions')}">
+         <li v-if="can('access-admission-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/student-admissions')}">
             <Link href="/admin/student-admissions" class="menu-link">
                <span>
                   <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
@@ -54,12 +54,12 @@
          <!--            </Link>-->
          <!--         </li>-->
          
-         <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/employees') }">
+         <li v-if="canAny(['access-employee-workspace', 'access-teacher-workspace'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/employees') }">
             <a href="#" class="menu-link menu-toggle">
                <i class='bx bxs-user-badge menu-icon tf-icons'></i>
                <div class="text-truncate" data-i18n="Account Settings">Employee Management</div>
             </a>
-            <ul class="menu-sub">
+            <ul v-if="can('access-teacher-workspace')"  class="menu-sub">
                <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/employees/teachers') }">
                   <Link href="/admin/employees/teachers" class="menu-link">
                      <div class="text-truncate">Teachers</div>
@@ -68,7 +68,7 @@
             </ul>
          </li>
          
-         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/ranks')}">
+         <li v-if="can('access-class-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/ranks')}">
             <Link href="/admin/ranks" class="menu-link">
                <span>
                   <i class="menu-icon tf-icons bx bx-chalkboard"></i>
@@ -77,49 +77,68 @@
             </Link>
          </li>
          
-         <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/sms') }">
+         <li v-if="can('access-calendar')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/calendar')}">
+            <Link href="#" class="menu-link">
+               <span>
+                  <i class="menu-icon tf-icons bx bx-calendar"></i>
+               </span>
+               Calendar
+            </Link>
+         </li>
+         
+         <li v-if="can('access-time-table')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/time-table')}">
+            <Link href="/admin/time-table" class="menu-link">
+               <span>
+                  <i class="menu-icon tf-icons bx bx-table"></i>
+               </span>
+               Time-Table
+            </Link>
+         </li>
+         
+         <li v-if="canAny(['access-bulk-sms', 'access-sms-outbox'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/sms') }">
             <a href="#" class="menu-link menu-toggle">
                <i class='menu-icon tf-icons bx bx-message-dots'></i>
                <div class="text-truncate" data-i18n="Account Settings">Sms Messages</div>
             </a>
             <ul class="menu-sub">
-               <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/sms/compose') }">
+               <li v-if="can('access-bulk-sms')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/sms/compose') }">
                   <Link href="/admin/sms/compose" class="menu-link">
                      <div class="text-truncate">Compose</div>
                   </Link>
                </li>
             </ul>
             <ul class="menu-sub">
-               <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/sms/outbox') }">
+               <li v-if="can('access-sms-outbox')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/sms/outbox') }">
                   <Link href="/admin/sms/outbox" class="menu-link">
                      <div class="text-truncate">Outbox</div>
                   </Link>
                </li>
             </ul>
          </li>
-         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/attendance') }">
+         <li v-if="canAny(['access-attendance-workspace', 'access-attendance-report'])" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/attendance') }">
             <a href="#" class="menu-link menu-toggle">
                <i class='bx bx-calendar-check menu-icon tf-icons'></i>
                <div class="text-truncate" data-i18n="Account Settings">Attendance</div>
             </a>
             <ul class="menu-sub">
-               <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/attendance') }">
+               <li v-if="can('access-attendance-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/attendance') }">
                   <Link href="/attendance" class="menu-link">
                      <div class="text-truncate">Mark</div>
                   </Link>
                </li>
-               <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/attendance-record') }">
+               <li v-if="can('access-attendance-report')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/attendance-record') }">
                   <Link href="/attendance-record" class="menu-link">
                      <div class="text-truncate">Records</div>
                   </Link>
                </li>
             </ul>
          </li>
-         <li class="menu-header small text-uppercase">
+         <li v-if="canAny(['access-institution-workspace', 'access-users-workspace', 'access-roles-workspace', 'access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"
+               class="menu-header small text-uppercase">
             <span class="menu-header-text">Configurations</span>
          </li>
          
-         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/institutions') }">
+         <li v-if="can('access-institution-workspace')"  :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/institutions') }">
             <Link href="/admin/institutions" class="menu-link">
                <span>
                   <i class="menu-icon tf-icons bx bxs-school"></i>
@@ -138,7 +157,7 @@
             </Link>
          </li>
          
-         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/roles') }">
+         <li v-if="can('access-roles-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/roles') }">
             <Link href="/admin/roles" class="menu-link">
                <span>
                   <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
@@ -157,34 +176,23 @@
          <!--            </li>-->
          
          <!-- Pages -->
-         <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/settings') }">
+         <li v-if="canAny(['access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"  :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/settings') }">
             <a href="#" class="menu-link menu-toggle  ">
                <i class="menu-icon tf-icons bx bx-cog"></i>
                <div class="text-truncate">System Settings</div>
             </a>
             <ul class="menu-sub">
-               
-               <!--                    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings/teachers') }">-->
-               <!--                        <Link href="/admin/settings/teachers" class="menu-link">-->
-               <!--                            <div class="text-truncate">Teachers</div>-->
-               <!--                        </Link>-->
-               <!--                    </li>-->
-               <!--                    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings/parents') }">-->
-               <!--                        <Link href="/admin/settings/parents" class="menu-link">-->
-               <!--                            <div class="text-truncate">Parents</div>-->
-               <!--                        </Link>-->
-               <!--                    </li>-->
-               <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings/divisions') }">
+               <li v-if="can('access-divisions-workspace')"  :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings/divisions') }">
                   <Link href="/admin/settings/divisions" class="menu-link">
                      <div class="text-truncate">Divisions</div>
                   </Link>
                </li>
-               <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings/streams') }">
+               <li v-if="can('access-streams-workspace')"  :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings/streams') }">
                   <Link href="/admin/settings/streams" class="menu-link">
                      <div class="text-truncate">Streams</div>
                   </Link>
                </li>
-               <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings/subjects') }">
+               <li v-if="can('access-subjects-workspace')"  :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings/subjects') }">
                   <Link href="/admin/settings/subjects" class="menu-link">
                      <div class="text-truncate">Subjects</div>
                   </Link>
@@ -192,13 +200,13 @@
             </ul>
          </li>
          <!-- Pages -->
-         <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/website') }">
+         <li v-if="canAny(['access-pages-workspace'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/website') }">
             <a href="#" class="menu-link menu-toggle">
                <i class="menu-icon tf-icons bx bx-globe"></i>
                <div class="text-truncate" data-i18n="Account Settings">Web Settings</div>
             </a>
             <ul class="menu-sub">
-               <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/pages') }">
+               <li v-if="can('access-pages-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/pages') }">
                   <Link href="/admin/website/pages" class="menu-link">
                      <div class="text-truncate">Pages</div>
                   </Link>
@@ -211,6 +219,18 @@
             </ul>
          </li>
       </ul>
+      
+      <ul v-if="loggedInAs === 'teacher'" class="menu-inner py-1">
+         <!-- Dashboard -->
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/teacher/dashboard') }">
+            <Link href="/teacher/dashboard" class="menu-link">
+               <span>
+                  <i class="menu-icon tf-icons bx bx-home-alt"></i>
+               </span>
+               Dashboard
+            </Link>
+         </li>
+      </ul>
    </aside>
 </template>
 
@@ -220,19 +240,18 @@ export default {
       user() {
          return this.$page.props.auth.user;
       },
+      loggedInAs() {
+         return localStorage.getItem('loggedInAs') || this.$page.props.auth.user.logged_in_as;
+      },
+      // loggedInAs() {
+      //    return this.auth.user.logged_in_as;
+      // },
       institution() {
          return this.$page.props.institution;
       }
    },
    mounted() {
-      const layoutMenuEl = document.querySelector('#layout-menu');
-      if (layoutMenuEl) {
-         new window.Menu(layoutMenuEl, {
-            orientation: 'vertical',
-            closeChildren: false,
-         });
-         // console.log('Menu initialized:', menu);
-      }
+      this.initializeMenu();
    },
    methods: {
       hasRole(role) {
@@ -252,6 +271,18 @@ export default {
       },
       canAll(permissions) {
          return permissions.every(permission => this.user?.permissions?.includes(permission));
+      },
+      initializeMenu() {
+         const layoutMenuEl = document.querySelector('#layout-menu');
+         if (layoutMenuEl) {
+            new window.Menu(layoutMenuEl, {
+               orientation: 'vertical',
+               closeChildren: false,
+            });
+            // console.log('Menu initialized:', layoutMenuEl);
+         } else {
+            console.warn('Menu element not found. Initialization skipped.');
+         }
       },
       toggleSidebar() {
          if (window.Helpers && typeof window.Helpers.toggleCollapsed === 'function') {

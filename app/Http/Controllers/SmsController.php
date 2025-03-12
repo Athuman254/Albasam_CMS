@@ -31,7 +31,7 @@ class SmsController extends Controller
      */
     public function index()
     {
-        return Inertia::render('admin/Sms/Index');
+        return Inertia::render('Admin/Sms/Index');
     }
 
     /**
@@ -39,7 +39,7 @@ class SmsController extends Controller
      */
     public function create()
     {
-        return Inertia::render('admin/Sms/Create');
+        return Inertia::render('Admin/Sms/Create');
     }
 
     /**

@@ -30,12 +30,12 @@ class SectionController extends Controller
 
     public function index()
     {
-        return Inertia('admin/Website/Sections/Index');
+        return Inertia('Admin/Website/Sections/Index');
     }
 
     public function create(Page $page)
     {
-        return Inertia::render('admin/Website/Sections/Create', [
+        return Inertia::render('Admin/Website/Sections/Create', [
             'page' => $page,
         ]);
     }
@@ -108,7 +108,8 @@ class SectionController extends Controller
     public function edit(Page $page)
     {
         $page->load('sections.subSections');
-        return Inertia::render('admin/Website/Sections/Edit', [
+        
+        return Inertia::render('Admin/Website/Sections/Edit', [
             'page' => $page,
         ]);
     }

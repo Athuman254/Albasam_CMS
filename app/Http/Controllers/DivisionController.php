@@ -26,7 +26,7 @@ class DivisionController extends Controller
 
     public function index()
     {
-        return Inertia::render('admin/Configurations/Divisions/Index', []);
+        return Inertia::render('Admin/Configurations/Divisions/Index', []);
     }
 
     public function store(Request $request)

@@ -1,19 +1,26 @@
 <?php
 
-use App\Models\Page;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/login', [\App\Http\Controllers\LoginController::class, 'index'])->name('login.index');
-Route::post('/login', [\App\Http\Controllers\LoginController::class, 'store'])->name('login');
+//Route::get('/admin', function () {
+//    \Illuminate\Support\Facades\Auth::loginUsingId(1);
+//});
 
-// SYSTEM DASHBOARD ROUTES
+Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'index'])->name('login.index');
+Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'store'])->name('login');
+
+/**********************************************************************
+ *  SYSTEM DASHBOARD ROUTES
+ *********************************************************************/
 Route::group([
     'middleware' => 'auth'
 ], function () {
 
-    Route::post('/logout', [\App\Http\Controllers\LoginController::class, 'destroy'])->name('logout');
-
+    Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'destroy'])->name('logout');
+    
+    /**
+     * DATATABLE ROUTES
+     */
     Route::group([
         'prefix' => 'datatable',
         'as' => 'datatable.'
@@ -31,7 +38,8 @@ Route::group([
         Route::get('/streams', [\App\Http\Controllers\StreamController::class, 'dataTable']);
         Route::get('/ranks', [\App\Http\Controllers\RankController::class, 'dataTable']);
         Route::get('/subjects', [\App\Http\Controllers\SubjectController::class, 'dataTable']);
-        Route::get('/rank-subjects', [\App\Http\Controllers\RankSubjectController::class, 'dataTable']);
+        Route::get('/lessons', [\App\Http\Controllers\LessonController::class, 'dataTable']);
+        Route::get('/time-table', [\App\Http\Controllers\TimetableController::class, 'timeTableData']);
         Route::get('/genders', [\App\Http\Controllers\GenderController::class, 'dataTable']);
         Route::get('/religions', [\App\Http\Controllers\ReligionController::class, 'dataTable']);
         Route::get('/relationships', [\App\Http\Controllers\RelationshipController::class, 'dataTable']);
@@ -62,7 +70,10 @@ Route::group([
 
     Route::resource('/attendance', \App\Http\Controllers\AttendanceController::class)->names('attendace');
     Route::get('/attendance-record', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('attendence-records');
-
+    
+    /**
+     * USER PROFILE ROUTES
+     */
     Route::group([
         'prefix' => 'profile',
         'as' => 'profile.'
@@ -70,7 +81,11 @@ Route::group([
         Route::get('/', [\App\Http\Controllers\ProfileController::class, 'index'])->name('index');
         Route::post('/update', [\App\Http\Controllers\ProfileController::class, 'update'])->name('update-account');
     });
-
+    
+    
+    /**********************************************************************
+     *  ADMIN ROUTES
+     *********************************************************************/
     Route::group([
         'prefix' => 'admin',
     ], function () {
@@ -93,13 +108,20 @@ Route::group([
         Route::post('/users/{user}/permissions', [\App\Http\Controllers\UserController::class, 'updatePermission']);
         Route::post('/institution-media', [\App\Http\Controllers\InstitutionController::class, 'uploadMedia']);
 
-        Route::post('/rank_subjects', [\App\Http\Controllers\RankSubjectController::class, 'store']);
-        Route::patch('/rank_subjects/{rank_subject}', [\App\Http\Controllers\RankSubjectController::class, 'update']);
-        Route::delete('/rank_subjects/{rank_subject}', [\App\Http\Controllers\RankSubjectController::class, 'destroy']);
-
+        Route::get('/time-table', [\App\Http\Controllers\TimetableController::class, 'index'])->name('timetable.index');
+        Route::post('/lessons', [\App\Http\Controllers\LessonController::class, 'store']);
+        Route::patch('/lessons/{lesson}', [\App\Http\Controllers\LessonController::class, 'update']);
+        Route::delete('/lessons/{lesson}', [\App\Http\Controllers\LessonController::class, 'destroy']);
+        
+        /**
+         * EMPLOYEE MANAGEMENT ROUTES
+         */
         Route::group([
             'prefix' => 'employees',
         ], function () {
+            /**
+             * FORM WIZARD ROUTES
+             */
             Route::group([
                 'prefix' => '/teacher-registration',
             ], function () {
@@ -111,6 +133,7 @@ Route::group([
                 Route::post('/third-step/{employee}', [\App\Http\Controllers\FormWizard\TeacherController::class, 'thirdStep'])->name('teacher.registration.edit.third.step');
                 Route::post('/fourth-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'fourthStep'])->name('teacher.registration.fourth.step');
             });
+            
             Route::get('/teachers', [\App\Http\Controllers\TeacherController::class, 'index'])->name('teachers.index');
             Route::get('/teachers/create', [\App\Http\Controllers\TeacherController::class, 'create'])->name('teachers.create');
             Route::post('/teachers', [\App\Http\Controllers\TeacherController::class, 'store'])->name('teachers.store');
@@ -123,13 +146,21 @@ Route::group([
             Route::resource('/work-histories', \App\Http\Controllers\WorkHistoryController::class)->names('work.histories');
             Route::resource('/emergency-contacts', \App\Http\Controllers\EmergencyContactController::class)->names('emergency.contacts');
         });
-
-        Route::group(['prefix' => 'sms'], function () {
+        
+        /**
+         * SMS MANAGEMENT ROUTES
+         */
+        Route::group([
+            'prefix' => 'sms'
+        ], function () {
             Route::get('compose', [\App\Http\Controllers\SmsController::class, 'create']);
             Route::post('send', [\App\Http\Controllers\SmsController::class, 'store'])->name('sms.send');
             Route::get('outbox', [\App\Http\Controllers\SmsController::class, 'index'])->name('sms.outbox');
         });
-
+        
+        /**
+         * SYSTEM SETTINGS ROUTES
+         */
         Route::group([
             'prefix' => 'settings',
         ], function () {
@@ -175,10 +206,19 @@ Route::group([
             Route::patch('/sections/{page}', [\App\Http\Controllers\Website\SectionController::class, 'update'])->name('pages.sections.update');
         });
    });
+    
+    /**********************************************************************
+     *  TEACHER ROUTES
+     *********************************************************************/
+    Route::group([
+        'prefix' => 'teacher',
+    ], function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+    });
 });
 
-/**
+/**********************************************************************
  *  WEBSITE ROUTES
- */
+ *********************************************************************/
 Route::get('/', [\App\Http\Controllers\Website\WebsiteController::class, 'index'])->name('homepage');
 Route::get('/{slug}', [\App\Http\Controllers\Website\WebsiteController::class, 'page'])->name('page.show');

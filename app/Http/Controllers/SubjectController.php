@@ -26,7 +26,7 @@ class SubjectController extends Controller
     
     public function index()
     {
-        return Inertia::render('admin/Configurations/Subject/Index', []);
+        return Inertia::render('Admin/Configurations/Subject/Index', []);
     }
     
     public function store(Request $request)

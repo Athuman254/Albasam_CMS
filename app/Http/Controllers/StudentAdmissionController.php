@@ -40,7 +40,7 @@ class StudentAdmissionController extends Controller
 
     public function index()
     {
-        return Inertia::render('admin/StudentAdmissions/Index', [
+        return Inertia::render('Admin/StudentAdmissions/Index', [
             'divisions' => Division::activated()->orderBy('name')->get(),
             'classes' => Rank::activated()->orderBy('name')->get(),
             'genders' => Gender::activated()->orderBy('name')->get(),
@@ -52,7 +52,7 @@ class StudentAdmissionController extends Controller
     public function create()
     {
 //        return 'okay';
-        return Inertia::render('admin/StudentAdmissions/Create', []);
+        return Inertia::render('Admin/StudentAdmissions/Create', []);
     }
 
     public function store(StudentAdmissionRequest $request)
@@ -160,7 +160,7 @@ class StudentAdmissionController extends Controller
     {
         $studentAdmission->load(['student']);
 
-        return Inertia::render('admin/StudentAdmissions/Edit', [
+        return Inertia::render('Admin/StudentAdmissions/Edit', [
             'studentAdmission' => $studentAdmission,
         ]);
     }

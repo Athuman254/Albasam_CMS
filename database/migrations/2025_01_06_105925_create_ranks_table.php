@@ -36,11 +36,14 @@ return new class extends Migration
             $table->softDeletes();
         });
         
-        Schema::create('rank_subjects', function (Blueprint $table) {
+        Schema::create('lessons', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('rank_id');
             $table->unsignedBigInteger('subject_id');
             $table->unsignedBigInteger('teacher_id')->nullable();
+            $table->integer('weekday')->nullable();
+            $table->time('start_time');
+            $table->time('end_time');
             $table->timestamps();
             
             $table->foreign('rank_id')->references('id')->on('ranks');

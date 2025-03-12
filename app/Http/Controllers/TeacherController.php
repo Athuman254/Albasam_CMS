@@ -37,12 +37,12 @@ class TeacherController extends Controller
 
     public function index(): \Inertia\Response
     {
-        return Inertia::render('admin/Employees/Teachers/Index', []);
+        return Inertia::render('Admin/Employees/Teachers/Index', []);
     }
 
     public function create(): \Inertia\Response
     {
-        return Inertia::render('admin/Employees/Teachers/Create');
+        return Inertia::render('Admin/Employees/Teachers/Create');
     }
 
     public function store(TeacherRequest $request): \Illuminate\Http\RedirectResponse
@@ -163,7 +163,7 @@ class TeacherController extends Controller
         $employee = Employee::findOrFail($teacher->employee_id);
         $employee->load('employment_type', 'employment_status', 'job_title', 'honorific', 'marital_status', 'gender', 'religion', 'teacher', 'user');
 
-        return Inertia::render('admin/Employees/Teachers/Show', [
+        return Inertia::render('Admin/Employees/Teachers/Show', [
             'teacher' => $teacher,
             'employee' => $employee,
         ]);
@@ -173,7 +173,7 @@ class TeacherController extends Controller
     {
         $employee = Employee::findOrFail($teacher->employee_id);
 
-        return Inertia::render('admin/Employees/Teachers/Edit', [
+        return Inertia::render('Admin/Employees/Teachers/Edit', [
             'teacher' => $teacher,
             'employee' => $employee,
         ]);

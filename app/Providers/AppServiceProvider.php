@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,5 +38,14 @@ class AppServiceProvider extends ServiceProvider
                 View::share('pages', $pages);
             }
         }
+        
+        Inertia::share([
+            'auth' => function () {
+                return [
+                    'user' => Auth::user() ? Auth::user()->only(['id', 'name', 'email', 'is_admin', 'is_teacher', 'is_parent']) : null,
+                    'logged_in_as' => Session::get('logged_in_as'), // Pass logged-in role
+                ];
+            },
+        ]);
     }
 }

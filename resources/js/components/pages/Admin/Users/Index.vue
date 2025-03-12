@@ -76,9 +76,9 @@
          aria-hidden="true"
          ref="createUserModal"
       >
-         <div class="modal-dialog modal-body-simple">
+         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
-               <div class="modal-header">
+               <div class="modal-header pb-5">
                   <h5 class="modal-title" id="create-user-modal-label">Add User</h5>
                   <button
                      type="button"
@@ -128,7 +128,12 @@
                      
                      <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
-                        <input id="password" type="password" v-model="form.password" class="form-control">
+                        <div class="input-group input-group-merge">
+                           <input id="password" :type="showPassword ? 'text' : 'password'" v-model="form.password" class="form-control">
+                           <span class="input-group-text cursor-pointer" @click="toggleShow">
+                              <i :class="showPassword ? 'bx bx-show' : 'bx bx-hide'"></i>
+                           </span>
+                        </div>
                         <div v-if="form.errors.password" class="text-danger">{{ form.errors.password }}</div>
                      </div>
                      
@@ -189,7 +194,7 @@
                      </div>
                   </form>
                </div>
-               <div class="modal-footer">
+               <div class="modal-footer pt-5">
                   <button
                      type="button"
                      class="btn btn-secondary me-2"
@@ -220,9 +225,9 @@
          aria-hidden="true"
          ref="editUserModal"
       >
-         <div class="modal-dialog modal-body-simple">
+         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
-               <div class="modal-header">
+               <div class="modal-header pb-5">
                   <h5 class="modal-title" id="edit-user-modal-label">Edit User</h5>
                   <button
                      type="button"
@@ -272,7 +277,12 @@
                      
                      <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
-                        <input id="password" type="password" v-model="editForm.password" class="form-control">
+                        <div class="input-group input-group-merge">
+                           <input id="password" :type="showPassword ? 'text' : 'password'" v-model="editForm.password" class="form-control">
+                           <span class="input-group-text cursor-pointer" @click="toggleShow">
+                              <i :class="showPassword ? 'bx bx-show' : 'bx bx-hide'"></i>
+                           </span>
+                        </div>
                         <div v-if="editForm.errors.password" class="text-danger">{{ editForm.errors.password }}</div>
                      </div>
                      
@@ -336,7 +346,7 @@
                      </div>
                   </form>
                </div>
-               <div class="modal-footer">
+               <div class="modal-footer pt-5">
                   <button
                      type="button"
                      class="btn btn-secondary me-2"
@@ -367,9 +377,10 @@
          aria-hidden="true"
          ref="editUserPermissions"
       >
-         <div class="modal-dialog modal-lg">
+         <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
             <div class="modal-content">
-               <div class="modal-header p-0">
+               <div class="modal-header">
+                  <h5 class="mb-6" data-bs-backdrop="static">Edit User Permissions</h5>
                   <button
                      type="button"
                      class="btn-close"
@@ -379,7 +390,6 @@
                   ></button>
                </div>
                <div class="modal-body p-10">
-                  <h5 class="mb-6">Edit User Permissions</h5>
                   <div class="col-12 mb-6">
                      <div class="row">
                         <div v-for="permission in permissions" :key="permission.id"
@@ -398,7 +408,7 @@
                      </div>
                   </div>
                </div>
-               <div class="modal-footer pb-10 px-10">
+               <div class="modal-footer">
                   <button
                      type="button"
                      class="btn btn-secondary me-2"
@@ -485,7 +495,6 @@ export default {
             is_teacher: '',
             is_parent: '',
          }),
-         
          permissionForm: useForm({
             id: '',
             permissions: [],
@@ -495,6 +504,7 @@ export default {
          roles: [],
          permissions: [],
          userPermissions: [],
+         showPassword: false,
       };
    },
    created() {
@@ -615,6 +625,9 @@ export default {
                this.$toast.error('An error occurred. Please try again', 'Error')
             },
          });
+      },
+      toggleShow() {
+         this.showPassword = !this.showPassword;
       },
       applyFilter: _debounce(function () {
          this.$refs.usersTable.reloadTable();

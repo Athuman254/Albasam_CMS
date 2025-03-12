@@ -122,5 +122,10 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    
+    'calendar' => [
+        'start_time'    => '07:30',
+        'end_time'      => '18:00',
+    ],
 
 ];

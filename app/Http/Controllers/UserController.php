@@ -34,7 +34,7 @@ class UserController extends Controller
 
     public function index(): \Inertia\Response
     {
-        return Inertia::render('admin/Users/Index');
+        return Inertia::render('Admin/Users/Index');
     }
 
     public function store(UserRequest $request): \Illuminate\Http\RedirectResponse
@@ -55,7 +55,7 @@ class UserController extends Controller
                 'is_parent' => $validated['is_parent'] ?? false,
             ]);
 
-            if ($validated['role_id']) {
+            if (isset($validated['role_id'])) {
 
                 $role = Role::with('permissions')->find($validated['role_id']);
 
@@ -105,7 +105,11 @@ class UserController extends Controller
                 $validated['password'] = Hash::make($validated['password']);
             }
 
-            if (array_key_exists('role_id', $validated) && $validated['role_id'] !== null) {
+            if (!$validated['role_id']) {
+                
+                unset($validated['role_id']);
+                
+            } else {
 
                 $role = Role::with('permissions')->find($validated['role_id']);
 
@@ -114,11 +118,7 @@ class UserController extends Controller
                 if ($role->permissions) {
                     $user->syncPermissionsWithoutDetaching($role->permissions->toArray());
                 }
-
-                unset($validated['role_id']);
             }
-
-            unset($validated['role_id']);
         });
 
         return to_route('users.index')->with('success', 'User updated.');

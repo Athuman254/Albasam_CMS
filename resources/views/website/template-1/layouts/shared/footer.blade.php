@@ -88,7 +88,7 @@
         <div class="auto-container">
             <div class="row mb-lg-0 mb-md-4 mb-4">
                 <div class="col-lg-6 col-md-12 col-12">
-                    <p class="copyright-text">Copyright © {{ now()->format('Y') }} <a href="#">Ecobiz</a> | All Rights Reserved</p>
+                    <p class="copyright-text">Copyright © {{ now()->format('Y') }} <a href="https://ecobiz.co.ke" target="_blank">Ecobiz</a> | All Rights Reserved</p>
                 </div>
             </div>
         </div>

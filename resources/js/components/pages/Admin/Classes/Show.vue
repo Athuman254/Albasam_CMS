@@ -79,53 +79,53 @@
                   </div>
                </div>
             </div>
-            <div class="card-header d-flex justify-content-between">
-               <div class="card-title mb-0">
-                  <h5 class="mb-1 me-2">Subjects</h5>
-                  <p class="card-subtitle">List of subjects taught</p>
-               </div>
-               <div>
-                  <button class="btn btn-primary d-none d-sm-inline-block" @click.prevent="createRankSubjectModal">
-                     <i class="bx bx-plus-circle me-2"></i>
-                     Add Subject
-                  </button>
-                  <button type="button" class="btn btn-primary btn-icon d-sm-none" @click.prevent="createRankSubjectModal">
-                     <i class="bx bx-plus"></i>
-                  </button>
-               </div>
-            </div>
-            <div class="card-body border-bottom py-5">
-               <div class="row">
-                  <div v-for="(rankSubject, index) in rankSubjects" :key="index" class="col-md-3 col-6">
-                     <div class="d-flex align-items-center p-3 bg-secondary-subtle rounded-2">
-                        <div class="d-flex align-items-center">
-                           <div>
-                              <p class="fw-medium mb-0">{{ rankSubject.subject.name }}</p>
-                              <small v-if="rankSubject.teacher_id" class="text-primary">{{ rankSubject.teacher?.honorific?.name + ' ' + rankSubject.teacher?.first_name + ' ' + rankSubject.teacher?.last_name }}</small>
-                              <small v-else>-</small>
-                           </div>
-                        </div>
-                        <div class="ms-auto">
-                           <div class="dropdown">
-                              <button type="button" class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                                 <i class="bx bx-dots-vertical-rounded"></i>
-                              </button>
-                              <div class="dropdown-menu dropdown-menu-end">
-                                 <a class="dropdown-item" href="#" @click.prevent="editRankSubject(rankSubject)">
-                                    <i class="bx bx-edit-alt me-2"></i>
-                                    Edit
-                                 </a>
-                                 <a class="dropdown-item text-danger" href="#">
-                                    <i class="bx bx-trash me-2"></i>
-                                    Delete
-                                 </a>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
+<!--            <div class="card-header d-flex justify-content-between">-->
+<!--               <div class="card-title mb-0">-->
+<!--                  <h5 class="mb-1 me-2">Subjects</h5>-->
+<!--                  <p class="card-subtitle">List of subjects taught</p>-->
+<!--               </div>-->
+<!--               <div>-->
+<!--                  <button class="btn btn-primary d-none d-sm-inline-block" @click.prevent="createLessonModal">-->
+<!--                     <i class="bx bx-plus-circle me-2"></i>-->
+<!--                     Add Subject-->
+<!--                  </button>-->
+<!--                  <button type="button" class="btn btn-primary btn-icon d-sm-none" @click.prevent="createLessonModal">-->
+<!--                     <i class="bx bx-plus"></i>-->
+<!--                  </button>-->
+<!--               </div>-->
+<!--            </div>-->
+<!--            <div class="card-body border-bottom py-5">-->
+<!--               <div class="row">-->
+<!--                  <div v-for="(lesson, index) in lessons" :key="index" class="col-md-3 col-6">-->
+<!--                     <div class="d-flex align-items-center p-3 bg-secondary-subtle rounded-2">-->
+<!--                        <div class="d-flex align-items-center">-->
+<!--                           <div>-->
+<!--                              <p class="fw-medium mb-0">{{ lesson.subject.name }}</p>-->
+<!--                              <small v-if="lesson.teacher_id" class="text-primary">{{ lesson.teacher?.honorific?.name + ' ' + lesson.teacher?.first_name + ' ' + lesson.teacher?.last_name }}</small>-->
+<!--                              <small v-else>-</small>-->
+<!--                           </div>-->
+<!--                        </div>-->
+<!--                        <div class="ms-auto">-->
+<!--                           <div class="dropdown">-->
+<!--                              <button type="button" class="btn align-text-top py-1" data-bs-toggle="dropdown">-->
+<!--                                 <i class="bx bx-dots-vertical-rounded"></i>-->
+<!--                              </button>-->
+<!--                              <div class="dropdown-menu dropdown-menu-end">-->
+<!--                                 <a class="dropdown-item" href="#" @click.prevent="editLesson(lesson)">-->
+<!--                                    <i class="bx bx-edit-alt me-2"></i>-->
+<!--                                    Edit-->
+<!--                                 </a>-->
+<!--                                 <a class="dropdown-item text-danger" href="#">-->
+<!--                                    <i class="bx bx-trash me-2"></i>-->
+<!--                                    Delete-->
+<!--                                 </a>-->
+<!--                              </div>-->
+<!--                           </div>-->
+<!--                        </div>-->
+<!--                     </div>-->
+<!--                  </div>-->
+<!--               </div>-->
+<!--            </div>-->
             <div class="card-header flex-column flex-md-row">
                <div class="row row-gap-1">
                   <div class="col-md-9 col-9 justify-content-center">
@@ -161,159 +161,6 @@
                   </div>
                </template>
             </VueTable>
-         </div>
-      </div>
-      
-      <!-- Create Modal -->
-      <div
-         class="modal fade"
-         id="create-rank-subject-modal"
-         data-bs-backdrop="static"
-         tabindex="-1"
-         aria-labelledby="create-rank-subject"
-         aria-hidden="true"
-         ref="createRankSubject"
-      >
-         <div class="modal-dialog">
-            <div class="modal-content">
-               <div class="modal-header">
-                  <h5 class="modal-title" id="create-rank-modal-label">Add Subject</h5>
-                  <button
-                     type="button"
-                     class="btn-close"
-                     data-bs-dismiss="modal"
-                     aria-label="Close"
-                     @click="formCleanUp"
-                  ></button>
-               </div>
-               <div class="modal-body">
-                  <form id="createForm" @submit.prevent="storeRankSubject">
-                     <div class="mb-3">
-                        <label for="subjectId" class="form-label">Subject</label>
-                        <v-select
-                           id="subjectId"
-                           v-model="form.subject_id"
-                           :options="subjects"
-                           label="name"
-                           :reduce="option => option.id"
-                        ></v-select>
-                        <div v-if="form.errors.subject_id" class="text-danger">{{ form.errors.subject_id }}</div>
-                     </div>
-                     
-                     <div class="mb-3">
-                        <label for="teacherId" class="form-label">Teacher</label>
-                        <v-select
-                           id="teacherId"
-                           v-model="form.teacher_id"
-                           :options="teachers"
-                           label="name"
-                           :reduce="option => option.id"
-                        >
-                           <template #option="option">
-                              {{ option.first_name }} {{ option.last_name }}
-                           </template>
-                           <template #selected-option="option">
-                              {{ option.first_name }} {{ option.last_name }}
-                           </template>
-                        </v-select>
-                        <div v-if="form.errors.teacher_id" class="text-danger">{{ form.errors.teacher_id }}</div>
-                     </div>
-                  </form>
-               </div>
-               <div class="modal-footer">
-                  <button
-                     type="button"
-                     class="btn btn-secondary me-2"
-                     data-bs-dismiss="modal"
-                     @click="formCleanUp"
-                  >
-                     Close
-                  </button>
-                  <button
-                     type="button"
-                     class="btn btn-primary"
-                     @click.prevent="storeRankSubject"
-                  >
-                     Submit
-                  </button>
-               </div>
-            </div>
-         </div>
-      </div>
-      
-      <div
-         class="modal fade"
-         id="edit-rank-subject-modal"
-         data-bs-backdrop="static"
-         tabindex="-1"
-         aria-labelledby="edit-rank-subject"
-         aria-hidden="true"
-         ref="editRankSubject"
-      >
-         <div class="modal-dialog">
-            <div class="modal-content">
-               <div class="modal-header">
-                  <h5 class="modal-title" id="create-rank-modal-label">Edit Subject</h5>
-                  <button
-                     type="button"
-                     class="btn-close"
-                     data-bs-dismiss="modal"
-                     aria-label="Close"
-                     @click="editFormCleanUp"
-                  ></button>
-               </div>
-               <div class="modal-body">
-                  <form id="createForm" @submit.prevent="updateRankSubject">
-                     <div class="mb-3">
-                        <label for="subjectId" class="form-label">Subject</label>
-                        <v-select
-                           id="subjectId"
-                           v-model="editForm.subject_id"
-                           :options="subjects"
-                           label="name"
-                           :reduce="option => option.id"
-                        ></v-select>
-                        <div v-if="editForm.errors.subject_id" class="text-danger">{{ editForm.errors.subject_id }}</div>
-                     </div>
-                     
-                     <div class="mb-3">
-                        <label for="teacherId" class="form-label">Teacher</label>
-                        <v-select
-                           id="teacherId"
-                           v-model="editForm.teacher_id"
-                           :options="teachers"
-                           label="name"
-                           :reduce="option => option.id"
-                        >
-                           <template #option="option">
-                              {{ option.first_name }} {{ option.last_name }}
-                           </template>
-                           <template #selected-option="option">
-                              {{ option.first_name }} {{ option.last_name }}
-                           </template>
-                        </v-select>
-                        <div v-if="editForm.errors.teacher_id" class="text-danger">{{ editForm.errors.teacher_id }}</div>
-                     </div>
-                  </form>
-               </div>
-               <div class="modal-footer pb-10 px-10">
-                  <button
-                     type="button"
-                     class="btn btn-secondary me-2"
-                     data-bs-dismiss="modal"
-                     @click="editFormCleanUp"
-                  >
-                     Close
-                  </button>
-                  <button
-                     type="button"
-                     class="btn btn-primary"
-                     @click.prevent="updateRankSubject"
-                  >
-                     Submit
-                  </button>
-               </div>
-            </div>
          </div>
       </div>
    </div>
@@ -383,20 +230,20 @@ export default {
          }),
          subjects: [],
          teachers: [],
-         rankSubjects: [],
+         lessons: [],
       }
    },
    created() {
       Inertia.on('navigate', (event) => {
          if (event.detail.page.url === '/admin/ranks/' + this.rank.id) {
-            this.fetchRankSubjects();
+            this.fetchLessons();
             this.fetchSubjects();
             this.fetchTeachers();
          }
       });
    },
    mounted() {
-      this.fetchRankSubjects();
+      this.fetchLessons();
       this.fetchSubjects();
       this.fetchTeachers();
    },
@@ -416,8 +263,8 @@ export default {
             this.$toast.error('An error occurred when fetching the class\'s subjects.')
          })
       },
-      fetchRankSubjects() {
-         axios.get('/datatable/rank-subjects', {
+      fetchLessons() {
+         axios.get('/datatable/lessons', {
             params: {
                filter: {
                   rank_id: this.rank.id
@@ -425,10 +272,10 @@ export default {
             }
          })
             .then(({ data }) => {
-               this.rankSubjects = data.data;
+               this.lessons = data.data;
             }).catch((error) => {
             console.error(error)
-            this.$toast.error('An error occurred when fetching the class\'s subjects.')
+            this.$toast.error('An error occurred when fetching the class\'s lessons.')
          })
       },
       fetchTeachers() {
@@ -440,20 +287,20 @@ export default {
             this.$toast.error('An error occurred when fetching the class\'s subjects.')
          })
       },
-      createRankSubjectModal() {
-         const modalElement = this.$refs.createRankSubject;
+      createLessonModal() {
+         const modalElement = this.$refs.createLesson;
          const modalInstance = Modal.getOrCreateInstance(modalElement);
          modalInstance.show();
       },
-      storeRankSubject() {
-         this.form.post('/admin/rank_subjects', {
+      storeLesson() {
+         this.form.post('/admin/lessons', {
             onSuccess: () => {
                this.form.reset();
                this.form.clearErrors();
-               const modalElement = this.$refs.createRankSubject;
+               const modalElement = this.$refs.createLesson;
                const modalInstance = Modal.getInstance(modalElement);
                modalInstance.hide();
-               this.fetchRankSubjects();
+               this.fetchLessons();
                this.$toast.success('Class Subject Added Successfully', 'Success')
             },
             onError: (errors) => {
@@ -462,24 +309,24 @@ export default {
             },
          });
       },
-      editRankSubject(rowData) {
+      editLesson(rowData) {
          this.editForm.id = rowData.hashid;
          this.editForm.rank_id = rowData.rank_id;
          this.editForm.subject_id = rowData.subject_id;
          this.editForm.teacher_id = rowData.teacher_id;
-         const modalElement = this.$refs.editRankSubject;
+         const modalElement = this.$refs.editLesson;
          const modalInstance = Modal.getOrCreateInstance(modalElement);
          modalInstance.show();
       },
-      updateRankSubject() {
-         this.editForm.patch('/admin/rank_subjects/' + this.editForm.id, {
+      updateLesson() {
+         this.editForm.patch('/admin/lessons/' + this.editForm.id, {
             onSuccess: () => {
                this.editForm.reset();
                this.editForm.clearErrors();
-               const modalElement = this.$refs.editRankSubject;
+               const modalElement = this.$refs.editLesson;
                const modalInstance = Modal.getInstance(modalElement);
                modalInstance.hide();
-               this.fetchRankSubjects();
+               this.fetchLessons();
                this.$toast.success('Class Subject Updated Successfully', 'Success')
             },
             onError: (errors) => {
@@ -488,15 +335,15 @@ export default {
             },
          });
       },
-      // updateRankSubject() {
-      //    this.editForm.patch(`/admin/rank_subjects/` + this.editForm.id, {
+      // updateLesson() {
+      //    this.editForm.patch(`/admin/lessons/` + this.editForm.id, {
       //       onSuccess: () => {
       //          this.editForm.reset();
       //          this.editForm.clearErrors();
-      //          const modalElement = this.$refs.editRankSubject;
+      //          const modalElement = this.$refs.editLesson;
       //          const modalInstance = Modal.getInstance(modalElement);
       //          modalInstance.hide();
-      //          this.fetchRankSubjects();
+      //          this.fetchLessons();
       //          this.$toast.success('Class Subject Updated Successfully', 'Success')
       //       },
       //       onError: (errors) => {

@@ -30,7 +30,7 @@ class InstitutionController extends Controller
             $faviconUrl = $institution->getFirstMediaUrl('favicon');
         }
 
-        return Inertia::render('admin/Institutions/Index', [
+        return Inertia::render('Admin/Institutions/Index', [
             'logoUrl' => $logoUrl,
             'faviconUrl' => $faviconUrl,
         ]);
@@ -38,7 +38,7 @@ class InstitutionController extends Controller
 
     public function create()
     {
-        return Inertia::render('admin/Institutions/Create');
+        return Inertia::render('Admin/Institutions/Create');
     }
 
     public function store(InstitutionRequest $request)

@@ -21,23 +21,23 @@ class TeacherCredentialRequest extends FormRequest
             'name' => [
                 'nullable',
                 Rule::requiredIf(fn () => $this->input('use_existing_user') === false),
-                Rule::unique('users', 'name')->ignore($this->user_id)
+                Rule::unique('users', 'name')->ignore($this->user)
             ],
             'username' => [
                 'nullable',
                 Rule::requiredIf(fn () => $this->input('use_existing_user') === false),
-                Rule::unique('users', 'username')->ignore($this->user_id)
+                Rule::unique('users', 'username')->ignore($this->user)
             ],
             'email' => [
                 'nullable',
                 Rule::requiredIf(fn () => $this->input('use_existing_user') === false),
                 'email',
-                Rule::unique('users', 'email')->ignore($this->user_id)
+                Rule::unique('users', 'email')->ignore($this->user)
             ],
             'phone' => [
                 'nullable',
                 Rule::requiredIf(fn () => $this->input('use_existing_user') === false),
-                Rule::unique('users', 'phone')->ignore($this->user_id)
+                Rule::unique('users', 'phone')->ignore($this->user)
             ],
             'password' => [
                 'nullable',

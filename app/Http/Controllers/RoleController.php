@@ -27,7 +27,7 @@ class RoleController extends Controller
 
     public function index()
     {
-        return Inertia::render('admin/Roles/Index', []);
+        return Inertia::render('Admin/Roles/Index', []);
     }
 
     public function store(RoleRequest $request)

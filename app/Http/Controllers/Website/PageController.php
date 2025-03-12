@@ -26,7 +26,7 @@ class PageController extends Controller
 
     public function index()
     {
-        return Inertia::render('admin/Website/Pages/Index', []);
+        return Inertia::render('Admin/Website/Pages/Index', []);
     }
 
     public function store(Request $request)
@@ -34,11 +34,12 @@ class PageController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|unique:pages,title',
             'content' => 'nullable|string',
+            'slug' => 'nullable|string',
             'is_published' => 'boolean',
         ]);
         
         $isHome = false;
-        if ($validated['title'] == 'Home' || $validated['slug'] == 'home') {
+        if ($validated['title'] == 'Home') {
             $isHome = true;
         }
 

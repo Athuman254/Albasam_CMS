@@ -1,0 +1,16 @@
+/.phpunit.cache
+/database/database.sqlite
+/node_modules
+/public/build
+/public/hot
+/public/js
+/public/css
+/public/media
+/public/mix-manifest.json
+/public/storage
+/storage/*.key
+/vendor
+.env
+/.idea
+/.vscode
+/storage/logs/laravel.log

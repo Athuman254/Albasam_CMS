@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('staff_number')->unique();
             $table->date('date_of_hire')->unique();
+            $table->boolean('use_existing_user')->default(false);
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('employment_type_id');
             $table->unsignedBigInteger('employment_status_id');

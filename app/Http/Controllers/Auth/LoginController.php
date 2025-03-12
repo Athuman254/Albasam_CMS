@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use App\Providers\RouteServiceProvider;
-use App\Http\Requests\LoginRequest;
 
 class LoginController extends Controller
 {
@@ -22,6 +22,9 @@ class LoginController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        
+        // Store selected role in session
+        session(['logged_in_as' => $request->loginAs]);
 
         switch ($request->loginAs) {
             case 'admin':
@@ -35,7 +38,7 @@ class LoginController extends Controller
                 break;
         }
 
-        return redirect()->intended($homeRoute);
+        return redirect()->intended(url($homeRoute));
     }
 
     /**

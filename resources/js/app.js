@@ -47,6 +47,7 @@ createInertiaApp({
             // .component('ckeditor', CKEditor.component)
             .mount(el);
     },
+    scrollRestoration: false,
     progress: {
         delay: 250,
         color: '#29d',

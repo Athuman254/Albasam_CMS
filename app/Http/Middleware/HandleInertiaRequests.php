@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Institution;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -43,6 +44,7 @@ class HandleInertiaRequests extends Middleware
             },
             'auth.user' => function () use ($request) {
                 $user = $request->user();
+                $loggedInAs = Session::get('logged_in_as');
 
                 return $user
                     ? [
@@ -54,6 +56,10 @@ class HandleInertiaRequests extends Middleware
                         'username' => $user->username,
                         'roles' => $user->roles->pluck('name'),
                         'permissions' => $user->permissions->pluck('name'),
+                        'is_admin' => $user->is_admin,
+                        'is_teacher' => $user->is_teacher,
+                        'is_parent' => $user->is_parent,
+                        'logged_in_as' => Session::get('logged_in_as'),
                     ]
                     : null;
             },

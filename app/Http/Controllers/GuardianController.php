@@ -24,6 +24,6 @@ class GuardianController extends Controller
 
     public function index()
     {
-        return Inertia::render('admin/Guardians/Index', []);
+        return Inertia::render('Admin/Guardians/Index', []);
     }
 }

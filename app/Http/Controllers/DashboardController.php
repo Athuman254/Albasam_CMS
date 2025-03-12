@@ -16,7 +16,7 @@ class DashboardController extends Controller
        $teachersCount = Teacher::count();
        $classesCount = Rank::count();
        
-       return Inertia::render('admin/Dashboard', [
+       return Inertia::render('Admin/Dashboard', [
           'studentsCount' => $studentsCount,
           'teachersCount' => $teachersCount,
           'classesCount' => $classesCount

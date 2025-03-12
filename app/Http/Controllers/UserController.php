@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserRequest;
 use App\Http\Resources\Resource;
 use App\Models\Permission;
 use App\Models\Role;
@@ -21,42 +22,40 @@ class UserController extends Controller
             User::with('branch', 'roles', 'permissions')->orderBy('name')
         )->allowedFilters([
             AllowedFilter::exact('id'),
+            AllowedFilter::exact('activated'),
+            AllowedFilter::exact('is_admin'),
+            AllowedFilter::exact('is_teacher'),
+            AllowedFilter::exact('is_parent'),
             AllowedFilter::partial('name'),
         ])->jsonPaginate();
 
         return Resource::collection($users);
     }
 
-    public function index()
+    public function index(): \Inertia\Response
     {
-        return Inertia::render('admin/Users/Index');
+        return Inertia::render('Admin/Users/Index');
     }
 
-    public function store(Request $request)
+    public function store(UserRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'username' => 'required|unique:users,username',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|unique:users,phone',
-            'role_id' => 'nullable|exists:roles,id',
-            'password' => 'required',
-            'activated' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
-        $user = DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated) {
 
             $user = User::forceCreate([
-                'name'                => $validated['name'],
-                'username'            => $validated['username'],
-                'email'               => $validated['email'],
-                'phone'               => $validated['phone'],
-//                'branch_id'           => $validated['branch_id'],
-                'password'            => Hash::make($validated['password']),
-                'activated'           => $validated['activated'] ?? false,
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'password' => Hash::make($validated['password']),
+                'activated' => $validated['activated'] ?? false,
+                'is_admin' => $validated['is_admin'] ?? false,
+                'is_teacher' => $validated['is_teacher'] ?? false,
+                'is_parent' => $validated['is_parent'] ?? false,
             ]);
 
-            if ($validated['role_id']) {
+            if (isset($validated['role_id'])) {
 
                 $role = Role::with('permissions')->find($validated['role_id']);
 
@@ -79,19 +78,23 @@ class UserController extends Controller
         //
     }
 
-    public function update(Request $request, User $user)
+    public function update(UserRequest $request, User $user): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'username' => 'required',
-            'email' => 'required|email',
-            'phone' => 'nullable',
-            'role_id' => 'nullable|exists:roles,id',
-            'password' => 'nullable',
-            'activated' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($user, $validated) {
+
+            $user->update([
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'password' => Hash::make($validated['password']),
+                'activated' => $validated['activated'] ?? false,
+                'is_admin' => $validated['is_admin'] ?? false,
+                'is_teacher' => $validated['is_teacher'] ?? false,
+                'is_parent' => $validated['is_parent'] ?? false,
+            ]);
 
             if (! $validated['password']) {
 
@@ -102,7 +105,11 @@ class UserController extends Controller
                 $validated['password'] = Hash::make($validated['password']);
             }
 
-            if (array_key_exists('role_id', $validated) && $validated['role_id'] !== null) {
+            if (!$validated['role_id']) {
+                
+                unset($validated['role_id']);
+                
+            } else {
 
                 $role = Role::with('permissions')->find($validated['role_id']);
 
@@ -111,19 +118,13 @@ class UserController extends Controller
                 if ($role->permissions) {
                     $user->syncPermissionsWithoutDetaching($role->permissions->toArray());
                 }
-
-                unset($validated['role_id']);
             }
-
-            unset($validated['role_id']);
-
-            $user->forceFill($validated)->save();
         });
 
         return to_route('users.index')->with('success', 'User updated.');
     }
 
-    public function updatePermission(Request $request, User $user)
+    public function updatePermission(Request $request, User $user): \Illuminate\Http\RedirectResponse
     {
         $permissions = Permission::find($request->input('permissions'));
 

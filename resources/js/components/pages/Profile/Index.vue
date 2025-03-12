@@ -98,7 +98,12 @@
                   <div class="col-12 col-lg-6">
                      <div class="mb-4">
                         <label for="password" class="form-label">Password</label>
-                        <input id="password" type="password" v-model="form.password" class="form-control">
+                        <div class="input-group input-group-merge">
+                           <input id="password" :type="showPassword ? 'text' : 'password'" v-model="form.password" class="form-control">
+                           <span class="input-group-text cursor-pointer" @click="toggleShow">
+                              <i :class="showPassword ? 'bx bx-show' : 'bx bx-hide'"></i>
+                           </span>
+                        </div>
                         <div v-if="form.errors.password" class="text-danger">{{ form.errors.password }}</div>
                      </div>
                   </div>
@@ -136,6 +141,7 @@ export default {
             password: '',
          }),
          activeTab: "account",
+         showPassword: false,
       }
    },
    created() {
@@ -158,7 +164,10 @@ export default {
                this.$toast.error('An error occurred. Please try again', 'Error')
             },
          })
-      }
+      },
+      toggleShow() {
+         this.showPassword = !this.showPassword;
+      },
    }
 }
 </script>

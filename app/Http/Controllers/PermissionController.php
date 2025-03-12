@@ -13,18 +13,20 @@ class PermissionController extends Controller
 {
     public function dataTable()
     {
-        $permissions = QueryBuilder::for(
-            Permission::orderBy('display_name')
-        )->allowedFilters(
-            AllowedFilter::partial('display_name')
-        )->jsonPaginate();
+//        $permissions = QueryBuilder::for(
+//            Permission::orderBy('display_name')
+//        )->allowedFilters(
+//            AllowedFilter::partial('display_name')
+//        )->jsonPaginate();
+        
+        $permissions = Permission::all();
 
         return Resource::collection($permissions);
     }
 
     public function index()
     {
-        return Inertia::render('admin/Permissions/Index', []);
+        return Inertia::render('Admin/Permissions/Index', []);
     }
 
     public function store(Request $request, Permission $permission)

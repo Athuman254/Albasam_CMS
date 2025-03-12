@@ -83,7 +83,7 @@ class DatabaseSeeder extends Seeder
             'email'     => 'admin@app.com',
             'phone'     => '0712345678',
             'password'  => Hash::make('admin@!2025'),
-            // 'is_admin' => true,
+             'is_admin' => true,
         ]);
 
         $this->call(LaratrustSeeder::class);
@@ -150,10 +150,6 @@ class DatabaseSeeder extends Seeder
             ['name' => 'South'],
             ['name' => 'East'],
             ['name' => 'West'],
-//            ['name' => 'Red'],
-//            ['name' => 'Green'],
-//            ['name' => 'Blue'],
-//            ['name' => 'Yellow'],
         ]);
     }
 
@@ -162,10 +158,6 @@ class DatabaseSeeder extends Seeder
         Division::truncate();
 
         Division::insert([
-//            ['name' => 'Pre-Primary'],
-//            ['name' => 'Primary'],
-//            ['name' => 'Junior Secondary'],
-//            ['name' => 'Senior Secondary'],
             ['name' => 'Secondary School'],
             ['name' => 'High School'],
         ]);
@@ -283,25 +275,25 @@ class DatabaseSeeder extends Seeder
         Subject::truncate();
         
         Subject::insert([
-            ['name' => 'English', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'Kiswahili', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'Arabic', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'French', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'German', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'Mathematics', 'group' => Subject::SCIENCE, 'activated' => true],
-            ['name' => 'Chemistry', 'group' => Subject::SCIENCE, 'activated' => true],
-            ['name' => 'Physics', 'group' => Subject::SCIENCE, 'activated' => true],
-            ['name' => 'Biology', 'group' => Subject::SCIENCE, 'activated' => true],
-            ['name' => 'Home Science', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
-            ['name' => 'Agriculture', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
-            ['name' => 'Computer Studies', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
-            ['name' => 'History', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Geography', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Religious Education', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Business Studies', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Life Skills', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Music', 'group' => Subject::CREATIVE_ARTS, 'activated' => true],
-            ['name' => 'Art and Design', 'group' => Subject::CREATIVE_ARTS, 'activated' => true],
+            ['name' => 'English', 'code' => 'ENG', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'Kiswahili', 'code' => 'KSW', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'Arabic', 'code' => 'ARB', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'French', 'code' => 'FR', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'German', 'code' => 'GR', 'group' => Subject::LANGUAGES, 'activated' => true],
+            ['name' => 'Mathematics', 'code' => 'MAT', 'group' => Subject::SCIENCE, 'activated' => true],
+            ['name' => 'Chemistry', 'code' => 'CHEM', 'group' => Subject::SCIENCE, 'activated' => true],
+            ['name' => 'Physics', 'code' => 'PHY', 'group' => Subject::SCIENCE, 'activated' => true],
+            ['name' => 'Biology', 'code' => 'BIO', 'group' => Subject::SCIENCE, 'activated' => true],
+            ['name' => 'Home Science', 'code' => 'H/SC', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
+            ['name' => 'Agriculture', 'code' => 'AGRI', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
+            ['name' => 'Computer Studies', 'code' => 'COMP', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
+            ['name' => 'History', 'code' => 'HIST', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Geography', 'code' => 'GEO', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Religious Education', 'code' => 'RE', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Business Studies', 'codeS' => 'B/S', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Life Skills', 'code' => 'L/S', 'group' => Subject::HUMANITIES, 'activated' => true],
+            ['name' => 'Music', 'code' => 'MSC', 'group' => Subject::CREATIVE_ARTS, 'activated' => true],
+            ['name' => 'Art and Design', 'code' => 'A/D', 'group' => Subject::CREATIVE_ARTS, 'activated' => true],
         ]);
     }
 
@@ -343,25 +335,6 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Contract'],
             ['name' => 'Other'],
         ]);
-
-//        EmploymentType::create([
-//            'name'  => 'Pensionable',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Full-Time',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Part-Time',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Attachment',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Contract',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Other',
-//        ]);
     }
 
     public function employmentStatuses(): void

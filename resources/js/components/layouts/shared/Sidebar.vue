@@ -36,7 +36,7 @@
             </a>
          </li>
          
-         <li v-if="can('access-admission-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/student-admissions')}">
+         <li v-if="can('access-admissions-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/student-admissions')}">
             <Link href="/admin/student-admissions" class="menu-link">
                <span>
                   <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
@@ -83,6 +83,7 @@
                   <i class="menu-icon tf-icons bx bx-calendar"></i>
                </span>
                Calendar
+               <span class="badge bg-label-success ms-4 text-end">Coming Soon</span>
             </Link>
          </li>
          

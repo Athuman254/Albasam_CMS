@@ -32,8 +32,6 @@ class Lesson extends Model
         '3' => 'Wednesday',
         '4' => 'Thursday',
         '5' => 'Friday',
-        '6' => 'Saturday',
-        '7' => 'Sunday',
     ];
     
     public function rank(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -99,16 +97,20 @@ class Lesson extends Model
     
     public function scopeCalendarByRoleOrClassId($query)
     {
-        return $query->when(!request()->input('rank_id'), function ($query) {
-            $query->when(auth()->user()->is_teacher, function ($query) {
-                $query->where('teacher_id', auth()->user()->id);
-            })
-                ->when(auth()->user()->is_student, function ($query) {
-                    $query->where('rank_id', auth()->user()->rank_id ?? '0');
+        $rankId = request()->query('rank_id');
+        $user = User::findOrFail(auth()->user()->id);
+//        dd($user);
+        if($user->is_teacher) {
+            $user->load('teacher');
+        }
+        return $query
+            ->when(!$rankId, function ($query) use($user) {
+                $query->when($user->is_teacher, function ($query) use ($user) {
+                    $query->where('teacher_id', $user->teacher->id);
                 });
             })
-            ->when(request()->input('rank_id'), function ($query) {
-                $query->where('rank_id', request()->input('rank_id'));
+            ->when($rankId, function ($query) use ($rankId) {
+                $query->where('rank_id', $rankId);
             });
     }
 }

@@ -14,10 +14,10 @@ class TimetableController extends Controller
         return Inertia::render('Admin/TimeTable/Index', []);
     }
     
-    public function timeTableData(TimeTableService $timeTableService)
+    public function timeTableData(Request $request, TimeTableService $timeTableService)
     {
         $weekDays = Lesson::WEEK_DAYS;
         
-        return $timeTableService->generateCalendarData($weekDays);
+        return $timeTableService->generateCalendarData($weekDays, $request);
     }
 }

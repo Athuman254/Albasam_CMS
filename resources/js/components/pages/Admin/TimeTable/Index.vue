@@ -108,21 +108,19 @@
                                  </thead>
                                  <thead class="bg-lighter">
                                  <tr>
-                                    <th style="width:10%;">Time</th>
-                                    <th v-for="(weekday, index) in weekdays" :key="index">{{ weekday.name }}</th>
+                                    <th class="text-center" style="width:10%;">Time</th>
+                                    <th v-for="(weekday, index) in weekdays" :key="index" class="text-center" style="width:18%">{{ weekday.name }}</th>
                                  </tr>
                                  </thead>
                                  <tbody>
                                  <tr v-for="(days, time) in calendarData">
                                     <td>{{ time }}</td>
-                                    <td v-for="day in days">
-                                       <td v-if="day.length" :rowspan="day.rowspan" class="align-middle text-center" style="background-color:#f0f0f0">
-                                          {{ day.class_name }} <br>
+                                    <template v-for="day in days">
+                                       <td v-if="day" :rowspan="day.rowspan" class="align-middle text-center" :style="{ backgroundColor: day.subject_name ? '#f0f0f0' : '' }">
+                                          {{ day.subject_name }} <br>
                                           {{ day.teacher_name }}
                                        </td>
-                                       <td v-else-if="days === 1"></td>
-                                       <td c-else></td>
-                                    </td>
+                                    </template>
                                  </tr>
                                  </tbody>
                               </table>
@@ -406,8 +404,8 @@ export default {
             { id: 3, name: 'Wednesday', },
             { id: 4, name: 'Thursday', },
             { id: 5, name: 'Friday', },
-            { id: 6, name: 'Saturday', },
-            { id: 7, name: 'Sunday', },
+            // { id: 6, name: 'Saturday', },
+            // { id: 7, name: 'Sunday', },
          ],
          calendarData: [],
       }
@@ -495,8 +493,13 @@ export default {
          })
       },
       fetchTimeTableData() {
-         axios.get('/datatable/time-table')
+         axios.get('/datatable/time-table', {
+            params: {
+               rank_id: this.selectedRankId,
+            }
+         })
          .then(({ data }) => {
+            console.log(data);
             this.calendarData = data;
          }).catch((error) => {
             this.calendarData = [];

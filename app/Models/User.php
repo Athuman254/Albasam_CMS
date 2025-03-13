@@ -71,27 +71,32 @@ class User extends Authenticatable implements LaratrustUser
         ];
     }
 
-    public function branch()
+    public function branch(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
+    
+    public function teacher(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Teacher::class);
+    }
 
-    public function scopeActivated($query)
+    public function scopeActivated($query): void
     {
         $query->where('activated', '=', true);
     }
 
-    public function scopeAdmin($query)
+    public function scopeAdmin($query): void
     {
         $query->where('is_admin', '=', true);
     }
 
-    public function scopeTeacher($query)
+    public function scopeTeacher($query): void
     {
         $query->where('is_teacher', '=', true);
     }
 
-    public function scopeParent($query)
+    public function scopeParent($query): void
     {
         $query->where('is_parent', '=', true);
     }

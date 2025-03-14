@@ -6,13 +6,14 @@ use App\Models\Lesson;
 
 class TimeTableService
 {
-    public function generateCalendarData($weekDays): array
+    public function generateCalendarData($weekDays, $request): array
     {
+        $rankId = $request->query('rank_id');
         $calendarData = [];
-        $timeRange = (new TimeService)->generateTimeRange(config('app.calendar.start_time'), config('app.calendar.end_time'));
-        $lessons = Lesson::with('rank', 'teacher.honorific')
-            ->calendarByRoleOrClassId()
-            ->get();
+        $startTime = config('app.calendar.start_time');
+        $endTime = config('app.calendar.end_time');
+        $timeRange = (new TimeService)->generateTimeRange($startTime, $endTime);
+        $lessons = Lesson::with('rank', 'teacher.honorific')->calendarByRoleOrClassId()->get();
         
         foreach ($timeRange as $time)
         {
@@ -21,19 +22,18 @@ class TimeTableService
             
             foreach ($weekDays as $index => $day)
             {
-                $lesson = $lessons->where('weekday', $index)->where('rank_id', '=', 1)->where('start_time', $time['start'])->first();
-                
-//                dd($lesson);
+                $lesson = Lesson::with('rank', 'subject', 'teacher.honorific')->calendarByRoleOrClassId()->where('rank_id', '=', $rankId)->where('weekday', '=', $index)->where('start_time', '=', $time['start'])->first();
                 
                 if ($lesson)
                 {
                     $calendarData[$timeText][] = [
                         'class_name' => $lesson->rank->name,
+                        'subject_name' => $lesson->subject->name,
                         'teacher_name' => $lesson->teacher->honorific->name . ' ' . $lesson->teacher->first_name . ' ' . $lesson->teacher->last_name,
-                        'rowspan' => $lesson->difference / 30 ?? ''
+                        'rowspan' => abs($lesson->difference) / 30 ?? ''
                     ];
                 }
-                else if (!$lessons->where('weekday', $index)->where('start_time', '<', $time['start'])->where('end_time', '>=', $time['end'])->count())
+                else if (!Lesson::calendarByRoleOrClassId()->where('rank_id', '=', $rankId)->where('weekday', $index)->where('start_time', '<', $time['start'])->where('end_time', '>=', $time['end'])->count())
                 {
                     $calendarData[$timeText][] = 1;
                 }

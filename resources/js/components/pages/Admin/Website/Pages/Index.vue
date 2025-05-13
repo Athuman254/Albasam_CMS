@@ -4,7 +4,7 @@
       <nav class="mb-3">
          <ol class="breadcrumb">
             <li class="breadcrumb-item">
-               <Link href="/admin/dashboard">Home</Link>
+               <Link :href="route('dashboard')">Home</Link>
             </li>
             <li class="breadcrumb-item">
                Website Settings
@@ -47,15 +47,15 @@
                ref="pagesTable"
             >
                <template #status="props">
-                        <span v-if="props.rowData.is_published" class="badge bg-success">
-                            Published
-                        </span>
-                  <span v-else-if="!props.rowData.is_published" class="badge bg-danger">
-                            Draft
-                        </span>
+                  <span v-if="props.rowData.published" class="badge bg-success">
+                     Published
+                  </span>
+                  <span v-else-if="!props.rowData.published" class="badge bg-danger">
+                     Draft
+                  </span>
                   <span v-else class="badge bg-secondary">
-                            Unknown
-                        </span>
+                     Unknown
+                  </span>
                </template>
                
                <template #actions="props">
@@ -112,24 +112,24 @@
                      </div>
                      
                      <div class="mb-3">
-                        <label for="content" class="form-label">Description</label>
-                        <textarea id="content" rows="3" v-model="form.content" class="form-control"></textarea>
-                        <div v-if="form.errors.content" class="text-danger">{{ form.errors.content }}</div>
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" rows="3" v-model="form.description" class="form-control"></textarea>
+                        <div v-if="form.errors.description" class="text-danger">{{ form.errors.description }}</div>
                      </div>
                      
                      <div class="mb-3">
                         <label class="row d-flex">
-                                    <span class="col">
-                                        <span class="fw-bold me-3">Publish</span>
-                                    </span>
+                           <span class="col">
+                              <span class="fw-bold me-3">Publish</span>
+                           </span>
                            <span class="col-auto">
-                                        <label class="form-check form-switch">
-                                            <input v-model="form.is_published" class="form-check-input" type="checkbox">
-                                        </label>
-                                    </span>
+                              <label class="form-check form-switch">
+                                 <input v-model="form.published" class="form-check-input" type="checkbox">
+                              </label>
+                           </span>
                            <span class="form-check-description">When enabled, the page will appear on the website</span>
                         </label>
-                        <div v-if="form.errors.is_published" class="text-danger">{{ form.errors.is_published }}</div>
+                        <div v-if="form.errors.published" class="text-danger">{{ form.errors.published }}</div>
                      </div>
                   </form>
                </div>
@@ -191,29 +191,25 @@
                      </div>
                      
                      <div class="mb-3">
-                        <label for="content" class="form-label">Description</label>
-                        <textarea id="content" rows="3" v-model="editForm.content" class="form-control"></textarea>
-                        <div v-if="editForm.errors.content" class="text-danger">{{ editForm.errors.content }}</div>
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" rows="3" v-model="editForm.description" class="form-control"></textarea>
+                        <div v-if="editForm.errors.description" class="text-danger">{{ editForm.errors.description }}</div>
                      </div>
                      
                      <div class="mb-3">
                         <label class="row d-flex">
-                                    <span class="col">
-                                        <span class="fw-bold me-3">Publish</span>
-                                    </span>
+                           <span class="col">
+                              <span class="fw-bold me-3">Publish</span>
+                           </span>
                            <span class="col-auto">
-                                        <label class="form-check form-switch">
-                                            <input v-model="editForm.is_published" class="form-check-input"
-                                                   type="checkbox">
-                                        </label>
-                                    </span>
-                           <span
-                              class="form-check-description">When enabled, the page will appear on the website.</span>
+                              <label class="form-check form-switch">
+                                 <input v-model="editForm.published" class="form-check-input"
+                                        type="checkbox">
+                              </label>
+                           </span>
+                           <span class="form-check-description">When enabled, the page will appear on the website.</span>
                         </label>
-                        <div v-if="editForm.errors.is_published" class="text-danger">{{
-                              editForm.errors.is_published
-                           }}
-                        </div>
+                        <div v-if="editForm.errors.published" class="text-danger">{{ editForm.errors.published }}</div>
                      </div>
                   </form>
                </div>
@@ -241,11 +237,12 @@
 </template>
 
 <script>
-import {useForm} from "@inertiajs/vue3";
+import {Link, useForm} from "@inertiajs/vue3";
 import {Modal} from "bootstrap";
 import _debounce from "lodash/debounce.js";
 
 export default {
+   components: {Link},
    data() {
       return {
          fields: [
@@ -275,15 +272,15 @@ export default {
          },
          form: useForm({
             title: '',
-            content: '',
-            is_published: false,
+            description: '',
+            published: true,
          }),
          editForm: useForm({
             id: '',
             title: '',
             slug: '',
-            content: '',
-            is_published: false,
+            description: '',
+            published: false,
          }),
       }
    },
@@ -294,7 +291,7 @@ export default {
          modalInstance.show();
       },
       storePage() {
-         this.form.post('/admin/website/pages', {
+         this.form.post(route('pages.store'), {
             onSuccess: () => {
                this.form.reset();
                this.form.clearErrors();
@@ -314,14 +311,14 @@ export default {
          this.editForm.title = rowData.title;
          this.editForm.slug = rowData.slug;
          this.editForm.content = rowData.content;
-         this.editForm.is_published = rowData.is_published;
+         this.editForm.published = rowData.published;
          
          const modalElement = this.$refs.editPageModal;
          const modalInstance = Modal.getOrCreateInstance(modalElement);
          modalInstance.show();
       },
       updatePage() {
-         this.editForm.patch('/admin/website/pages/' + this.editForm.id, {
+         this.editForm.patch(route('pages.update', this.editForm.id), {
             onSuccess: () => {
                this.editForm.reset();
                this.editForm.clearErrors();
@@ -331,7 +328,8 @@ export default {
                modalInstance.hide();
                this.$toast.success('Page Updated Successfully', 'Success')
             },
-            onError: (errors) => {
+            onError: (error) => {
+               console.log(error)
                this.$toast.error('An error occurred. Please try again', 'Error')
             },
          })

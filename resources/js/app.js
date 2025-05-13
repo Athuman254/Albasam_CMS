@@ -4,23 +4,21 @@ import './bootstrap';
 import 'perfect-scrollbar/dist/perfect-scrollbar.min.js';
 import 'boxicons/dist/boxicons.js';
 
-import { createApp, h } from 'vue';
-import BootstrapVue3 from 'bootstrap-vue-3';
-import NProgress from 'nprogress'
 import {createInertiaApp, Link, router} from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import { createApp, h } from 'vue';
+import { ZiggyVue } from 'ziggy-js';
+import NProgress from 'nprogress'
+import vSelect from 'vue-select';
 import DefaultLayout from '@components/layouts/DefaultLayout.vue';
 import { VueTable } from '@components/pages/Datable.vue';
-// import { QuillEditor } from '@components/global/QuillEditor.vue';
 import toast from '@plugins/notifications.js';
-import vSelect from 'vue-select';
 import filters from '@plugins/filter.js';
 import datePickerPlugin from '@plugins/datePickerPlugin';
-import { ZiggyVue } from 'ziggy-js';
 
 const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'Laravel';
 
-createInertiaApp({
+await createInertiaApp({
     title: (title) => `${appName}`,
     // resolve: (name) => resolvePageComponent(`./components/pages/${name}.vue`, import.meta.glob('./components/pages/**/*.vue')),
     resolve: async (name) => {
@@ -34,7 +32,6 @@ createInertiaApp({
     setup({el, App, props, plugin}) {
         createApp({render: () => h(App, props)})
             .use(plugin)
-            .use(BootstrapVue3) // Register BootstrapVue3
             .use(toast)
             .use(filters)
             .use(NProgress)
@@ -55,3 +52,13 @@ createInertiaApp({
         showSpinner: true,
     }
 });
+
+// Inertia.on('navigate', () => {
+//     setTimeout(() => {
+//         if (window.history.state) {
+//             window.scrollTo(0, window.history.state.scrollY || 0);
+//         } else {
+//             window.scrollTo(0, 0);
+//         }
+//     }, 100); // Add a slight delay
+// });

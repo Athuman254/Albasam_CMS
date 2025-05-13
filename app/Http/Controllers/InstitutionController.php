@@ -16,24 +16,13 @@ class InstitutionController extends Controller
     {
         $institution = Institution::orderBy('id')->first();
         $institution->load('media');
-        return $institution;
+        
+        return response()->json($institution);
     }
 
     public function index()
     {
-        $institution = Institution::orderBy('id')->first();
-        $institution->load('media');
-        $logoUrl = '';
-        $faviconUrl = '';
-        if($institution->id) {
-            $logoUrl = $institution->getFirstMediaUrl('logo');
-            $faviconUrl = $institution->getFirstMediaUrl('favicon');
-        }
-
-        return Inertia::render('Admin/Institutions/Index', [
-            'logoUrl' => $logoUrl,
-            'faviconUrl' => $faviconUrl,
-        ]);
+        return Inertia::render('Admin/Institutions/Index');
     }
 
     public function create()
@@ -99,11 +88,13 @@ class InstitutionController extends Controller
         $institution = Institution::findOrFail($validated['institution_id']);
 
         if($request->hasFile('logo')) {
+            $institution->clearMediaCollection('logo');
             $institution->addMedia($validated['logo'])
                 ->toMediaCollection('logo');
         }
 
         if($request->hasFile('favicon')) {
+            $institution->clearMediaCollection('favicon');
             $institution->addMedia($validated['favicon'])
                 ->toMediaCollection('favicon');
         }

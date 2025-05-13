@@ -9,6 +9,7 @@ class Attendance extends Model
 {
     /** @use HasFactory<\Database\Factories\AttendanceFactory> */
     use HasFactory;
+    
     protected $table = "attendance_records";
     protected $guarded = [];
 

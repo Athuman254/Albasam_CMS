@@ -5,7 +5,7 @@
                 <div
                     class="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
                     <div class="text-body">
-                        © 2025, made by
+                        © {{ new Date().getFullYear() }}, made by
                         <a href="https://ecobiz.co.ke" target="_blank" class="footer-link">Ecobiz</a>
                     </div>
                 </div>

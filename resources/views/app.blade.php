@@ -5,12 +5,15 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="csrf-token" content={{ csrf_token() }}/>
+
     <title inertia>{{ config('app.name', 'School Management System') }}</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('favicon-291*301.png') }}" type="image/x-icon"/>
-    <link rel="shortcut icon" href="{{ asset('favicon.png') }}" type="image/x-icon"/>
+    <link rel="icon" href="{{ $favicon ?? '' }}" type="image/x-icon"/>
+    <link rel="shortcut icon" href="{{ $favicon ?? '' }}" type="image/x-icon"/>
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Fonts -->
     <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/boxicons.css') }}" />
@@ -31,6 +34,7 @@
 {{--    <script src="{{ asset('assets/js/config.js') }}"></script>--}}
 
     <!-- Dynamic Assets -->
+    @routes
     @vite(['resources/css/scss/app.scss', 'resources/js/app.js', "resources/js/components/pages/{$page['component']}.vue"])
     @inertiaHead
 </head>

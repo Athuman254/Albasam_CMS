@@ -90,6 +90,9 @@ class Lesson extends Model
                 ['start_time', '<', $endTime],
                 ['end_time', '>', $startTime],
             ])
+            ->where([
+                ['start_time', '!=', ]
+            ])
             ->count();
         
         return !$lessons;

@@ -39,12 +39,10 @@ export default {
             } else {
                window.scrollTo(0, 0);
             }
-         }, 100); // Add a slight delay
+         }, 100);
       })
    }
 };
 </script>
 
-<style>
-/* Add your layout-specific styles here if needed */
-</style>
+<style></style>

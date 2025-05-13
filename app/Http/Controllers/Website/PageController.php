@@ -18,6 +18,7 @@ class PageController extends Controller
             Page::with('sections')->orderBy('title')
         )->allowedFilters([
             AllowedFilter::exact('id'),
+            AllowedFilter::exact('published'),
             AllowedFilter::partial('title'),
         ])->jsonPaginate();
 
@@ -33,9 +34,9 @@ class PageController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|unique:pages,title',
-            'content' => 'nullable|string',
+            'description' => 'nullable|string',
             'slug' => 'nullable|string',
-            'is_published' => 'boolean',
+            'published' => 'boolean',
         ]);
         
         $isHome = false;
@@ -48,8 +49,8 @@ class PageController extends Controller
         Page::create([
             'title' => $validated['title'],
             'slug' => $slug,
-            'content' => $validated['content'],
-            'is_published' => $validated['is_published'] ?? false,
+            'description' => $validated['description'],
+            'published' => $validated['published'] ?? false,
             'is_home' => $isHome,
         ]);
 
@@ -61,8 +62,8 @@ class PageController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|unique:pages,title,' . $page->id,
             'slug' => 'nullable|string|unique:pages,slug,'.$page->id,
-            'content' => 'nullable|string',
-            'is_published' => 'boolean',
+            'description' => 'nullable|string',
+            'published' => 'boolean',
         ]);
         
         $isHome = false;
@@ -76,8 +77,8 @@ class PageController extends Controller
         $page->update([
             'title' => $validated['title'],
             'slug' => $slug,
-            'content' => $validated['content'],
-            'is_published' => $validated['is_published'] ?? false,
+            'description' => $validated['description'],
+            'published' => $validated['published'] ?? false,
             'is_home' => $isHome,
         ]);
 

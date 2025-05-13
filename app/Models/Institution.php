@@ -26,7 +26,7 @@ class Institution extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('logo')
-            ->useDisk('public')
+            ->useDisk('media')
             ->useFallbackPath(public_path('/logo.png'))
             ->acceptsFile(function (File $file) {
                 return in_array($file->mimeType, [
@@ -40,7 +40,7 @@ class Institution extends Model implements HasMedia
             });
 
         $this->addMediaCollection('favicon')
-            ->useDisk('public')
+            ->useDisk('media')
             ->useFallbackPath(public_path('/favicon.png'))
             ->acceptsFile(function (File $file) {
                 return in_array($file->mimeType, [

@@ -13,9 +13,11 @@ const defineConfig = ({
         }),
         vue({
             template: {
-                CompilerOptions:{},
-                transformAssetUrls: {},
-            }
+                transformAssetUrls: {
+                    base: null,
+                    includeAbsolute: false,
+                },
+            },
         }),
     ],
     resolve: {
@@ -29,7 +31,3 @@ const defineConfig = ({
 });
 
 export default defineConfig;
-
-// 'resources/css/sneat/core.css', // Sneat core CSS
-//     'resources/css/sneat/theme-default.css', // Sneat theme CSS
-//     'resources/css/sneat/demo.css', // Sneat demo CSS

@@ -38,6 +38,16 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         return array_merge(parent::share($request), [
+            'logoUrl' => function () {
+                $institution = \App\Models\Institution::firstOrFail() ?? null;
+                
+                return $institution->hasMedia('logo') ? $institution->getMedia('logo')->sortByDesc('created_at')->first()->getUrl() : null;
+            },
+            'faviconUrl' => function () {
+                $institution = \App\Models\Institution::firstOrFail() ?? null;
+                
+                return $institution->hasMedia('favicon') ? $institution->getMedia('favicon')->sortByDesc('created_at')->first()->getUrl() : null;
+            },
             'institution' => function () {
                 $institution = Institution::orderBy('id')->first() ?? new Institution();
                 return $institution->exists() ? $institution : null;

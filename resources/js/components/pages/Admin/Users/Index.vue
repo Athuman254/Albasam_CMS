@@ -76,7 +76,7 @@
          aria-hidden="true"
          ref="createUserModal"
       >
-         <div class="modal-dialog modal-dialog-scrollable">
+         <div class="modal-dialog modal-body-simple">
             <div class="modal-content">
                <div class="modal-header pb-5">
                   <h5 class="modal-title" id="create-user-modal-label">Add User</h5>
@@ -225,7 +225,7 @@
          aria-hidden="true"
          ref="editUserModal"
       >
-         <div class="modal-dialog modal-dialog-scrollable">
+         <div class="modal-dialog modal-body-simple">
             <div class="modal-content">
                <div class="modal-header pb-5">
                   <h5 class="modal-title" id="edit-user-modal-label">Edit User</h5>
@@ -377,7 +377,7 @@
          aria-hidden="true"
          ref="editUserPermissions"
       >
-         <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                <div class="modal-header">
                   <h5 class="mb-6" data-bs-backdrop="static">Edit User Permissions</h5>

@@ -30,7 +30,7 @@ class TimeTableService
                         'class_name' => $lesson->rank->name,
                         'subject_name' => $lesson->subject->name,
                         'teacher_name' => $lesson->teacher->honorific->name . ' ' . $lesson->teacher->first_name . ' ' . $lesson->teacher->last_name,
-                        'rowspan' => abs($lesson->difference) / 30 ?? ''
+                        'rowspan' => abs($lesson->difference) / 40 ?? ''
                     ];
                 }
                 else if (!Lesson::calendarByRoleOrClassId()->where('rank_id', '=', $rankId)->where('weekday', $index)->where('start_time', '<', $time['start'])->where('end_time', '>=', $time['end'])->count())

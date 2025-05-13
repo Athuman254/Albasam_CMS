@@ -78,9 +78,10 @@
 </template>
 
 <script>
-import { router } from '@inertiajs/vue3';
+import { router, Link } from '@inertiajs/vue3';
 
 export default {
+   components: { Link },
     computed: {
         user() {
             return this.$page.props.auth.user;

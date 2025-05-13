@@ -38,83 +38,81 @@ class DatabaseSeeder extends Seeder
         Model::unguard();
 //        $this->call(AttendanceSeeder::class);
 //        $this->call(ServiceSeeder::class);
-
+        
         Schema::disableForeignKeyConstraints();
-
+        
         $this->departments();
-
+        
         $this->genders();
-
+        
         $this->religions();
-
+        
         $this->relationships();
-
+        
         $this->streams();
-
+        
         $this->divisions();
         
-        $this->ranks();
-        
-        $this->subjects();
-
         $this->maritalStatuses();
-
+        
         $this->honorifics();
-
+        
         $this->employmentStatuses();
-
+        
         $this->employmentTypes();
-
+        
         $this->jobTitles();
-
+        
         $this->specialisations();
-
+        
         $this->qualificationTypes();
-
+        
         $this->salaryGrades();
-
+        
         $this->salaryScales();
-
+        
         $this->institution();
-
+        
         User::create([
             'name'      => 'John Doe',
             'username'  => 'admin',
             'email'     => 'admin@app.com',
             'phone'     => '0712345678',
             'password'  => Hash::make('admin@!2025'),
-             'is_admin' => true,
+            'is_admin' => true,
         ]);
-
+        
         $this->call(LaratrustSeeder::class);
+        
+        Schema::enableForeignKeyConstraints();
     }
-
+    
     public function departments(): void
     {
         Department::truncate();
-
+        
         Department::insert([
             ['name' => 'Science'],
             ['name' => 'Languages'],
             ['name' => 'Library'],
         ]);
     }
-
+    
     public function genders(): void
     {
         Gender::truncate();
-
+        
         Gender::insert([
             ['name' => 'Male'],
             ['name' => 'Female'],
             ['name' => 'Other'],
         ]);
     }
-
+    
     public function religions(): void
     {
         Religion::truncate();
-
+        
         Religion::insert([
             ['name' => 'Christian'],
             ['name' => 'Islam'],
@@ -122,11 +120,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Other'],
         ]);
     }
-
+    
     public function relationships(): void
     {
         Relationship::truncate();
-
+        
         Relationship::insert([
             ['name' => 'Father'],
             ['name' => 'Mother'],
@@ -140,167 +138,39 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Other'],
         ]);
     }
-
+    
     public function streams(): void
     {
         Stream::truncate();
-
+        
         Stream::insert([
             ['name' => 'North'],
             ['name' => 'South'],
             ['name' => 'East'],
             ['name' => 'West'],
+            ['name' => 'Red'],
+            ['name' => 'Green'],
+            ['name' => 'Blue'],
+            ['name' => 'Yellow'],
         ]);
     }
-
+    
     public function divisions(): void
     {
         Division::truncate();
-
+        
         Division::insert([
-            ['name' => 'Secondary School'],
-            ['name' => 'High School'],
+            ['name' => 'Pre-Primary'],
+            ['name' => 'Primary'],
+            ['name' => 'Junior Secondary'],
+            ['name' => 'Senior Secondary'],
         ]);
     }
     
-    public function ranks(): void
-    {
-        Rank::truncate();
-        
-        $divisions = Division::all();
-        $streams = Stream::all();
-        
-        Rank::insert([
-            [
-                'name' => 'Form 1',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'North')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 1',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'South')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 1',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'East')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 1',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'West')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 2',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'North')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 2',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'South')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 2',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'East')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 2',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'West')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 3',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'North')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 3',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'South')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 3',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'East')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 3',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'West')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 4',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'North')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 4',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'South')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 4',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'East')->first()->id,
-                'activated' => true,
-            ],
-            [
-                'name' => 'Form 4',
-                'division_id' => $divisions->where('name', '=', 'Secondary School')->first()->id,
-                'stream_id' => $streams->where('name', '=', 'West')->first()->id,
-                'activated' => true,
-            ],
-        ]);
-    }
-    
-    public function subjects(): void
-    {
-        Subject::truncate();
-        
-        Subject::insert([
-            ['name' => 'English', 'code' => 'ENG', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'Kiswahili', 'code' => 'KSW', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'Arabic', 'code' => 'ARB', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'French', 'code' => 'FR', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'German', 'code' => 'GR', 'group' => Subject::LANGUAGES, 'activated' => true],
-            ['name' => 'Mathematics', 'code' => 'MAT', 'group' => Subject::SCIENCE, 'activated' => true],
-            ['name' => 'Chemistry', 'code' => 'CHEM', 'group' => Subject::SCIENCE, 'activated' => true],
-            ['name' => 'Physics', 'code' => 'PHY', 'group' => Subject::SCIENCE, 'activated' => true],
-            ['name' => 'Biology', 'code' => 'BIO', 'group' => Subject::SCIENCE, 'activated' => true],
-            ['name' => 'Home Science', 'code' => 'H/SC', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
-            ['name' => 'Agriculture', 'code' => 'AGRI', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
-            ['name' => 'Computer Studies', 'code' => 'COMP', 'group' => Subject::APPLIED_SCIENCE, 'activated' => true],
-            ['name' => 'History', 'code' => 'HIST', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Geography', 'code' => 'GEO', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Religious Education', 'code' => 'RE', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Business Studies', 'codeS' => 'B/S', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Life Skills', 'code' => 'L/S', 'group' => Subject::HUMANITIES, 'activated' => true],
-            ['name' => 'Music', 'code' => 'MSC', 'group' => Subject::CREATIVE_ARTS, 'activated' => true],
-            ['name' => 'Art and Design', 'code' => 'A/D', 'group' => Subject::CREATIVE_ARTS, 'activated' => true],
-        ]);
-    }
-
     public function maritalStatuses(): void
     {
         MaritalStatus::truncate();
-
+        
         MaritalStatus::insert([
             ['name' => 'Married'],
             ['name' => 'Single'],
@@ -308,11 +178,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Other'],
         ]);
     }
-
+    
     public function honorifics(): void
     {
         Honorific::truncate();
-
+        
         Honorific::insert([
             ['name' => 'Mr.'],
             ['name' => 'Mrs.'],
@@ -321,11 +191,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Lec.'],
         ]);
     }
-
+    
     public function employmentTypes(): void
     {
         EmploymentType::truncate();
-
+        
         EmploymentType::insert([
             ['name' => 'Pensionable'],
             ['name' => 'Full-Time'],
@@ -335,12 +205,31 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Contract'],
             ['name' => 'Other'],
         ]);
-    }
 
+//        EmploymentType::create([
+//            'name'  => 'Pensionable',
+//        ]);
+//        EmploymentType::create([
+//            'name'  => 'Full-Time',
+//        ]);
+//        EmploymentType::create([
+//            'name'  => 'Part-Time',
+//        ]);
+//        EmploymentType::create([
+//            'name'  => 'Attachment',
+//        ]);
+//        EmploymentType::create([
+//            'name'  => 'Contract',
+//        ]);
+//        EmploymentType::create([
+//            'name'  => 'Other',
+//        ]);
+    }
+    
     public function employmentStatuses(): void
     {
         EmploymentStatus::truncate();
-
+        
         EmploymentStatus::insert([
             ['name' => 'Active'],
             ['name' => 'On Leave'],
@@ -349,11 +238,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Suspended'],
         ]);
     }
-
+    
     public function jobTitles(): void
     {
         JobTitle::truncate();
-
+        
         JobTitle::insert([
             ['name' => 'Teacher'],
             ['name' => 'Accountant'],
@@ -367,11 +256,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Electrician'],
         ]);
     }
-
+    
     public function specialisations(): void
     {
         Specialization::truncate();
-
+        
         Specialization::insert([
             ['name' => 'STEM'],
             ['name' => 'Art'],
@@ -380,22 +269,22 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Religious Education'],
         ]);
     }
-
+    
     public function qualificationTypes(): void
     {
         QualificationType::truncate();
-
+        
         QualificationType::insert([
             ['name' => 'Degree'],
             ['name' => 'Diploma'],
             ['name' => 'Certificate'],
         ]);
     }
-
+    
     public function salaryGrades(): void
     {
         SalaryGrade::truncate();
-
+        
         SalaryGrade::insert([
             ['name' => 'D5'],
             ['name' => 'D4'],
@@ -410,13 +299,13 @@ class DatabaseSeeder extends Seeder
             ['name' => 'B1'],
         ]);
     }
-
+    
     public function salaryScales(): void
     {
         SalaryScale::truncate();
-
+        
         $grades = SalaryGrade::all();
-
+        
         $scales = [
             ['name' => 'T-Scale 15', 'salary_grade_id' => $grades->firstWhere('name', '=', 'D5')->id],
             ['name' => 'T-Scale 14', 'salary_grade_id' => $grades->firstWhere('name', '=', 'D4')->id],
@@ -430,25 +319,25 @@ class DatabaseSeeder extends Seeder
             ['name' => 'T-Scale 6', 'salary_grade_id' => $grades->firstWhere('name', '=', 'C1')->id],
             ['name' => 'T-Scale 5', 'salary_grade_id' => $grades->firstWhere('name', '=', 'B1')->id],
         ];
-
+        
         foreach($scales as $index => $scale) {
-
+            
             SalaryScale::create([
                 'name'  => $scale['name'],
                 'salary_grade_id' => $scale['salary_grade_id'],
             ]);
         }
     }
-
+    
     public function teacherTitles(): void
     {
         TeacherTitle::truncate();
     }
-
+    
     public function institution(): void
     {
         Institution::truncate();
-
+        
         Institution::create([
             'name' => 'SHARIFF NASSIR GIRLS SECONDARY SCHOOL',
             'email' => 'info@shariffnassirgirls.co.ke',
@@ -456,7 +345,7 @@ class DatabaseSeeder extends Seeder
             'country' => 'KENYA',
             'state' => 'MOMBASA',
             'city' => 'MOMBASA',
-            'physical_address' => 'Kisauni Rd, Off Sheikh Abdullas Rd, Mombasa',
+            'physical_address' => 'WMXC+PGR, Kisauni Rd, Off Sheik Abdullas Rd, Mombasa',
             'postal_address' => '86716-80100',
             'tax_identification_pin' => '',
             'mission' => 'To empower students to become productive members of the society by providing a conducive environment that will nurture them academically, socially and emotionally.',

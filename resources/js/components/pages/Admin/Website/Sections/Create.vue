@@ -250,6 +250,7 @@ import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 // import DragAndDrop from "../../../../global/DragAndDrop.vue";
 import DragAndDrop from "../../../../global/FileUploader.vue";
+
 export default {
    props: ['page'],
    components:{QuillEditor, DragAndDrop},

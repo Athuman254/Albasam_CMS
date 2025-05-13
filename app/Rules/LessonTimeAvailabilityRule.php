@@ -25,7 +25,7 @@ class LessonTimeAvailabilityRule implements Rule
      * @param  mixed  $value
      * @return bool
      */
-    public function passes($attribute, $value)
+    public function passes($attribute, $value): bool
     {
         $weekDay = request()->input('weekday');
         $startTime = Carbon::parse($value)->format('H:i');
@@ -41,7 +41,7 @@ class LessonTimeAvailabilityRule implements Rule
      *
      * @return string
      */
-    public function message()
+    public function message(): string
     {
         return 'This time is not available';
     }

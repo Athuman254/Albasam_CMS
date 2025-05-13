@@ -6,12 +6,12 @@
                     <div class="footer-widget-title col-12 p-0">
                         <div class="logo">
                             <a href="#">
-                                <img class="img-fluid" src="{{ asset('logo.png') }}" alt="logo">
+                                <img class="img-fluid" src="{{ $logo ?? '' }}" alt="logo">
                             </a>
                         </div>
                     </div>
                     <div class="footer-widget-inner">
-                        <p>{{ $institution->mission }}</p>
+                        <p>{{ $institution->mission ?? '' }}</p>
                         <div class="img-menu float-lg-left float-none mt-3">
                             <div class="footer-social">
                                 <ul>

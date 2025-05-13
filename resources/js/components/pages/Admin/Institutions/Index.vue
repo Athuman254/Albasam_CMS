@@ -1,11 +1,10 @@
 <template>
-   {{ $props.logoUrl }}
-   <div class="profile">
+   <div class="">
       <h3 class="mb-0">Institution Profile</h3>
       <nav class="mb-3">
          <ol class="breadcrumb">
             <li class="breadcrumb-item">
-               <Link href="/admin/dashboard">Home</Link>
+               <Link :href="route('dashboard')">Home</Link>
             </li>
             <li class="breadcrumb-item text-primary">
                Institution Profile
@@ -30,7 +29,7 @@
                   </label>
                </div>
                <div class="mt-6">
-                  <Link href="/admin/institutions/create" class="btn btn-outline-primary">
+                  <Link :href="route('institutions.create')" class="btn btn-outline-primary">
                      <i class="bx bx-plus-circle me-2"></i>
                      Register Institution
                   </Link>
@@ -53,43 +52,58 @@
                      <!-- Profile Edit Form -->
                      <div>
                         <div class="row">
-                           <div class="col-md-6">
-                              <div v-if="logoUrl" class="mb-6">
-                                 <img class="card-img" :src="logoUrl" alt="">
-                                 <!--                                            <div class="card mb-3">-->
-                                 <!--                                            </div>-->
+                           <div v-if="logo.id" class="col-md-6 mb-4">
+                              <p class="text-muted">institution Logo</p>
+                              <div class="card card-img p-5">
+                                 <img :src="logo.url" alt="logo" style="width:250px; height:auto;">
                               </div>
-                              <div v-else class="mb-6 form-group">
-                                 <label class="form-label" for="instituteLogo">Logo</label>
+                              <button type="button" class="btn btn-sm btn-outline-primary my-3" @click.prevent="showLogoUploadModal(logo)">
+                                 Change Logo
+                              </button>
+                              <button type="button" class="btn btn-sm btn-outline-danger my-3 ms-3" @click.prevent="deleteLogo" :disabled="isProcessing">
+                                 Delete Logo
+                              </button>
+                           </div>
+                           <div v-else class="col-md-6">
+                              <div class="mb-6 form-group">
+                                 <label class="form-label" for="institutionLogo">Logo</label>
                                  <input
                                     @change="handleLogoUpload"
-                                    id="instituteLogo"
+                                    id="institutionLogo"
                                     type="file"
                                     accept="image/*"
                                     required
                                     class="form-control mb-3"
                                  />
-                                 <button type="button" class="btn btn-success" @click.prevent="uploadMedia">
+                                 <button type="button" class="btn btn-success" @click.prevent="uploadMedia" :disabled="mediaForm.processing">
                                     Upload Logo
                                  </button>
                               </div>
                            </div>
-                           <div class="col-md-6">
-                              <div v-if="faviconUrl" class="mb-6">
-                                 <img class="card-img" :src="faviconUrl" alt="">
-                                 <!--                                            <div class="card">-->
-                                 <!--                                            </div>-->
+                           <div v-if="favicon.id" class="col-md-6 mb-4">
+                              <p class="text-muted">Institution Favicon</p>
+                              <div class="card card-img p-5">
+                                 <img :src="favicon.url" alt="logo" style="width:80px; height:auto;">
                               </div>
-                              <div v-else class="mb-6 form-group">
-                                 <label class="form-label" for="instituteFavicon">Favicon</label>
+                              <button type="button" class="btn btn-sm btn-outline-primary my-3" @click.prevent="showFaviconUploadModal(favicon)">
+                                 Change Favicon
+                              </button>
+                              <button type="button" class="btn btn-sm btn-outline-danger my-3 ms-3" @click.prevent="deleteFavicon()" :disabled="isProcessing">
+                                 Delete Favicon
+                              </button>
+                           </div>
+                           <div v-else class="col-md-6">
+                              <div class="mb-6 form-group">
+                                 <label class="form-label" for="institutionFavicon">Favicon</label>
                                  <input
                                     @change="handleFaviconUpload"
-                                    id="instituteFavicon"
+                                    id="institutionFavicon"
                                     type="file"
                                     accept="image/*"
+                                    required
                                     class="form-control mb-3"
                                  />
-                                 <button type="button" class="btn btn-success" @click.prevent="uploadMedia">
+                                 <button type="button" class="btn btn-success" @click.prevent="uploadMedia" :disabled="mediaForm.processing">
                                     Upload Favicon
                                  </button>
                               </div>
@@ -400,16 +414,115 @@
             </div>
          </div>
       </div>
+      
+      <!-- Logo Upload Modal -->
+      <div
+         class="modal fade"
+         id="logo-upload-modal"
+         data-bs-backdrop="static"
+         tabindex="-1"
+         aria-labelledby="logo-upload-modal-label"
+         aria-hidden="true"
+         ref="institutionLogoUploadModal"
+      >
+         <div class="modal-dialog modal-body-simple">
+            <div class="modal-content">
+               <div class="modal-header pb-5">
+                  <h5 class="modal-title" id="logo-upload-modal-label">Upload Logo</h5>
+                  <button
+                     type="button"
+                     class="btn-close"
+                     data-bs-dismiss="modal"
+                     aria-label="Close"
+                  ></button>
+               </div>
+               
+               <div class="modal-body">
+                  <form id="createForm" @submit.prevent="uploadMedia">
+                     <div class="mb-3">
+                        <h6>Current Logo</h6>
+                        <div class="card card-img p-5">
+                           <img :src="selectedMedia.url" alt="logo" style="width:250px; height:auto;">
+                        </div>
+                     </div>
+                     <div class="mb-3">
+                        <label for="title" class="form-label">New Logo</label>
+                        <input
+                           @change="handleLogoUpload"
+                           id="institutionLogo"
+                           type="file"
+                           accept="image/*"
+                           required
+                           class="form-control mb-3"
+                        />
+                     </div>
+                     <button type="button" class="btn btn-success" @click.prevent="uploadMedia" :disabled="mediaForm.processing">
+                        Upload Logo
+                     </button>
+                  </form>
+               </div>
+            </div>
+         </div>
+      </div>
+      
+      <!-- Favicon Upload Modal -->
+      <div
+         class="modal fade"
+         id="favicon-upload-modal"
+         data-bs-backdrop="static"
+         tabindex="-1"
+         aria-labelledby="favicon-upload-modal-label"
+         aria-hidden="true"
+         ref="institutionFaviconUploadModal"
+      >
+         <div class="modal-dialog modal-body-simple">
+            <div class="modal-content">
+               <div class="modal-header pb-5">
+                  <h5 class="modal-title" id="logo-upload-modal-label">Upload Favicon</h5>
+                  <button
+                     type="button"
+                     class="btn-close"
+                     data-bs-dismiss="modal"
+                     aria-label="Close"
+                  ></button>
+               </div>
+               
+               <div class="modal-body">
+                  <form id="createForm" @submit.prevent="uploadMedia">
+                     <div class="mb-3">
+                        <h6>Current Favicon</h6>
+                        <div class="card card-img p-5">
+                           <img :src="selectedMedia.url" alt="favicon" style="width:80px; height:auto;">
+                        </div>
+                     </div>
+                     <div class="mb-3">
+                        <label for="title" class="form-label">New Favicon</label>
+                        <input
+                           @change="handleFaviconUpload"
+                           id="institutionFavicon"
+                           type="file"
+                           accept="image/*"
+                           required
+                           class="form-control mb-3"
+                        />
+                     </div>
+                     <button type="button" class="btn btn-success" @click.prevent="uploadMedia" :disabled="mediaForm.processing">
+                        Upload Favicon
+                     </button>
+                  </form>
+               </div>
+            </div>
+         </div>
+      </div>
    </div>
 </template>
 
 <script>
-import {useForm} from "@inertiajs/vue3";
+import {Link, useForm} from "@inertiajs/vue3";
 import {Inertia} from "@inertiajs/inertia";
-import axios from "axios";
 
 export default {
-   props: ['logoUrl', 'faviconUrl'],
+   components: {Link},
    data() {
       return {
          mediaForm: useForm({
@@ -437,28 +550,25 @@ export default {
             tiktok_profile: '',
          }),
          institution: {},
+         logo: {
+            id: null,
+            url: null
+         },
+         favicon: {
+            id: null,
+            url: null
+         },
+         selectedMedia: [],
+         activeModal: null,
+         isProcessing: false,
       };
    },
    created() {
-      if (this.institution) {
-         this.form.id = this.institution.hashid;
-         this.form.name = this.institution.name;
-         this.form.email = this.institution.email;
-         this.form.phone = this.institution.phone;
-         this.form.country = this.institution.country;
-         this.form.state = this.institution.state;
-         this.form.city = this.institution.city;
-         this.form.physical_address = this.institution.physical_address;
-         this.form.postal_address = this.institution.postal_address;
-         this.form.tax_identification_pin = this.institution.tax_identification_pin;
-         this.form.mission = this.institution.mission;
-         this.form.vision = this.institution.vision;
-         this.form.x_profile = this.institution.x_profile;
-         this.form.fb_profile = this.institution.fb_profile;
-         this.form.ig_profile = this.institution.ig_profile;
-         this.form.tiktok_profile = this.institution.tiktok_profile;
-         this.form.youtube_profile = this.institution.youtube_profile;
-      }
+      Inertia.on('navigate', (event) => {
+         if (event.detail.page.url === '/admin/institutions') {
+            this.institutionDetails();
+         }
+      });
    },
    mounted() {
       this.institutionDetails();
@@ -470,10 +580,20 @@ export default {
                this.institution = data;
                if (this.institution) {
                   this.populateForm();
+                  const logo = this.institution.media.find(m => m.collection_name === 'logo');
+                  if (logo) {
+                     this.logo.id = logo.id;
+                     this.logo.url = logo.original_url;
+                  }
+                  const favicon = this.institution.media.find(m => m.collection_name === 'favicon');
+                  if (favicon) {
+                     this.favicon.id = favicon.id;
+                     this.favicon.url = favicon.original_url;
+                  }
                }
             }).catch((error) => {
-            console.error(error)
-            this.$toast.error('An error occurred when fetching the institution details.')
+               console.error(error)
+               this.$toast.error('An error occurred when fetching the institution details.')
          })
       },
       populateForm() {
@@ -523,7 +643,7 @@ export default {
       uploadMedia() {
          this.mediaForm.institution_id = this.institution.id;
          
-         this.mediaForm.post('/admin/institution-media/', {
+         this.mediaForm.post(route('institution.media-upload'), {
             headers: {
                "Content-Type": "multipart/form-data",
             },
@@ -531,7 +651,21 @@ export default {
                this.mediaForm.reset();
                this.mediaForm.clearErrors();
                this.$toast.success('Media uploaded', 'Updated');
-               this.$inertia.visit('/admin/institutions');
+               
+               let modalRef = null;
+               
+               if (this.activeModal === 'logo') {
+                  modalRef = this.$refs.institutionLogoUploadModal;
+               } else if (this.activeModal === 'favicon') {
+                  modalRef = this.$refs.institutionFaviconUploadModal;
+               }
+               
+               if (modalRef) {
+                  const modalInstance = Modal.getInstance(modalRef);
+                  modalInstance?.hide();
+               }
+               
+               this.$inertia.visit(route('institutions.index'));
                this.institutionDetails();
             },
             onError: (errors) => {
@@ -540,6 +674,53 @@ export default {
             },
          })
       },
+      showLogoUploadModal(media) {
+         this.activeModal = 'logo';
+         this.selectedMedia = media;
+         const modalElement = this.$refs.institutionLogoUploadModal;
+         const modalInstance = Modal.getOrCreateInstance(modalElement);
+         modalInstance.show();
+      },
+      showFaviconUploadModal(media) {
+         this.activeModal = 'favicon';
+         this.selectedMedia = media;
+         const modalElement = this.$refs.institutionFaviconUploadModal;
+         const modalInstance = Modal.getOrCreateInstance(modalElement);
+         modalInstance.show();
+      },
+      deleteLogo() {
+         this.$toast.question('Are you sure?', 'Deleting institution logo!').then(() => {
+            this.$inertia.delete(route('medias.delete.logo', this.institution.id), {
+               onProgress: () => {
+                  this.isProcessing = true;
+               },
+               onSuccess: () => {
+                  this.$toast.success('Logo deleted successfully!', 'Success');
+                  this.$inertia.visit(route('institutions.index'));
+                  this.isProcessing = false;
+               },
+               onError: (error) => {
+                  console.log(error);
+                  this.isProcessing = false;
+                  this.$toast.error('An error occurred while deleting the logo!', 'Error');
+               }
+            })
+         })
+      },
+      deleteFavicon() {
+         this.$toast.question('Are you sure?', 'Deleting institution favicon!').then(() => {
+            this.$inertia.delete(route('medias.delete.favicon', this.institution.id), {
+               onSuccess: () => {
+                  this.$toast.success('Favicon deleted successfully!', 'Success');
+                  this.$inertia.visit(route('institutions.index'));
+               },
+               onError: (error) => {
+                  console.log(error)
+                  this.$toast.error('An error occurred while deleting the favicon!', 'Error');
+               }
+            })
+         })
+      }
    },
 }
 </script>

@@ -10,10 +10,10 @@
    <meta name="keywords" content=""/>
 
    <!--Favicons-->
-   <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.png') }}" />
+   <link rel="shortcut icon" type="image/x-icon" href="{{ $favicon ?? '' }}" />
 
    <!--Page Title-->
-   <title>SHARIFF NASSIR GIRLS SECONDARY SCHOOL</title>
+   <title>{{ $institution->name ?? 'Website Template' }}</title>
 
    <!-- Core CSS -->
    <link rel="stylesheet" href="{{ asset('website-assets/template-1/fonts.css') }}">
@@ -33,6 +33,7 @@
       :root {
          font-family: 'Roboto', 'Dosis', sans-serif !important;
          font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+         --ecbz-primary: {{ $customisation->primary_color ?? '#25615a' }};
       }
       body {
          font-family: 'Roboto', 'Dosis', sans-serif !important;

@@ -10,14 +10,7 @@ class WebsiteController extends Controller
    public function index(): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
    {
       $homePage = Page::where('is_home', '=', true)
-         ->where('is_published', '=', true)
-         ->with(['sections' => function ($query) {
-            $query->where('is_active', '=', true)
-               ->orderBy('order')
-               ->with(['subSections' => function ($q) {
-                  $q->where('is_active', '=', true)->orderBy('order');
-               }]);
-         }])->firstOrFail();
+         ->where('published', '=', true)->firstOrFail();
       
       return view('website.template-1.pages.home', [
            'homePage' => $homePage,
@@ -28,14 +21,8 @@ class WebsiteController extends Controller
    {
       $page = Page::where('slug', '=', $slug)
          ->where('is_home', '=', false)
-         ->where('is_published', '=', true)
-         ->with(['sections' => function ($query) {
-            $query->where('is_active', '=', true)
-               ->orderBy('order')
-               ->with(['subSections' => function ($q) {
-                  $q->where('is_active', '=', true)->orderBy('order');
-               }]);
-         }])->firstOrFail();
+         ->where('published', '=', true)
+         ->firstOrFail();
    
       return view('website.template-1.pages.page_data', [
          'page' => $page,

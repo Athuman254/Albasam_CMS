@@ -12,10 +12,10 @@ class Page extends Model
 
     protected $table = 'pages';
     protected $primaryKey = 'id';
-    protected $casts = ['is_published' => 'bool', 'is_home' => 'bool'];
+    protected $casts = ['published' => 'bool', 'is_home' => 'bool'];
     protected $appends = ['hashid'];
     protected $fillable = [
-        'title', 'content', 'slug', 'is_published', 'is_home'
+        'title', 'description', 'slug', 'published', 'is_home'
     ];
 
     public function sections(): \Illuminate\Database\Eloquent\Relations\HasMany

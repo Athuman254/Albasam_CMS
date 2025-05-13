@@ -8,9 +8,9 @@ class Section extends Model
 {
     protected $table = 'sections';
     protected $primaryKey = 'id';
-    protected $casts = ['is_active' => 'bool'];
+    protected $casts = ['active' => 'bool', 'order' => 'int'];
     protected $fillable = [
-        'page_id', 'title', 'sub_title', 'order', 'bg_style', 'bg_color', 'bg_image', 'type', 'type_image', 'content', 'is_active'
+        'page_id', 'type', 'title', 'sub_title', 'description', 'order', 'active'
     ];
 
     public function page(): \Illuminate\Database\Eloquent\Relations\BelongsTo

@@ -63,7 +63,9 @@ Route::group([
         Route::get('/work-histories', [\App\Http\Controllers\WorkHistoryController::class, 'dataTable']);
 
         // WEBSITE MANAGEMENT DATATABLES
-        Route::get('/website/pages', [\App\Http\Controllers\Website\PageController::class, 'dataTable']);
+        Route::get('/website/customisations', [\App\Http\Controllers\Website\CustomisationController::class, 'dataTable'])->name('website.customisations');
+        Route::get('/website/menus', [\App\Http\Controllers\Website\MenuController::class, 'dataTable'])->name('website.menus');
+        Route::get('/website/pages', [\App\Http\Controllers\Website\PageController::class, 'dataTable'])->name('website.pages');
         Route::get('/website/page-sections', [\App\Http\Controllers\Website\SectionController::class, 'dataTable']);
         Route::get('/website/page-sub-sections', [\App\Http\Controllers\Website\SubSectionController::class, 'dataTable']);
     });
@@ -106,7 +108,9 @@ Route::group([
         //    Route::post('student-admissions/fourth-step', [\App\Http\Controllers\StudentAdmissionController::class, 'fourthStep'])->name('admissions.fourth.step');
 
         Route::post('/users/{user}/permissions', [\App\Http\Controllers\UserController::class, 'updatePermission']);
-        Route::post('/institution-media', [\App\Http\Controllers\InstitutionController::class, 'uploadMedia']);
+        Route::post('/medias/institution', [\App\Http\Controllers\InstitutionController::class, 'uploadMedia'])->name('institution.media-upload');
+        Route::delete('/medias/{institution}/logo', [\App\Http\Controllers\MediaController::class, 'deleteLogo'])->name('medias.delete.logo');
+        Route::delete('/medias/{institutions}/favicon', [\App\Http\Controllers\MediaController::class, 'deleteFavicon'])->name('medias.delete.favicon');
 
         Route::get('/time-table', [\App\Http\Controllers\TimetableController::class, 'index'])->name('timetable.index');
         Route::post('/lessons', [\App\Http\Controllers\LessonController::class, 'store']);
@@ -199,17 +203,20 @@ Route::group([
             Route::post('/pages', [\App\Http\Controllers\Website\PageController::class, 'store'])->name('pages.store');
             Route::patch('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'update'])->name('pages.update');
             Route::delete('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'destroy'])->name('pages.destroy');
-            // PAGE SECTION ROUTES
+            // PAGE_SECTION ROUTES
             Route::get('/pages/{page}/create-sections', [\App\Http\Controllers\Website\SectionController::class, 'create'])->name('pages.sections.create');
             Route::post('/sections', [\App\Http\Controllers\Website\SectionController::class, 'store'])->name('sections.store');
             Route::get('/pages/{page}/edit-sections', [\App\Http\Controllers\Website\SectionController::class, 'edit'])->name('pages.sections.edit');
             Route::patch('/sections/{page}', [\App\Http\Controllers\Website\SectionController::class, 'update'])->name('pages.sections.update');
+            
+            Route::resource('/menus', \App\Http\Controllers\Website\MenuController::class)->names('menus');
+            Route::resource('/customisations', \App\Http\Controllers\Website\CustomisationController::class)->names('customisations');
         });
    });
     
-    /**********************************************************************
+    /**
      *  TEACHER ROUTES
-     *********************************************************************/
+     */
     Route::group([
         'prefix' => 'teacher',
     ], function () {
@@ -220,5 +227,13 @@ Route::group([
 /**********************************************************************
  *  WEBSITE ROUTES
  *********************************************************************/
-Route::get('/', [\App\Http\Controllers\Website\WebsiteController::class, 'index'])->name('homepage');
+//Route::get('/', [\App\Http\Controllers\Website\WebsiteController::class, 'index'])->name('homepage');
+Route::get('/', function () {
+    $homePage = \App\Models\Page::where('title', '=', 'Home')->firstOrFail();
+    if ($homePage) {
+        $homePage->load('sections');
+        return view('website.template-1.pages.home', ['homePage' => $homePage]);
+    }
+    return view('website.template-1.pages.page_data');
+})->name('homepage');
 Route::get('/{slug}', [\App\Http\Controllers\Website\WebsiteController::class, 'page'])->name('page.show');

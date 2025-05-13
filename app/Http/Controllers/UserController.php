@@ -50,7 +50,7 @@ class UserController extends Controller
                 'phone' => $validated['phone'],
                 'password' => Hash::make($validated['password']),
                 'activated' => $validated['activated'] ?? false,
-                'is_admin' => $validated['is_admin'] ?? false,
+                'is_admin' => true,
                 'is_teacher' => $validated['is_teacher'] ?? false,
                 'is_parent' => $validated['is_parent'] ?? false,
             ]);

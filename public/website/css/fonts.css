@@ -1,0 +1,104 @@
+/*=================================
+    DOSIS FONT FAMILY
+===================================*/
+@font-face {
+    font-family: 'Dosis';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../../assets/fonts/Dosis/static/Dosis-Regular.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Dosis';
+    font-style: normal;
+    font-weight: 200;
+    src: url('../../assets/fonts/Dosis/static/Dosis-ExtraLight.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Dosis';
+    font-style: normal;
+    font-weight: 300;
+    src: url('../../assets/fonts/Dosis/static/Dosis-Light.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Dosis';
+    font-style: normal;
+    font-weight: 500;
+    src: url('../../assets/fonts/Dosis/static/Dosis-Medium.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Dosis';
+    font-style: normal;
+    font-weight: 600;
+    src: url('../../assets/fonts/Dosis/static/Dosis-SemiBold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Dosis';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../../assets/fonts/Dosis/static/Dosis-Bold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Dosis';
+    font-style: normal;
+    font-weight: 800;
+    src: url('../../assets/fonts/Dosis/static/Dosis-ExtraBold.ttf') format('truetype');
+}
+
+
+/*=================================
+    ROBOTO FONT FAMILY
+===================================*/
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../../assets/fonts/Roboto/static/Roboto-Regular.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 100;
+    src: url('../../assets/fonts/Roboto/static/Roboto-Thin.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 200;
+    src: url('../../assets/fonts/Roboto/static/Roboto-ExtraLight.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    src: url('../../assets/fonts/Roboto/static/Roboto-Light.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    src: url('../../assets/fonts/Roboto/static/Roboto-Medium.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'ROboto';
+    font-style: normal;
+    font-weight: 600;
+    src: url('../../assets/fonts/Roboto/static/Roboto-SemiBold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../../assets/fonts/Roboto/static/Roboto-Bold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 800;
+    src: url('../../assets/fonts/Roboto/static/Roboto-ExtraBold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 900;
+    src: url('../../assets/fonts/Roboto/static/Roboto-Black.ttf') format('truetype');
+}

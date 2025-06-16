@@ -18,8 +18,7 @@ class Student extends Model
     protected $appends = ['hashid'];
     protected $fillable = [
         'student_admission_id', 'admission_number', 'rank_id', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'birth_certificate_number', 'gender_id', 'religion_id',
-        'citizenship', 'county', 'ward', 'permanent_address', 'kpsea_score', 'kjsea_score', 'kcpe_score', 'upi_number', 'nemis', 'assessment_number',
-        'previous_school', 'specialization',
+        'citizenship', 'county', 'ward', 'permanent_address', 'previous_school', 'kcpe_score', 'physical_disability', 'hobby', 'medical_details', 'character_book',
     ];
 
     public function admission(): BelongsTo

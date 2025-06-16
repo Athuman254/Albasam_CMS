@@ -1,4 +1,4 @@
-import './plugins/index'
+import './Plugins/index'
 import axios from 'axios';
 window.axios = axios;
 

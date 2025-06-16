@@ -16,8 +16,9 @@ class StudentAdmission extends Model
     protected $table = 'student_admissions';
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
+    protected $casts = ['has_exit_school' => 'boolean'];
     protected $fillable = [
-        'date', 'division_id', 'physical_disability', 'hobby'
+        'date', 'date_of_exit', 'division_id', 'has_exit_school'
     ];
 
     public function student(): HasOne

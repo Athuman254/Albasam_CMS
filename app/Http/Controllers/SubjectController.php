@@ -45,7 +45,7 @@ class SubjectController extends Controller
             'activated' => $validated['activated'],
         ]);
         
-        return to_route('subjects.index')->with('success', 'Subject created.');
+        return back(303)->with('success', 'Subject created.');
     }
     
     public function update(Subject $subject, Request $request)
@@ -64,6 +64,6 @@ class SubjectController extends Controller
             'activated' => $validated['activated'],
         ]);
         
-        return to_route('subjects.index')->with('success', 'Subject updated.');
+        return back(303)->with('success', 'Subject updated.');
     }
 }

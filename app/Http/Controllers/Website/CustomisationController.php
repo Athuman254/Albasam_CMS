@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CustomisationRequest;
-use App\Models\Customisation;
+use App\Http\Requests\Website\CustomisationRequest;
+use App\Models\Website\Customisation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

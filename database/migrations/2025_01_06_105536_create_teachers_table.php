@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->string('staff_number')->unique();
-            $table->date('date_of_hire')->unique();
+            $table->string('staff_number')->unique()->nullable();
+            $table->date('date_of_hire')->unique()->nullable();
             $table->boolean('use_existing_user')->default(false);
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->unsignedBigInteger('employment_type_id');
-            $table->unsignedBigInteger('employment_status_id');
-            $table->unsignedBigInteger('job_title_id');
-            $table->unsignedBigInteger('honorific_id');
-            $table->unsignedBigInteger('marital_status_id');
+            $table->unsignedBigInteger('employment_type_id')->nullable();
+            $table->unsignedBigInteger('employment_status_id')->nullable();
+            $table->unsignedBigInteger('job_title_id')->nullable();
+            $table->unsignedBigInteger('honorific_id')->nullable();
+            $table->unsignedBigInteger('marital_status_id')->nullable();
             $table->unsignedBigInteger('gender_id');
             $table->unsignedBigInteger('religion_id');
             $table->string('first_name');
@@ -33,7 +33,7 @@ return new class extends Migration
             $table->string('permanent_physical_address')->nullable();
             $table->string('secondary_physical_address')->nullable();
             $table->string('postal_address')->nullable();
-            $table->string('identification_number');
+            $table->string('identification_number')->nullable();
             $table->string('tax_identification_pin')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -57,11 +57,11 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('middle_name')->nullable();
             $table->string('last_name');
-            $table->unsignedBigInteger('honorific_id');
+            $table->unsignedBigInteger('honorific_id')->nullable();
             $table->unsignedBigInteger('teacher_title_id')->nullable();
             $table->unsignedBigInteger('specialization_area_id')->nullable();
             $table->string('tsc_number')->nullable();
-            $table->tinyInteger('years_of_experience')->default(0);
+            $table->tinyInteger('years_of_experience')->default(0)->nullable();
             $table->timestamps();
             $table->softDeletes();
 

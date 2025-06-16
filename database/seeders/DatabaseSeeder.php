@@ -19,14 +19,17 @@ use App\Models\SalaryGrade;
 use App\Models\SalaryScale;
 use App\Models\Specialization;
 use App\Models\Stream;
-use App\Models\Subject;
 use App\Models\TeacherTitle;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Website\Customisation;
+use App\Models\Website\Menu;
+use App\Models\Website\Page;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
@@ -49,9 +52,11 @@ class DatabaseSeeder extends Seeder
         
         $this->relationships();
         
+        $this->divisions();
+        
         $this->streams();
         
-        $this->divisions();
+        $this->ranks();
         
         $this->maritalStatuses();
         
@@ -73,6 +78,12 @@ class DatabaseSeeder extends Seeder
         
         $this->institution();
         
+        $this->customisations();
+        
+        $this->pages();
+        
+        $this->menus();
+        
         User::create([
             'name'      => 'John Doe',
             'username'  => 'admin',
@@ -92,9 +103,9 @@ class DatabaseSeeder extends Seeder
         Department::truncate();
         
         Department::insert([
-            ['name' => 'Science'],
-            ['name' => 'Languages'],
-            ['name' => 'Library'],
+            ['name' => 'Science', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Languages', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Library', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -103,9 +114,8 @@ class DatabaseSeeder extends Seeder
         Gender::truncate();
         
         Gender::insert([
-            ['name' => 'Male'],
-            ['name' => 'Female'],
-            ['name' => 'Other'],
+            ['name' => 'Male', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Female', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -114,10 +124,10 @@ class DatabaseSeeder extends Seeder
         Religion::truncate();
         
         Religion::insert([
-            ['name' => 'Christian'],
-            ['name' => 'Islam'],
-            ['name' => 'Hindu'],
-            ['name' => 'Other'],
+            ['name' => 'Christian', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Islam', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Hindu', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Other', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -126,32 +136,16 @@ class DatabaseSeeder extends Seeder
         Relationship::truncate();
         
         Relationship::insert([
-            ['name' => 'Father'],
-            ['name' => 'Mother'],
-            ['name' => 'Husband'],
-            ['name' => 'Wife'],
-            ['name' => 'Brother'],
-            ['name' => 'Sister'],
-            ['name' => 'Uncle'],
-            ['name' => 'Aunt'],
-            ['name' => 'Grandparent'],
-            ['name' => 'Other'],
-        ]);
-    }
-    
-    public function streams(): void
-    {
-        Stream::truncate();
-        
-        Stream::insert([
-            ['name' => 'North'],
-            ['name' => 'South'],
-            ['name' => 'East'],
-            ['name' => 'West'],
-            ['name' => 'Red'],
-            ['name' => 'Green'],
-            ['name' => 'Blue'],
-            ['name' => 'Yellow'],
+            ['name' => 'Father', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Mother', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Husband', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Wife', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Brother', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Sister', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Uncle', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Aunt', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Grandparent', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Other', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -160,10 +154,49 @@ class DatabaseSeeder extends Seeder
         Division::truncate();
         
         Division::insert([
-            ['name' => 'Pre-Primary'],
-            ['name' => 'Primary'],
-            ['name' => 'Junior Secondary'],
-            ['name' => 'Senior Secondary'],
+            ['name' => 'High School', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+    }
+    
+    public function streams(): void
+    {
+        Stream::truncate();
+        
+        Stream::insert([
+            ['name' => 'Aberdare', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Satima', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Kinangop', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+    }
+    
+    public function ranks(): void
+    {
+        Rank::truncate();
+        $divisionId = Division::first()->id;
+        $streams = Stream::all();
+        
+        Rank::insert([
+            [
+                'name' => 'Form 1',
+                'division_id' => $divisionId,
+                'stream_id' => $streams->firstWhere('name', '=', 'Aberdare')->id,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => 'Form 1',
+                'division_id' => $divisionId,
+                'stream_id' => $streams->firstWhere('name', '=', 'Satima')->id,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => 'Form 1',
+                'division_id' => $divisionId,
+                'stream_id' => $streams->firstWhere('name', '=', 'Kinangop')->id,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
         ]);
     }
     
@@ -172,10 +205,11 @@ class DatabaseSeeder extends Seeder
         MaritalStatus::truncate();
         
         MaritalStatus::insert([
-            ['name' => 'Married'],
-            ['name' => 'Single'],
-            ['name' => 'Single-Parent'],
-            ['name' => 'Other'],
+            ['name' => 'Married', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Single', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Single-Parent', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Divorced', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Other', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -184,11 +218,11 @@ class DatabaseSeeder extends Seeder
         Honorific::truncate();
         
         Honorific::insert([
-            ['name' => 'Mr.'],
-            ['name' => 'Mrs.'],
-            ['name' => 'Md.'],
-            ['name' => 'Prof.'],
-            ['name' => 'Lec.'],
+            ['name' => 'Mr.', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Mrs.', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Md.', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Prof.', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Lec.', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -197,33 +231,14 @@ class DatabaseSeeder extends Seeder
         EmploymentType::truncate();
         
         EmploymentType::insert([
-            ['name' => 'Pensionable'],
-            ['name' => 'Full-Time'],
-            ['name' => 'Part-Time'],
-            ['name' => 'Part-Time'],
-            ['name' => 'Attachment'],
-            ['name' => 'Contract'],
-            ['name' => 'Other'],
+            ['name' => 'Pensionable', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Full-Time', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Part-Time', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Part-Time', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Attachment', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Contract', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Other', 'created_at' => now(), 'updated_at' => now()],
         ]);
-
-//        EmploymentType::create([
-//            'name'  => 'Pensionable',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Full-Time',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Part-Time',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Attachment',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Contract',
-//        ]);
-//        EmploymentType::create([
-//            'name'  => 'Other',
-//        ]);
     }
     
     public function employmentStatuses(): void
@@ -231,11 +246,11 @@ class DatabaseSeeder extends Seeder
         EmploymentStatus::truncate();
         
         EmploymentStatus::insert([
-            ['name' => 'Active'],
-            ['name' => 'On Leave'],
-            ['name' => 'Resigned'],
-            ['name' => 'Retired'],
-            ['name' => 'Suspended'],
+            ['name' => 'Active', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'On Leave', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Resigned', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Retired', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Suspended', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -244,16 +259,16 @@ class DatabaseSeeder extends Seeder
         JobTitle::truncate();
         
         JobTitle::insert([
-            ['name' => 'Teacher'],
-            ['name' => 'Accountant'],
-            ['name' => 'Librarian'],
-            ['name' => 'Lab Technician'],
-            ['name' => 'Driver'],
-            ['name' => 'Carpenter'],
-            ['name' => 'Cleaner'],
-            ['name' => 'Cook'],
-            ['name' => 'Guard'],
-            ['name' => 'Electrician'],
+            ['name' => 'Teacher', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Accountant', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Librarian', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Lab Technician', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Driver', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Carpenter', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Cleaner', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Cook', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Guard', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Electrician', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -262,11 +277,10 @@ class DatabaseSeeder extends Seeder
         Specialization::truncate();
         
         Specialization::insert([
-            ['name' => 'STEM'],
-            ['name' => 'Art'],
-            ['name' => 'Sciences'],
-            ['name' => 'Languages'],
-            ['name' => 'Religious Education'],
+            ['name' => 'Sciences', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Languages', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Humanities', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Religious Education', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -275,9 +289,9 @@ class DatabaseSeeder extends Seeder
         QualificationType::truncate();
         
         QualificationType::insert([
-            ['name' => 'Degree'],
-            ['name' => 'Diploma'],
-            ['name' => 'Certificate'],
+            ['name' => 'Degree', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Diploma', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Certificate', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -286,17 +300,17 @@ class DatabaseSeeder extends Seeder
         SalaryGrade::truncate();
         
         SalaryGrade::insert([
-            ['name' => 'D5'],
-            ['name' => 'D4'],
-            ['name' => 'D3'],
-            ['name' => 'D2'],
-            ['name' => 'D1'],
-            ['name' => 'C5'],
-            ['name' => 'C4'],
-            ['name' => 'C3'],
-            ['name' => 'C2'],
-            ['name' => 'C1'],
-            ['name' => 'B1'],
+            ['name' => 'D5', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'D4', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'D3', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'D2', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'D1', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'C5', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'C4', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'C3', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'C2', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'C1', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'B1', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -356,5 +370,38 @@ class DatabaseSeeder extends Seeder
 //            'tiktok_profile' => '',
 //            'youtube_profile' => '',
         ]);
+    }
+    
+    public function customisations(): void
+    {
+        Customisation::truncate();
+        
+        Customisation::create([
+            'primary_color' => '#25615a',
+        ]);
+    }
+    
+    public function pages(): void
+    {
+        Page::insert([
+            ['title' => 'Home', 'slug' => '/', 'published' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['title' => 'About Us', 'slug' => 'about-us', 'published' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['title' => 'Contact Us', 'slug' => 'contact-us', 'published' => true, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+    }
+    
+    public function menus(): void
+    {
+        Menu::truncate();
+        
+        $pages = Page::all();
+        foreach ($pages as $page) {
+            Menu::create([
+                'page_id' => $page->id,
+                'title' => $page->title,
+                'type' => Menu::TYPE_PAGE,
+                'order' => Menu::max('order') + 1,
+            ]);
+        }
     }
 }

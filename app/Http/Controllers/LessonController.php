@@ -47,7 +47,7 @@ class LessonController extends Controller
             'end_time' => $validated['end_time'],
         ]);
 
-        return to_route('timetable.index');
+        return back(303)->with('success', 'Lesson created successfully.');
     }
 
     public function update(LessonRequest $request, Lesson $lesson)
@@ -63,7 +63,7 @@ class LessonController extends Controller
             'end_time' => $validated['end_time'],
         ]);
         
-        return to_route('timetable.index');
+        return back(303)->with('success', 'Lesson updated successfully.');
     }
 
 //    public function syncSubjects(Request $request)
@@ -80,9 +80,9 @@ class LessonController extends Controller
 //        return to_route('ranks.show', $rank->hashid);
 //    }
 
-    public function destroy(Lesson $rank_subject)
+    public function destroy(Lesson $lesson)
     {
-        $rank_subject->delete();
+        $lesson->delete();
 
         return response()->noContent();
     }

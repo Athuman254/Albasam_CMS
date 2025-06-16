@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Institution;
+use App\Models\Website\Section;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MediaController extends Controller
 {
@@ -23,5 +22,31 @@ class MediaController extends Controller
         $institution->clearMediaCollection('favicon');
         
         return to_route('institutions.index')->with('success', 'Institution favicon deleted successfully.');
+    }
+    
+    public function uploadSectionMedia(Request $request)
+    {
+        $validated = $request->validate([
+            'section_id' => 'required|exists:sections,id',
+            'file' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+        
+        $section = Section::findOrFail($validated['section_id']);
+        
+        if($request->hasFile('file')) {
+            $section->clearMediaCollection('section_image');
+            $section->addMedia($validated['file'])
+                ->toMediaCollection('section_image');
+        }
+        
+        return back(303);
+    }
+    
+    public function deleteSectionMedia($sectionId)
+    {
+        $section = Section::find($sectionId);
+        $section->clearMediaCollection('section_image');
+        
+        return back(303);
     }
 }

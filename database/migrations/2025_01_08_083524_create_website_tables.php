@@ -38,34 +38,35 @@ return new class extends Migration
         Schema::create('sections', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('page_id');
-            $table->tinyInteger('type');
+            $table->string('type');
             $table->string('sub_title');
             $table->string('title');
             $table->longText('details')->nullable();
+            $table->string('component_type')->nullable();
             $table->tinyInteger('order')->default(0);
+            $table->boolean('section_has_image')->default(true);
+            $table->boolean('include_contact_cards')->default(false);
+            $table->boolean('section_image_first')->default(true);
+            $table->boolean('has_cta_buttons')->default(true);
             $table->boolean('active')->default(true);
+            $table->string('map_link')->nullable();
             $table->timestamps();
-
-            $table->foreign('page_id')->references('id')->on('pages')->onDelete('cascade');
+            
+            $table->foreign('page_id')->references('id')->on('pages');
 
             $table->index('page_id');
         });
-
-        Schema::create('sub_sections', function (Blueprint $table) {
+        
+        Schema::create('section_cta_buttons', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('section_id');
-            $table->string('title')->nullable();
-            $table->string('sub_title')->nullable();
-            $table->integer('order')->default(1); // Determines the display order
-            $table->tinyInteger('type')->default(1); // ['text' => 1, 'image' => 2, 'video' => 3,]
-            $table->text('content')->nullable(); // Content for the section
-            $table->string('type_image')->nullable(); // Content for the section
-            $table->boolean('is_active')->default(true); // Controls visibility
+            $table->unsignedBigInteger('page_id');
+            $table->string('cta_button_text');
+            $table->string('cta_button_type')->default('primary-btn');
             $table->timestamps();
-
-            $table->foreign('section_id')->references('id')->on('pages')->onDelete('cascade');
-
-            $table->index('section_id');
+            
+            $table->foreign('section_id')->references('id')->on('sections');
+            $table->foreign('page_id')->references('id')->on('pages');
         });
         
         Schema::create('menus', function (Blueprint $table) {

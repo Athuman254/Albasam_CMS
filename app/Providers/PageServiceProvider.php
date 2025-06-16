@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\Page;
+use App\Models\Website\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;

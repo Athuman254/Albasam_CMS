@@ -34,11 +34,11 @@ class AttendanceController extends Controller
     {
 
         // return Inertia::render("Website/SiteSettings");
-        return Inertia::render("Attendance/Index");
+        return Inertia::render("Admin/Attendance/Index");
     }
 
     public function records(){
-        return Inertia::render("Attendance/Records");
+        return Inertia::render("Admin/Attendance/Records");
     }
     /**
      * Show the form for creating a new resource.

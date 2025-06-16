@@ -147,7 +147,7 @@ class TeacherController extends Controller
             }
 
             DB::commit();
-            return to_route('teachers.index');
+            return to_route('admin.teachers.index');
 
         } catch (\Throwable $exception) {
             DB::rollBack();
@@ -288,7 +288,7 @@ class TeacherController extends Controller
             }
 
             DB::commit();
-            return to_route('teachers.index');
+            return to_route('admin.teachers.index');
 
         } catch (\Throwable $exception) {
             DB::rollBack();
@@ -336,7 +336,7 @@ class TeacherController extends Controller
             ]);
         });
 
-        return to_route('teachers.show', $teacher->hashid)->with('success', 'Credentials captured.');
+        return to_route('admin.teachers.show', $teacher->hashid)->with('success', 'Credentials captured.');
     }
 
     public function updateCredentials(TeacherCredentialRequest $request, User $user)

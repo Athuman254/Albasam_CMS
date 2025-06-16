@@ -57,7 +57,7 @@ class InstitutionController extends Controller
             ]);
 
             DB::commit();
-            return to_route('institutions.index')->with('success', 'Institution created successfully.');
+            return to_route('admin.institutions.index')->with('success', 'Institution created successfully.');
 
         } catch(\Exception $exception) {
             DB::rollBack();
@@ -74,7 +74,7 @@ class InstitutionController extends Controller
 
         $institution->update($validated);
 
-        return to_route('institutions.index')->with('success', 'Institution updated successfully.');
+        return to_route('admin.institutions.index')->with('success', 'Institution updated successfully.');
 //        return response()->noContent();
     }
 
@@ -99,6 +99,6 @@ class InstitutionController extends Controller
                 ->toMediaCollection('favicon');
         }
 
-        return to_route('institutions.index')->with('success', 'Institution media uploaded successfully.');
+        return to_route('admin.institutions.index')->with('success', 'Institution media uploaded successfully.');
     }
 }

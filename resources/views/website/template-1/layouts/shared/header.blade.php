@@ -83,15 +83,10 @@
                <div class="col-lg-9 d-none d-lg-block d-md-none">
                   <nav class="navbar navbar-expand-lg justify-content-left">
                      <ul class="navbar-nav">
-{{--                        <li class="nav-item @if (\Request::is('/')) active @endif">--}}
-{{--                           <a href="{{ route('homepage') }}" class="nav-link">--}}
-{{--                              Home--}}
-{{--                           </a>--}}
-{{--                        </li>--}}
                         @foreach ($menus as $menu)
                            <li class="nav-item @if (\Request::is($menu->page->slug)) active @endif">
                               <a href="{{ route('page.show', $menu->page->slug) }}" class="nav-link">
-                                 {{ $menu->page->title }}
+                                 {{ $menu->title }}
                               </a>
                            </li>
                         @endforeach

@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers\Website;
 use App\Http\Controllers\Controller;
-use App\Models\Institution;
-use App\Models\Page;
+use App\Models\Website\Page;
 
 class WebsiteController extends Controller
 {
@@ -24,7 +23,7 @@ class WebsiteController extends Controller
          ->where('published', '=', true)
          ->firstOrFail();
    
-      return view('website.template-1.pages.page_data', [
+      return view('website.template-1.pages.show', [
          'page' => $page,
       ]);
    }

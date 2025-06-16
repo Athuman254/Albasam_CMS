@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Website\SectionRequest;
 use App\Http\Resources\Resource;
-use App\Models\Page;
-use App\Models\Section;
-use Illuminate\Http\Request;
+use App\Models\Website\Page;
+use App\Models\Website\Section;
+use App\Models\Website\SectionCtaButton;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -15,189 +16,147 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class SectionController extends Controller
 {
-    public function dataTable()
+    public function datatable()
     {
-        $pages = QueryBuilder::for(
-            Section::with('subSections', 'page')->orderBy('order')
+        $sections = QueryBuilder::for(
+            Section::with('page', 'cta_buttons.page', 'media')->orderBy('order')
         )->allowedFilters([
             AllowedFilter::exact('id'),
             AllowedFilter::exact('page_id'),
-            AllowedFilter::partial('title'),
         ])->jsonPaginate();
-
-        return Resource::collection($pages);
+        
+        return Resource::collection($sections);
     }
-
+    
     public function index()
     {
-        return Inertia('Admin/Website/Sections/Index');
+        return Inertia::render('Admin/Section/Index', []);
     }
-
+    
     public function create(Page $page)
     {
         return Inertia::render('Admin/Website/Sections/Create', [
             'page' => $page,
         ]);
     }
-
-    public function store(Request $request)
+    
+    public function store(SectionRequest $request)
     {
-        $request->validate([
-            'sections' => 'required|array|min:1',
-            'sections.*.title' => 'required|string|max:255',
-            'sections.*.sub_title' => 'nullable|string|max:255',
-            'sections.*.order' => 'required|integer',
-            'sections.*.bg_style' => 'required',
-            'sections.*.bg_color' => 'nullable',
-            'sections.*.bg_image' => 'nullable',
-            'sections.*.type' => 'nullable|integer|in:1,2',
-            'sections.*.content' => 'nullable',
-            'sections.*.type_image' => 'nullable',
-            'sections.*.subSections' => 'nullable|array',
-            'sections.*.subSections.*.title' => 'required|string|max:255',
-            'sections.*.subSections.*.sub_title' => 'nullable|string|max:255',
-            'sections.*.subSections.*.order' => 'required|integer',
-            'sections.*.subSections.*.type' => 'required|integer|in:1,2',
-            'sections.*.subSections.*.content' => 'nullable|string',
-            'sections.*.subSections.*.type_image' => 'nullable|string',
-        ]);
-
+        $validated = $request->validated();
+        
         DB::beginTransaction();
+        
         try {
-            foreach ($request->sections as $sectionData) {
-                $section = Section::create([
-                    'title' => $sectionData['title'],
-                    'sub_title' => $sectionData['sub_title'],
-                    'order' => $sectionData['order'],
-                    'bg_style' => $sectionData['bg_style'],
-                    'bg_color' => $sectionData['bg_color'],
-                    'bg_image' => $sectionData['bg_image'],
-                    'type' => $sectionData['type'],
-                    'content' => $sectionData['content'] ?? '',
-                    'type_image' => $sectionData['type_image'] ?? '',
-                    'page_id' => $request->page_id, // Assuming sections belong to a page
-                ]);
-
-                if (!empty($sectionData['subSections'])) {
-                    foreach ($sectionData['subSections'] as $subSectionData) {
-                        $section->subSections()->create([
-                            'title' => $subSectionData['title'],
-                            'sub_title' => $subSectionData['sub_title'],
-                            'order' => $subSectionData['order'],
-                            'type' => $subSectionData['type'],
-                            'content' => $subSectionData['content'] ?? '',
-                            'type_image' => $subSectionData['type_image'] ?? '',
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
+            $section = Section::create([
+                'page_id' => $validated['page_id'],
+                'type' => $validated['type'],
+                'title' => $validated['title'],
+                'sub_title' => $validated['sub_title'],
+                'component_type' => $validated['component_type'],
+                'details' => $validated['details'],
+                'include_contact_cards' => $validated['include_contact_cards'],
+                'section_has_image' => $validated['section_has_image'],
+                'section_image_first' => $validated['section_image_first'],
+                'has_cta_buttons' => $validated['has_cta_buttons'],
+                'map_link' => $validated['map_link'],
+            ]);
+            
+            if($request->hasFile('media')) {
+                $section->clearMediaCollection('section_image');
+                $section->addMedia($validated['media'])->toMediaCollection('section_image');
+            }
+            
+            if (isset($validated['cta_buttons']) && is_array($validated['cta_buttons'])) {
+                $ctaButtons = collect($validated['cta_buttons'])
+                    ->filter(function ($ctaButton) {
+                        return isset($ctaButton['page']['id']);
+                    })
+                    ->map(function ($ctaButton) use ($section) {
+                        return [
+                            'page_id' => $ctaButton['page']['id'],
+                            'section_id' => $section->id,
+                            'cta_button_text' => $ctaButton['cta_button_text'],
+                            'cta_button_type' => $ctaButton['cta_button_type']['value'],
+                            'created_at' => now()->toDateTimeString(),
+                            'updated_at' => now()->toDateTimeString(),
+                        ];
+                    })->toArray();
+                
+                if(!empty($ctaButtons)) {
+                    SectionCtaButton::insert($ctaButtons);
                 }
             }
-
+            
             DB::commit();
-            return to_route('pages.index')->with('success', 'Page sections created successfully.');
-
+            return back(303);
+            
         } catch (\Throwable $exception) {
             DB::rollBack();
             Log::error('Error: ' . $exception->getMessage());
             report($exception);
-            return to_route('pages.sections.create')->with('error', $exception->getMessage());
+            return redirect()->back()->withInput()->withErrors(['message' => 'Failed to save page sections. Please try again.']);
         }
     }
-
+    
     public function edit(Page $page)
     {
-        $page->load('sections.subSections');
-        
         return Inertia::render('Admin/Website/Sections/Edit', [
             'page' => $page,
         ]);
     }
-
-    public function update(Page $page, Request $request)
+    
+    public function update(SectionRequest $request, $sectionId)
     {
-        $validated = $request->validate([
-            'sections' => 'required|array|min:1',
-            'sections.*.title' => 'required|string|max:255',
-            'sections.*.sub_title' => 'nullable|string|max:255',
-            'sections.*.order' => 'required|integer',
-            'sections.*.bg_style' => 'required',
-            'sections.*.bg_color' => 'nullable',
-            'sections.*.bg_image' => 'nullable',
-            'sections.*.type' => 'nullable|integer|in:1,2',
-            'sections.*.content' => 'nullable',
-            'sections.*.type_image' => 'nullable',
-            'sections.*.subSections' => 'nullable|array',
-            'sections.*.subSections.*.title' => 'required|string|max:255',
-            'sections.*.subSections.*.sub_title' => 'nullable|string|max:255',
-            'sections.*.subSections.*.order' => 'required|integer',
-            'sections.*.subSections.*.type' => 'required|integer|in:1,2',
-            'sections.*.subSections.*.content' => 'nullable|string',
-            'sections.*.subSections.*.type_image' => 'nullable|string',
-        ]);
-
+        $validated = $request->validated();
+        $section = Section::findOrFail($sectionId);
+        if($validated['include_contact_cards']) {
+            $validated['section_has_image'] = false;
+            $validated['details'] = null;
+        }
+        
         DB::beginTransaction();
+        
         try {
-            // Get existing section IDs for this page
-            $existingSectionIds = $page->sections()->pluck('id')->toArray();
-            $newSectionIds = [];
-
-            foreach ($validated['sections'] as $sectionData) {
-                // Update existing section or create new one
-                $section = Section::updateOrCreate(
-                    ['page_id' => $page->id, 'order' => $sectionData['order']], // Unique identifier
-                    [
-                        'title' => $sectionData['title'],
-                        'sub_title' => $sectionData['sub_title'],
-                        'bg_style' => $sectionData['bg_style'],
-                        'bg_color' => $sectionData['bg_color'],
-                        'bg_image' => $sectionData['bg_image'],
-                        'type' => $sectionData['type'],
-                        'content' => $sectionData['content'] ?? '',
-                        'type_image' => $sectionData['type_image'] ?? '',
-                    ]
-                );
-
-                $newSectionIds[] = $section->id;
-
-                // Process subsections
-                $existingSubSectionIds = $section->subSections()->pluck('id')->toArray();
-                $newSubSectionIds = [];
-
-                if (!empty($sectionData['subSections'])) {
-                    foreach ($sectionData['subSections'] as $subSectionData) {
-                        $subSection = $section->subSections()->updateOrCreate(
-                            ['section_id' => $section->id, 'order' => $subSectionData['order']], // Unique identifier
-                            [
-                                'title' => $subSectionData['title'],
-                                'sub_title' => $subSectionData['sub_title'] ?? null,
-                                'type' => $subSectionData['type'],
-                                'content' => $subSectionData['content'] ?? '',
-                                'type_image' => $subSectionData['type_image'] ?? '',
-                            ]
-                        );
-                        $newSubSectionIds[] = $subSection->id;
-                    }
-                }
-
-                // Delete removed subsections
-                $section->subSections()->whereNotIn('id', $newSubSectionIds)->delete();
+            $section->update([
+                'type' => $validated['type'],
+                'title' => $validated['title'],
+                'sub_title' => $validated['sub_title'],
+                'component_type' => $validated['component_type'],
+                'details' => $validated['details'],
+                'include_contact_cards' => $validated['include_contact_cards'],
+                'section_has_image' => $validated['section_has_image'],
+                'section_image_first' => $validated['section_image_first'],
+                'has_cta_buttons' => $validated['has_cta_buttons'],
+                'map_link' => $validated['map_link'],
+            ]);
+            
+            if($validated['has_cta_buttons'] === false) {
+                $section->cta_buttons()->delete();
             }
-
-            // Delete removed sections
-            Section::where('page_id', '=', $page->id)->whereNotIn('id', $newSectionIds)->each(function ($section) {
-                $section->subSections()->delete(); // Delete associated subsections first
-                $section->delete();
-            });
-
+            if($validated['section_has_image'] === false) {
+                $section->clearMediaCollection('section_image');
+            }
+            
             DB::commit();
-            return to_route('pages.index')->with('success', 'Page sections updated successfully.');
-
+            return back(303);
+            
         } catch (\Throwable $exception) {
             DB::rollBack();
-            Log::error('Error updating page sections: ' . $exception->getMessage());
-            return redirect()->back()->withInput()->withErrors(['message' => 'Failed to update page sections. Please try again.']);
+            Log::error('Error: ' . $exception->getMessage());
+            report($exception);
+            return redirect()->back()->withInput()->withErrors(['message' => 'Failed to save page sections. Please try again.']);
         }
+    }
+    
+    public function destroy($sectionId)
+    {
+        $section = Section::findOrFail($sectionId);
+        $section->cta_buttons()->delete();
+        $section->clearMediaCollection('section_image');
+        
+        $section->delete();
+        
+        return back(303);
     }
 
 }

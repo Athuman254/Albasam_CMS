@@ -51,27 +51,25 @@ class StudentAdmissionController extends Controller
 
     public function create()
     {
-//        return 'okay';
         return Inertia::render('Admin/StudentAdmissions/Create', []);
     }
 
     public function store(StudentAdmissionRequest $request)
     {
         $validated = $request->validated();
+        $defaultDivision = Division::where('name', 'like', 'High School')->first();
 
         DB::beginTransaction();
         try {
             $admission = StudentAdmission::create([
                 'date' => $validated['registration_details']['date'],
                 'division_id' => $validated['registration_details']['division_id'],
-                'physical_disability' => $validated['other_details']['physical_disability'],
-                'hobby' => $validated['other_details']['hobby'],
             ]);
 
             $student = Student::create([
                 'student_admission_id' => $admission->id,
                 'admission_number' => $validated['student']['admission_number'],
-                'rank_id' => $validated['student']['rank_id'],
+                'rank_id' => $validated['student']['rank_id'] ?? $defaultDivision->id,
                 'first_name' => $validated['student']['first_name'],
                 'middle_name' => $validated['student']['middle_name'],
                 'last_name' => $validated['student']['last_name'],
@@ -83,17 +81,13 @@ class StudentAdmissionController extends Controller
                 'county' => $validated['student']['county'],
                 'ward' => $validated['student']['ward'],
                 'permanent_address' => $validated['student']['permanent_address'] ?? null,
-                'kpsea_score' => $validated['student']['kpsea_score'] ?? null,
-                'kjsea_score' => $validated['student']['kjsea_score'] ?? null,
                 'kcpe_score' => $validated['student']['kcpe_score'] ?? null,
-                'upi_number' => $validated['student']['upi_number'] ?? null,
-                'nemis' => $validated['student']['nemis'] ?? null,
-                'assessment_number' => $validated['student']['assessment_number'] ?? null,
                 'previous_school' => $validated['student']['previous_school'] ?? null,
-                'specialization' => $validated['student']['specialization'] ?? null
+                'physical_disability' => $validated['other_details']['physical_disability'],
+                'hobby' => $validated['other_details']['hobby'],
+                'medical_details' => $validated['other_details']['medical_details'] ?? null,
+                'character_book' => $validated['other_details']['character_book'] ?? null,
             ]);
-
-//            dd($validated['guardians']);
 
             if (isset($validated['guardians']) && is_array($validated['guardians'])) {
                 $guardianRecords = collect($validated['guardians'])
@@ -113,8 +107,6 @@ class StudentAdmissionController extends Controller
                             'identification_number' => $guardian['identification_number']
                         ];
                     })->toArray();
-
-//                dd($guardianRecords);
 
                 if (!empty($guardianRecords)) {
                     Guardian::insert($guardianRecords);
@@ -143,16 +135,14 @@ class StudentAdmissionController extends Controller
             }
 
             DB::commit();
-            // dd("fis");
-            return to_route('admissions.index');
+            return to_route('admin.admissions.index');
 
         } catch (\Throwable $exception) {
 
             DB::rollBack();
             Log::error('Error: ' . $exception->getMessage());
-            // dd($exception);
             report($exception);
-            return to_route('admissions.form');
+            return to_route('admin.admissions.form');
         }
     }
 
@@ -168,14 +158,15 @@ class StudentAdmissionController extends Controller
     public function update(StudentAdmission $studentAdmission, Request $request)
     {
         $validated = $this->otherDetailsValidation($request);
+        $defaultDivision = Division::where('name', '=', 'High School')->first();
+        
+//        dd($request->input());
 
         DB::beginTransaction();
         try {
             $studentAdmission->update([
                 'date' => $request->input('registration_details.date'),
-                'division_id' => $request->input('registration_details.division_id'),
-                'physical_disability' => $validated['other_details']['physical_disability'],
-                'hobby' => $validated['other_details']['hobby'],
+                'division_id' => $request->input('registration_details.division_id') ?? $defaultDivision->id,
             ]);
 
             $student = Student::where('student_admission_id', '=', $studentAdmission->id)->first();
@@ -194,42 +185,40 @@ class StudentAdmissionController extends Controller
                 'county' => $request->input('student.county'),
                 'ward' => $request->input('student.ward'),
                 'permanent_address' => $request->input('student.permanent_address'),
-                'kpsea_score' => $request->input('student.kpsea_score'),
-                'kjsea_score' => $request->input('student.kjsea_score'),
                 'kcpe_score' => $request->input('student.kcpe_score'),
-                'upi_number' => $request->input('student.upi_number'),
-                'nemis' => $request->input('student.nemis'),
-                'assessment_number' => $request->input('student.assessment_number'),
                 'previous_school' => $request->input('student.previous_school'),
-                'specialization' => $request->input('student.specialization'),
+                'physical_disability' => $request->input('other_details.physical_disability') ?? null,
+                'hobby' => $request->input('other_details.hobby'),
+                'medical_details' => $request->input('other_details.medical_details') ?? null,
+                'character_book' => $request->input('other_details.character_book') ?? null,
             ]);
 
-            if (isset($request->guardians) && is_array($request->guardians)) {
-
-                $student->guardians()->delete();
-                
-//                dd("Guardian Details Deleted");
-
-                $guardianDetails = collect($request->guardians)
-                    ->filter(function ($guardian) {
-                        return isset($guardian['relationship_id'], $guardian['first_name']);
-                    })
-                    ->map(function ($guardian) use ($student) {
-                        return [
-                            'student_id' => $student->id,
-                            'relationship_id' => $guardian['relationship_id'],
-                            'first_name' => $guardian['first_name'],
-                            'middle_name' => $guardian['middle_name'],
-                            'last_name' => $guardian['last_name'],
-                            'email' => $guardian['email'],
-                            'phone' => $guardian['phone'],
-                            'profession' => $guardian['profession'],
-                            'identification_number' => $guardian['identification_number']
-                        ];
-                    })->toArray();
-
-                Guardian::insert($guardianDetails);
-            }
+//            if (isset($request->guardians) && is_array($request->guardians)) {
+//
+//                $oldGuardianDetails = $student->guardians();
+//
+//                $student->guardians()->delete();
+//
+//                $guardianDetails = collect($request->guardians)
+//                    ->filter(function ($guardian) {
+//                        return isset($guardian['relationship_id'], $guardian['first_name']);
+//                    })
+//                    ->map(function ($guardian) use ($student) {
+//                        return [
+//                            'student_id' => $student->id,
+//                            'relationship_id' => $guardian['relationship_id'],
+//                            'first_name' => $guardian['first_name'],
+//                            'middle_name' => $guardian['middle_name'],
+//                            'last_name' => $guardian['last_name'],
+//                            'email' => $guardian['email'],
+//                            'phone' => $guardian['phone'],
+//                            'profession' => $guardian['profession'],
+//                            'identification_number' => $guardian['identification_number']
+//                        ];
+//                    })->toArray();
+//
+//                Guardian::insert($guardianDetails);
+//            }
 
             if (isset($validated['other_details']['siblings']) && is_array($validated['other_details']['siblings'])) {
 
@@ -254,7 +243,7 @@ class StudentAdmissionController extends Controller
             }
 
             DB::commit();
-            return to_route('admissions.index');
+            return to_route('admin.admissions.index');
 
         }  catch (\Throwable $exception) {
 
@@ -279,10 +268,10 @@ class StudentAdmissionController extends Controller
 
         if($studentAdmission)
         {
-            return to_route('admissions.edit', $studentAdmission);
+            return to_route('admin.admissions.edit', $studentAdmission);
         }
 
-        return to_route('admissions.form');
+        return to_route('admin.admissions.form');
     }
 
     public function secondStep(Request $request, StudentAdmission $studentAdmission = null)
@@ -320,22 +309,10 @@ class StudentAdmissionController extends Controller
             'student.permanent_address.required' => 'The permanent address is required.',
             'student.permanent_address.string' => 'The permanent address must be a valid string.',
             'student.permanent_address.max' => 'The permanent address may not be greater than 255 characters.',
-            'student.kpsea_score.string' => 'The KPSEA score must be a valid string.',
-            'student.kpsea_score.max' => 'The KPSEA score may not be greater than 255 characters.',
-            'student.kjsea_score.string' => 'The KJSEA score must be a valid string.',
-            'student.kjsea_score.max' => 'The KJSEA score may not be greater than 255 characters.',
             'student.kcpe_score.string' => 'The KCPE score must be a valid string.',
             'student.kcpe_score.max' => 'The KCPE score may not be greater than 255 characters.',
-            'student.upi_number.string' => 'The UPI number must be a valid string.',
-            'student.upi_number.max' => 'The UPI number may not be greater than 255 characters.',
-            'student.nemis.string' => 'The NEMIS number must be a valid string.',
-            'student.nemis.max' => 'The NEMIS number may not be greater than 255 characters.',
-            'student.assessment_number.string' => 'The assessment number must be a valid string.',
-            'student.assessment_number.max' => 'The assessment number may not be greater than 255 characters.',
             'student.previous_school.string' => 'The previous school must be a valid string.',
             'student.previous_school.max' => 'The previous school may not be greater than 255 characters.',
-            'student.specialization.string' => 'The specialization must be a valid string.',
-            'student.specialization.max' => 'The specialization may not be greater than 255 characters.',
         ];
         
         $request->validate([
@@ -346,28 +323,22 @@ class StudentAdmissionController extends Controller
             'student.rank_id' => ['required', Rule::exists('ranks', 'id')],
             'student.gender_id' => ['required', Rule::exists('genders', 'id')],
             'student.religion_id' => ['required', Rule::exists('religions', 'id')],
-            'student.date_of_birth' => ['required', 'string', 'max:255'],
+            'student.date_of_birth' => ['nullable', 'string', 'max:255'],
             'student.birth_certificate_number' => ['nullable', 'string', 'max:255'],
-            'student.citizenship' => ['required', 'string', 'max:255'],
+            'student.citizenship' => ['nullable', 'string', 'max:255'],
             'student.county' => ['nullable', 'string', 'max:255'],
             'student.ward' => ['nullable', 'string', 'max:255'],
-            'student.permanent_address' => ['required', 'string', 'max:255'],
-            'student.kpsea_score' => ['nullable', 'string', 'max:255'],
-            'student.kjsea_score' => ['nullable', 'string', 'max:255'],
+            'student.permanent_address' => ['nullable', 'string', 'max:255'],
             'student.kcpe_score' => ['nullable', 'string', 'max:255'],
-            'student.upi_number' => ['nullable', 'string', 'max:255'],
-            'student.nemis' => ['nullable', 'string', 'max:255'],
-            'student.assessment_number' => ['nullable', 'string', 'max:255'],
             'student.previous_school' => ['nullable', 'string', 'max:255'],
-            'student.specialization' => ['nullable', 'string', 'max:255'],
         ], $errorMessages);
 
         if($studentAdmission)
         {
-            return to_route('admissions.edit', $studentAdmission);
+            return to_route('admin.admissions.edit', $studentAdmission);
         }
 
-        return to_route('admissions.form');
+        return to_route('admin.admissions.form');
     }
 
     public function thirdStep(Request $request, StudentAdmission $studentAdmission = null)
@@ -403,10 +374,10 @@ class StudentAdmissionController extends Controller
 
         if($studentAdmission)
         {
-            return to_route('admissions.edit', $studentAdmission);
+            return to_route('admin.admissions.edit', $studentAdmission);
         }
 
-        return to_route('admissions.form');
+        return to_route('admin.admissions.form');
     }
 
     public function otherDetailsValidation(Request $request)

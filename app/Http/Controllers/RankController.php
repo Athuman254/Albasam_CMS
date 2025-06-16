@@ -38,7 +38,7 @@ class RankController extends Controller
             'teacher_id' => ['nullable', Rule::exists('teachers', 'id')],
             'activated' => ['boolean'],
         ]);
-        // dd($validated);
+        
         Rank::create([
             'name' => $validated['name'],
             'division_id' => $validated['division_id'],
@@ -47,7 +47,7 @@ class RankController extends Controller
             'activated' => $validated['activated'],
         ]);
 
-        return to_route('ranks.index')->with('success', 'Class created.');
+        return back(303)->with('success', 'Class created.');
     }
     
     public function show(Rank $rank)
@@ -77,6 +77,6 @@ class RankController extends Controller
             'activated' => $validated['activated'],
         ]);
 
-        return to_route('ranks.index')->with('success', 'Class details updated.');
+        return back(303)->with('success', 'Class details updated.');
     }
 }

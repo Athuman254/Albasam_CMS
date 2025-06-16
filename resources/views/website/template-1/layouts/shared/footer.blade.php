@@ -1,5 +1,5 @@
 <footer class="footer-section">
-    <div id="top-footer" class="overlay-2 section-back-image-2" data-background="assets/img/bg/footer-bg.jpg">
+    <div id="top-footer" class="overlay-2 section-back-image-2">
         <div class="auto-container">
             <div class="row">
                 <div class="col-lg-4 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
@@ -31,14 +31,14 @@
                     </div>
                     <div class="footer-widget-inner">
                         <div class="singleRecpost">
-                            <img src="{{ asset('website-assets/template-1/assets/img/bg/mission.jpeg') }}" alt="" class="img-fluid">
+                            <img src="{{ asset('website/images/mission.jpeg') }}" alt="" class="img-fluid">
                             <h6 class="recTitle">
                                 <a href="#">Designing Learner-Centered Classroom</a>
                             </h6>
                             <p class="posted-on">18 MAY 2021</p>
                         </div>
                         <div class="singleRecpost">
-                            <img src="{{ asset('website-assets/template-1/assets/img/bg/mission.jpeg') }}" alt="" class="img-fluid">
+                            <img src="{{ asset('website/images/mission.jpeg') }}" alt="" class="img-fluid">
                             <h6 class="recTitle">
                                 <a href="#">Building an environment for learning</a>
                             </h6>

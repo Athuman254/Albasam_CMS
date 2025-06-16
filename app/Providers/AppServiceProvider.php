@@ -38,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
             }
         }
         if (Schema::hasTable('customisations')) {
-            $customisation = \App\Models\Customisation::orderBy('id')->first() ?? null;
+            $customisation = \App\Models\Website\Customisation::orderBy('id')->first() ?? null;
             if ($customisation) {
                 View::share([
                     'customisation' => $customisation,
@@ -46,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
             }
         }
         if (Schema::hasTable('menus')) {
-            $menus = \App\Models\Menu::whereHas('page', function($query) {
+            $menus = \App\Models\Website\Menu::whereHas('page', function($query) {
                 $query->where('published', '=', true);
             })
                 ->with('page')
@@ -60,7 +60,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         }
         if(Schema::hasTable('pages')) {
-            $pages = \App\Models\Page::where('published', true)->where('is_home', false)->get();
+            $pages = \App\Models\Website\Page::where('published', true)->where('is_home', false)->get();
 
             if ($pages) {
                 View::share('pages', $pages);

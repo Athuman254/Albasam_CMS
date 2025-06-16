@@ -17,21 +17,21 @@ class StudentAdmissionRequest extends FormRequest
             'student.last_name' => ['required', 'string', 'max:255'],
             'student.admission_number' => ['required', 'string', 'max:255'],
             'student.rank_id' => ['required', Rule::exists('ranks', 'id')],
-            'student.date_of_birth' => ['required', 'date', 'max:255'],
+            'student.date_of_birth' => ['nullable', 'date', 'max:255'],
             'student.birth_certificate_number' => ['nullable', 'string', 'max:255'],
             'student.gender_id' => ['required', Rule::exists('genders', 'id')],
             'student.religion_id' => ['required', Rule::exists('religions', 'id')],
-            'student.citizenship' => ['required', 'string', 'max:255'],
+            'student.citizenship' => ['nullable', 'string', 'max:255'],
             'student.county' => ['nullable', 'string', 'max:255'],
             'student.ward' => ['nullable', 'string', 'max:255'],
             'student.permanent_address' => ['nullable', 'string', 'max:255'],
-            'student.kpsea_score' => ['nullable', 'string', 'max:255'],
-            'student.kjsea_score' => ['nullable', 'string', 'max:255'],
             'student.kcpe_score' => ['nullable', 'string', 'max:255'],
-            'student.index_number' => ['nullable', 'string', 'max:255'],
-            'student.upi_number' => ['nullable', 'string', 'max:255'],
-            'student.nemis' => ['nullable', 'string', 'max:255'],
-            'student.assessment_number' => ['nullable', 'string', 'max:255'],
+//            'student.kpsea_score' => ['nullable', 'string', 'max:255'],
+//            'student.kjsea_score' => ['nullable', 'string', 'max:255'],
+//            'student.index_number' => ['nullable', 'string', 'max:255'],
+//            'student.upi_number' => ['nullable', 'string', 'max:255'],
+//            'student.nemis' => ['nullable', 'string', 'max:255'],
+//            'student.assessment_number' => ['nullable', 'string', 'max:255'],
             'student.previous_school' => ['nullable', 'string', 'max:255'],
             'student.specialization' => ['nullable', 'string', 'max:255'],
             'guardians' => ['required', 'array'], // Ensure at least one guardian is provided
@@ -51,6 +51,8 @@ class StudentAdmissionRequest extends FormRequest
             'other_details.siblings.*.current_class' => ['nullable', 'string', 'max:255'],
             'other_details.physical_disability' => ['nullable', 'string'],
             'other_details.hobby' => ['nullable'],
+            'other_details.medical_details' => ['nullable'],
+            'other_details.character_book' => ['nullable'],
         ];
     }
 
@@ -80,5 +82,14 @@ class StudentAdmissionRequest extends FormRequest
             'other_details.siblings.*.current_school.required_with' => 'Each sibling must have a current school if siblings are provided.',
             'other_details.siblings.*.current_class.required_with' => 'Each sibling must have a current class if siblings are provided.',
         ];
+    }
+    
+    protected function prepareForValidation(): void
+    {
+        $this->merge(
+            collect($this->all())
+                ->map(fn($value) => $value === '' ? null : $value)
+                ->toArray()
+        );
     }
 }

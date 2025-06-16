@@ -41,7 +41,7 @@ class DivisionController extends Controller
             'activated' => $validated['activated'],
         ]);
 
-        return to_route('divisions.index')->with('success', 'Division created.');
+        return back(303)->with('success', 'Division created.');
     }
 
     public function update(Division $division, Request $request)
@@ -56,6 +56,6 @@ class DivisionController extends Controller
             'activated' => $validated['activated'],
         ]);
 
-        return to_route('divisions.index')->with('success', 'Division updated.');
+        return back(303)->with('success', 'Division updated.');
     }
 }

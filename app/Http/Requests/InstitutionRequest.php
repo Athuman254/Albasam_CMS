@@ -63,7 +63,7 @@ class InstitutionRequest extends FormRequest
     public function prepareForValidation(): void
     {
         $this->merge([
-            'name' => strtoupper($this->input('name')),
+//            'name' => strtoupper($this->input('name')),
             'email' => strtolower($this->input('email')),
             'country' => strtoupper($this->input('country')),
             'state' => strtoupper($this->input('state')),

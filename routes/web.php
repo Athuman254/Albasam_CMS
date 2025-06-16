@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 
 //Route::get('/admin', function () {
@@ -9,9 +10,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'index'])->name('login.index');
 Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'store'])->name('login');
 
-/**********************************************************************
+/***************************
  *  SYSTEM DASHBOARD ROUTES
- *********************************************************************/
+ ***************************/
 Route::group([
     'middleware' => 'auth'
 ], function () {
@@ -66,7 +67,7 @@ Route::group([
         Route::get('/website/customisations', [\App\Http\Controllers\Website\CustomisationController::class, 'dataTable'])->name('website.customisations');
         Route::get('/website/menus', [\App\Http\Controllers\Website\MenuController::class, 'dataTable'])->name('website.menus');
         Route::get('/website/pages', [\App\Http\Controllers\Website\PageController::class, 'dataTable'])->name('website.pages');
-        Route::get('/website/page-sections', [\App\Http\Controllers\Website\SectionController::class, 'dataTable']);
+        Route::get('/website/page-sections', [\App\Http\Controllers\Website\SectionController::class, 'dataTable'])->name('website.sections');
         Route::get('/website/page-sub-sections', [\App\Http\Controllers\Website\SubSectionController::class, 'dataTable']);
     });
 
@@ -90,6 +91,7 @@ Route::group([
      *********************************************************************/
     Route::group([
         'prefix' => 'admin',
+        'as' => 'admin.'
     ], function () {
 
         Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
@@ -168,8 +170,8 @@ Route::group([
         Route::group([
             'prefix' => 'settings',
         ], function () {
-            //        Route::get('/',  [\App\Http\Controllers\ConfigurationController::class, 'index'])->name('settings.index');
-            Route::resource('/guardians', \App\Http\Controllers\GuardianController::class)->names('guardians');
+            Route::get('/',  [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
+            Route::resource('/guardians', \App\Http\Controllers\GuardianController::class)->names('guardians')->except('create', 'edit', 'show');
             Route::resource('/divisions', \App\Http\Controllers\DivisionController::class)->names('divisions');
             Route::resource('/streams', \App\Http\Controllers\StreamController::class)->names('streams');
             Route::resource('/subjects', \App\Http\Controllers\SubjectController::class)->names('subjects');
@@ -204,13 +206,16 @@ Route::group([
             Route::patch('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'update'])->name('pages.update');
             Route::delete('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'destroy'])->name('pages.destroy');
             // PAGE_SECTION ROUTES
-            Route::get('/pages/{page}/create-sections', [\App\Http\Controllers\Website\SectionController::class, 'create'])->name('pages.sections.create');
-            Route::post('/sections', [\App\Http\Controllers\Website\SectionController::class, 'store'])->name('sections.store');
-            Route::get('/pages/{page}/edit-sections', [\App\Http\Controllers\Website\SectionController::class, 'edit'])->name('pages.sections.edit');
-            Route::patch('/sections/{page}', [\App\Http\Controllers\Website\SectionController::class, 'update'])->name('pages.sections.update');
+            Route::get('/pages/{page}/manage-sections', [\App\Http\Controllers\Website\PageController::class, 'manageSections'])->name('pages.manage-sections');
+            Route::post('/sections', [\App\Http\Controllers\Website\SectionController::class, 'store'])->name('pages.sections.store');
+            Route::patch('/pages/{page}/sections', [\App\Http\Controllers\Website\SectionController::class, 'update'])->name('pages.sections.update');
+            Route::delete('/sections/{section}', [\App\Http\Controllers\Website\SectionController::class, 'destroy'])->name('pages.sections.delete');
+            Route::post('/medias/section', [MediaController::class, 'uploadSectionMedia'])->name('pages.sections.media');
+            Route::delete('/medias/{section}', [MediaController::class, 'deleteSectionMedia'])->name('pages.sections.delete-media');
             
             Route::resource('/menus', \App\Http\Controllers\Website\MenuController::class)->names('menus');
             Route::resource('/customisations', \App\Http\Controllers\Website\CustomisationController::class)->names('customisations');
+            Route::resource('/sections-cta-buttons', \App\Http\Controllers\Website\SectionCtaButtonController::class)->names('cta-buttons')->only('store', 'update', 'destroy');
         });
    });
     
@@ -219,6 +224,7 @@ Route::group([
      */
     Route::group([
         'prefix' => 'teacher',
+        'as' => 'teacher.',
     ], function () {
         Route::get('/dashboard', [\App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
     });
@@ -227,13 +233,23 @@ Route::group([
 /**********************************************************************
  *  WEBSITE ROUTES
  *********************************************************************/
-//Route::get('/', [\App\Http\Controllers\Website\WebsiteController::class, 'index'])->name('homepage');
+
 Route::get('/', function () {
-    $homePage = \App\Models\Page::where('title', '=', 'Home')->firstOrFail();
+    $homePage = \App\Models\Website\Page::where('title', '=', 'Home')->firstOrFail();
+    $customisation = \App\Models\Website\Customisation::orderBy('id')->first() ?? null;
+    
     if ($homePage) {
-        $homePage->load('sections');
-        return view('website.template-1.pages.home', ['homePage' => $homePage]);
+        $homePage->load('sections.cta_buttons.page');
+        $sections = \App\Models\Website\Section::with('cta_buttons.page', 'media')->where('page_id', '=', $homePage->id)->get() ?? null;
+        
+        return view('website.template-1.pages.home', [
+            'page' => $homePage,
+            'sections' => $sections,
+            'customisation' => $customisation,
+        ]);
     }
-    return view('website.template-1.pages.page_data');
+    return view('website.template-1.landing-page');
 })->name('homepage');
-Route::get('/{slug}', [\App\Http\Controllers\Website\WebsiteController::class, 'page'])->name('page.show');
+
+
+Route::get('/{slug}', [\App\Http\Controllers\Website\PageController::class, 'show'])->name('page.show');

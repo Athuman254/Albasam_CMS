@@ -57,19 +57,19 @@ class TeacherController extends Controller
             'personal_details.email' => ['nullable', 'email', 'max:255'],
             'personal_details.primary_phone' => ['required', 'string', 'max:255'],
             'personal_details.secondary_phone' => ['nullable', 'string', 'max:255'],
-            'personal_details.permanent_physical_address' => ['required', 'string'],
+            'personal_details.permanent_physical_address' => ['nullable', 'string'],
             'personal_details.secondary_physical_address' => ['nullable', 'string'],
             'personal_details.postal_address' => ['nullable', 'string'],
-            'personal_details.identification_number' => ['required', 'string', 'max:255'],
-            'personal_details.tax_identification_pin' => ['required', 'string', 'max:255'],
+            'personal_details.identification_number' => ['nullable', 'string', 'max:255'],
+            'personal_details.tax_identification_pin' => ['nullable', 'string', 'max:255'],
         ], $errorMessages);
 
         if($employee)
         {
-            return to_route('teachers.edit', $employee);
+            return to_route('admin.teachers.edit', $employee);
         }
 
-        return to_route('teachers.create');
+        return to_route('admin.teachers.create');
     }
 
     public function secondStep(Request $request, Employee $employee = null): \Illuminate\Http\RedirectResponse
@@ -109,10 +109,10 @@ class TeacherController extends Controller
 
         if($employee)
         {
-            return to_route('teachers.edit', $employee);
+            return to_route('admin.teachers.edit', $employee);
         }
 
-        return to_route('teachers.create');
+        return to_route('admin.teachers.create');
     }
 
     public function thirdStep(Request $request): \Illuminate\Http\RedirectResponse
@@ -136,7 +136,7 @@ class TeacherController extends Controller
 //            'other_details.work_histories.*.year_of_completion' => ['nullable', 'string', 'max:255'],
         ], $errorMessages);
 
-        return to_route('teachers.create');
+        return to_route('admin.teachers.create');
     }
 
     public function otherDetailsValidation(Request $request): array

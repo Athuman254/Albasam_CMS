@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Resource;
-use App\Models\Page;
+use App\Models\Website\Page;
+use App\Models\Website\Section;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -55,6 +56,26 @@ class PageController extends Controller
         ]);
 
         return to_route('pages.index')->with('success', 'Page created.');
+    }
+    
+    public function show($page)
+    {
+        $page = Page::where('slug', '=', $page)->firstOrFail();
+        $sections = Section::with('cta_buttons.page', 'media')->where('page_id', '=', $page->id)->orderBy('order')->get() ?? null;
+        $customisation = \App\Models\Website\Customisation::orderBy('id')->first() ?? null;
+        
+        return view('website.template-1.pages.show', [
+            'page' => $page,
+            'sections' => $sections,
+            'customisation' => $customisation,
+        ]);
+    }
+    
+    public function manageSections(Page $page)
+    {
+        return Inertia::render('Admin/Website/Sections/ManagePageSections', [
+            'page' => $page,
+        ]);
     }
 
     public function update(Request $request, Page $page)

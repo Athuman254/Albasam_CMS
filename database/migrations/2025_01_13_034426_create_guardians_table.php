@@ -22,9 +22,11 @@ return new class extends Migration
             $table->string('phone')->unique()->nullable();
             $table->string('identification_number')->unique()->nullable();  // ID or Passport number
             $table->text('profession')->nullable();
+            $table->boolean('has_system_access')->default(false);
+            $table->string('password')->nullable();
             $table->timestamps();
 
-            $table->foreign('student_id')->references('id')->on('students');
+            $table->foreign('student_id')->references('id')->on('students')->cascadeOnDelete();
             $table->foreign('relationship_id')->references('id')->on('relationships');
         });
 

@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('student_admissions', function (Blueprint $table) {
             $table->id();
             $table->date('date');
-            $table->unsignedBigInteger('division_id');
-            $table->text('physical_disability')->nullable();
-            $table->text('hobby')->nullable();
+            $table->date('date_of_exit')->nullable();
+            $table->unsignedBigInteger('division_id')->nullable();
+            $table->boolean('has_exit_school')->default(false);
             $table->timestamps();
             $table->softDeletes();
 
@@ -33,21 +33,18 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('middle_name')->nullable();
             $table->string('last_name');
-            $table->string('date_of_birth');
+            $table->string('date_of_birth')->nullable();
             $table->string('birth_certificate_number')->nullable();
             $table->string('citizenship')->nullable();
             $table->string('county')->nullable();
             $table->string('ward')->nullable();
             $table->string('permanent_address')->nullable();
-            $table->string('kpsea_score')->nullable();
-            $table->string('kjsea_score')->nullable();
-            $table->string('kcpe_score')->nullable();
-            $table->string('upi_number')->nullable();
-            $table->string('index_number')->nullable();
-            $table->string('nemis')->nullable();
-            $table->string('assessment_number')->nullable();
             $table->string('previous_school')->nullable();
-            $table->string('specialization')->nullable();
+            $table->string('kcpe_score')->nullable();
+            $table->text('physical_disability')->nullable();
+            $table->text('hobby')->nullable();
+            $table->longText('medical_details')->nullable();
+            $table->longText('character_book')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

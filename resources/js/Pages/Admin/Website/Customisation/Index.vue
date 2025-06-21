@@ -126,7 +126,7 @@ export default {
          // this.buttonForm.button_style = this.currentCustomisation.button_style;
       },
       submitCustomisations() {
-         this.form.post(route('customisations.store'), {
+         this.form.post(route('admin.customisations.store'), {
             onSuccess: () => {
                this.form.reset();
                this.form.clearErrors();
@@ -143,7 +143,7 @@ export default {
          })
       },
       updateCustomisations() {
-         this.form.patch(route('customisations.update', this.currentCustomisation.hashid), {
+         this.form.patch(route('admin.customisations.update', this.currentCustomisation.hashid), {
             onSuccess: () => {
                this.form.reset();
                this.form.clearErrors();

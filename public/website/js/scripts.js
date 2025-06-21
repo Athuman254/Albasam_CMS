@@ -36,26 +36,26 @@ Table Of Contents end
 	jQuery(document).on('ready', function () {
 
 		/* 01. PRELOADER JS */
-		// $(window).on('load', function () {
-		// 	function fadeOut(el) {
-		// 		el.style.opacity = 0.4;
-		// 		var last;
-		// 		var tick = function () {
-		// 			el.style.opacity = +el.style.opacity - (new Date() - last) / 600;
-		// 			last = +new Date();
-		// 			if (+el.style.opacity > 0) {
-		// 				(window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 100);
-		// 			} else {
-		// 				el.style.display = "none";
-		// 			}
-		// 		};
-		// 		tick();
-		// 	}
-		// 	var pagePreloaderId = document.getElementById("page-preloader");
-		// 	setTimeout(function () {
-		// 		fadeOut(pagePreloaderId)
-		// 	}, 1000);
-		// });
+		$(window).on('load', function () {
+			function fadeOut(el) {
+				el.style.opacity = 0.4;
+				var last;
+				var tick = function () {
+					el.style.opacity = +el.style.opacity - (new Date() - last) / 600;
+					last = +new Date();
+					if (+el.style.opacity > 0) {
+						(window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 100);
+					} else {
+						el.style.display = "none";
+					}
+				};
+				tick();
+			}
+			var pagePreloaderId = document.getElementById("page-preloader");
+			setTimeout(function () {
+				fadeOut(pagePreloaderId)
+			}, 1000);
+		});
 
 
 		/* 02. JQUERY STICKY MENU */

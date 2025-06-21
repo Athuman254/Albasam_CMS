@@ -15,7 +15,7 @@ class Menu extends Model
     protected $appends = ['hashid'];
     protected $casts = ['has_children' => 'boolean'];
     protected $fillable = [
-        'page_id', 'title', 'type', 'url', 'has_children', 'parent_id', 'order'
+        'page_id', 'title', 'type', 'url', 'has_children', 'child_type', 'component', 'parent_id', 'order'
     ];
     
     const TYPE_PAGE = 'page';
@@ -28,5 +28,15 @@ class Menu extends Model
     public function page(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Page::class, 'page_id', 'id');
+    }
+    
+    public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Menu::class, 'parent_id');
+    }
+    
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Menu::class, 'parent_id', 'id');
     }
 }

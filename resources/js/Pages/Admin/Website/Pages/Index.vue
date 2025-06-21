@@ -292,7 +292,7 @@ export default {
          modalInstance.show();
       },
       storePage() {
-         this.form.post(route('pages.store'), {
+         this.form.post(route('admin.pages.store'), {
             onSuccess: () => {
                this.form.reset();
                this.form.clearErrors();
@@ -319,7 +319,7 @@ export default {
          modalInstance.show();
       },
       updatePage() {
-         this.editForm.patch(route('pages.update', this.editForm.id), {
+         this.editForm.patch(route('admin.pages.update', this.editForm.id), {
             onSuccess: () => {
                this.editForm.reset();
                this.editForm.clearErrors();

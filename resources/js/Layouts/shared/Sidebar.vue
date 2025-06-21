@@ -268,6 +268,14 @@
                Customisation
             </Link>
          </li>
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/components') }">
+            <Link class="menu-link" :href="route('admin.components.index')">
+               <span>
+                  <i class='menu-icon tf-icons bx bx-package'></i>
+               </span>
+               Components
+            </Link>
+         </li>
          <li v-if="can('access-pages-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/pages') }">
             <Link :href="route('admin.pages.index')" class="menu-link">
                <span>

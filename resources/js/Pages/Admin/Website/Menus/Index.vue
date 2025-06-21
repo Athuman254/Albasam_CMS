@@ -94,7 +94,6 @@
                            <input id="menuTitle" type="text" v-model="form.title" class="form-control">
                            <div v-if="form.errors.title" class="text-danger">{{ form.errors.title }}</div>
                         </div>
-                        
                         <div class="mb-3">
                            <label for="menuType" class="form-label">Type</label>
                            <v-select
@@ -106,7 +105,6 @@
                            />
                            <div v-if="form.errors.type" class="text-danger">{{ form.errors.type }}</div>
                         </div>
-                        
                         <div v-if="typeIsPage" class="mb-3">
                            <label for="pageId" class="form-label">Page</label>
                            <v-select
@@ -118,13 +116,53 @@
                            />
                            <div v-if="form.errors.page_id" class="text-danger">{{ form.errors.page_id }}</div>
                         </div>
-                        
                         <div v-if="typeIsCustom" class="mb-3">
                            <label for="menuUrl" class="form-label">Custom Url</label>
                            <input id="menuUrl" type="text" v-model="form.url" class="form-control">
                            <div v-if="form.errors.url" class="text-danger">{{ form.errors.url }}</div>
                         </div>
-                        
+                        <div class="form-check form-switch mb-5">
+                           <input v-model="form.has_children" class="form-check-input" type="checkbox" id="hasCtaButtons">
+                           <label class="form-check-label" for="hasCtaButtons">
+                              Is A Dropdown
+                              <br>
+                              <span class="text-muted">check this if you want to make the menu a dropdown menu</span>
+                           </label>
+                        </div>
+                        <div v-if="form.has_children" class="mb-3">
+                           <label for="pageId" class="form-label">Dropdown Items Type</label>
+                           <v-select
+                              id="pageId"
+                              v-model="form.child_type"
+                              :options="dropdownTypes"
+                              label="name"
+                              :reduce="option => option.value"
+                           />
+                           <div v-if="form.errors.child_type" class="text-danger">{{ form.errors.child_type }}</div>
+                        </div>
+                        <div v-if="form.child_type && form.child_type === 'pages'" class="mb-3">
+                           <label for="pageId" class="form-label">Dropdown Pages</label>
+                           <v-select
+                              multiple
+                              id="pageId"
+                              v-model="form.children"
+                              :options="pages"
+                              label="title"
+                              :reduce="option => option.id"
+                           />
+                           <div v-if="form.errors.child_type" class="text-danger">{{ form.errors.child_type }}</div>
+                        </div>
+                        <div v-if="form.child_type && form.child_type === 'component'" class="mb-3">
+                           <label for="pageId" class="form-label">Dropdown Component Type</label>
+                           <v-select
+                              id="pageId"
+                              v-model="form.component"
+                              :options="componentTypes"
+                              label="name"
+                              :reduce="option => option.value"
+                           />
+                           <div v-if="form.errors.component" class="text-danger">{{ form.errors.component }}</div>
+                        </div>
 <!--                        <div class="mb-3">-->
 <!--                           <label for="menuOrder" class="form-label">Menu Order</label>-->
 <!--                           <input id="menuOrder" type="number" v-model="form.order" class="form-control">-->
@@ -182,7 +220,6 @@
                            <input id="menuTitle" type="text" v-model="form.title" class="form-control">
                            <div v-if="form.errors.title" class="text-danger">{{ form.errors.title }}</div>
                         </div>
-                        
                         <div class="mb-3">
                            <label for="menuType" class="form-label">Type</label>
                            <v-select
@@ -194,7 +231,6 @@
                            />
                            <div v-if="form.errors.type" class="text-danger">{{ form.errors.type }}</div>
                         </div>
-                        
                         <div v-if="typeIsPage" class="mb-3">
                            <label for="pageId" class="form-label">Page</label>
                            <v-select
@@ -206,17 +242,57 @@
                            />
                            <div v-if="form.errors.page_id" class="text-danger">{{ form.errors.page_id }}</div>
                         </div>
-                        
                         <div v-if="typeIsCustom" class="mb-3">
                            <label for="menuUrl" class="form-label">Custom Url</label>
                            <input id="menuUrl" type="text" v-model="form.url" class="form-control">
                            <div v-if="form.errors.url" class="text-danger">{{ form.errors.url }}</div>
                         </div>
-                        
                         <div class="mb-3">
                            <label for="menuOrder" class="form-label">Menu Order</label>
                            <input id="menuOrder" type="number" v-model="form.order" class="form-control">
                            <div v-if="form.errors.order" class="text-danger">{{ form.errors.order }}</div>
+                        </div>
+                        <div class="form-check form-switch mb-5">
+                           <input v-model="form.has_children" class="form-check-input" type="checkbox" id="hasCtaButtons">
+                           <label class="form-check-label" for="hasCtaButtons">
+                              Is A Dropdown
+                              <br>
+                              <span class="text-muted">check this if you want to make the menu a dropdown menu</span>
+                           </label>
+                        </div>
+                        <div v-if="form.has_children" class="mb-3">
+                           <label for="pageId" class="form-label">Dropdown Items Type</label>
+                           <v-select
+                              id="pageId"
+                              v-model="form.child_type"
+                              :options="dropdownTypes"
+                              label="name"
+                              :reduce="option => option.value"
+                           />
+                           <div v-if="form.errors.child_type" class="text-danger">{{ form.errors.child_type }}</div>
+                        </div>
+                        <div v-if="form.child_type && form.child_type === 'pages'" class="mb-3">
+                           <label for="pageId" class="form-label">Dropdown Pages</label>
+                           <v-select
+                              multiple
+                              id="pageId"
+                              v-model="form.children"
+                              :options="pages"
+                              label="title"
+                              :reduce="option => option.id"
+                           />
+                           <div v-if="form.errors.child_type" class="text-danger">{{ form.errors.child_type }}</div>
+                        </div>
+                        <div v-if="form.child_type && form.child_type === 'component'" class="mb-3">
+                           <label for="pageId" class="form-label">Dropdown Component Type</label>
+                           <v-select
+                              id="pageId"
+                              v-model="form.component"
+                              :options="componentTypes"
+                              label="name"
+                              :reduce="option => option.value"
+                           />
+                           <div v-if="form.errors.component" class="text-danger">{{ form.errors.component }}</div>
                         </div>
                      </form>
                   </div>
@@ -301,10 +377,21 @@ export default {
             url: '',
             order: '',
             has_children: false,
+            child_type: null,
+            children: [],
+            component: null,
          }),
          menuTypes: [
             { name: "Page", value: "page" },
             { name: "Custom", value: "custom" },
+         ],
+         dropdownTypes: [
+            { name: "Pages", value: "pages" },
+            { name: "Component", value: "component" },
+         ],
+         componentTypes: [
+            { name: "News", value: "App\\Models\\Blog" },
+            // { name: "Stories", value: "App\\Models\\Story" },
          ],
          pages: [],
          typeIsPage: false,
@@ -317,12 +404,16 @@ export default {
             this.typeIsPage = true;
             this.typeIsCustom = false;
             this.form.url = '';
-         } else {
+         } else if (val === 'custom') {
             this.typeIsPage = false;
             this.typeIsCustom = true;
             this.form.page_id = '';
+         } else {
+            this.typeIsPage = false;
+            this.typeIsCustom = false;
+            this.form.page_id = '';
          }
-      }
+      },
    },
    created() {
       this.fetchPages();
@@ -349,7 +440,7 @@ export default {
          modalInstance.show();
       },
       storeMenu() {
-         this.form.post(route('menus.store'), {
+         this.form.post(route('admin.menus.store'), {
             onSuccess: () => {
                this.form.reset();
                this.form.clearErrors();
@@ -372,13 +463,18 @@ export default {
          this.form.url = rowData.url;
          this.form.order = rowData.order;
          this.form.has_children = rowData.has_children;
+         this.form.child_type = rowData.child_type;
+         this.form.component = rowData.component;
+         this.form.children = rowData.children?.map(child => ({
+            page_id: child.page_id
+         })) ?? [];
          
          const modalElement = this.$refs.editMenuModal;
          const modalInstance = Modal.getOrCreateInstance(modalElement);
          modalInstance.show();
       },
       updateMenu() {
-         this.form.patch(route('menus.update', this.form.id), {
+         this.form.patch(route('admin.menus.update', this.form.id), {
             onSuccess: () => {
                this.form.reset();
                this.form.clearErrors();
@@ -396,7 +492,7 @@ export default {
       },
       deleteMenu(menu) {
          this.$toast.question('Are you sure?', `Deleting ${menu.title}`).then(() => {
-            this.$inertia.delete(route('menus.destroy', menu.hashid), {
+            this.$inertia.delete(route('admin.menus.destroy', menu.hashid), {
                onSuccess: () => {
                   this.$toast.success('Menu item deleted', 'Success');
                   this.$refs.menusTable.reloadTable();

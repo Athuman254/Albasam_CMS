@@ -100,7 +100,7 @@
                                     <input v-model="editForm.sub_title" type="text" class="form-control" id="sectionSubTitle" />
                                  </div>
                               </div>
-                              <div class="col-lg-6 col-md-6 col-12 my-5">
+                              <div v-if="editForm.section_has_image && editForm.type !== 'section-with-map'"  class="col-lg-6 col-md-6 col-12 my-5">
                                  <div class="mb-3">
                                     <div class="card crd-custom">
                                        <div class="card-body">
@@ -543,13 +543,12 @@ export default {
             {value: 'section-with-image', name: 'Section With Image'},
             {value: 'section-without-image', name: 'Section Without Image'},
             {value: 'section-with-component', name: 'Section With Component'},
-            {value: 'section-with-services', name: 'Section With Services'},
-            {value: 'section-with-faqs', name: 'Section With FAQs'},
+            {value: 'section-with-blogs', name: 'Section With Blogs'},
             {value: 'section-with-contact-form', name: 'Section With Contact Form'},
             {value: 'section-with-map', name: 'Section With Map'},
          ],
          componentTypes: [
-            {value: 'services', name: 'Services'},
+            {value: 'blogs', name: 'Blogs'},
             // {value: 'faqs', name: 'FAQs'},
          ],
          ctaButtonTypes: [

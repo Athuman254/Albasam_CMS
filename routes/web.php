@@ -35,6 +35,7 @@ Route::group([
         Route::get('/users', [\App\Http\Controllers\UserController::class, 'dataTable']);
         Route::get('/roles', [\App\Http\Controllers\RoleController::class, 'dataTable']);
         Route::get('/permissions', [\App\Http\Controllers\PermissionController::class, 'dataTable']);
+        Route::get('/blog-categories', [\App\Http\Controllers\Website\BlogCategoryController::class, 'dataTable']);
         Route::get('/divisions', [\App\Http\Controllers\DivisionController::class, 'dataTable']);
         Route::get('/streams', [\App\Http\Controllers\StreamController::class, 'dataTable']);
         Route::get('/ranks', [\App\Http\Controllers\RankController::class, 'dataTable']);
@@ -65,6 +66,7 @@ Route::group([
 
         // WEBSITE MANAGEMENT DATATABLES
         Route::get('/website/customisations', [\App\Http\Controllers\Website\CustomisationController::class, 'dataTable'])->name('website.customisations');
+        Route::get('/website/blogs', [\App\Http\Controllers\Website\BlogController::class, 'dataTable'])->name('website.blogs');
         Route::get('/website/menus', [\App\Http\Controllers\Website\MenuController::class, 'dataTable'])->name('website.menus');
         Route::get('/website/pages', [\App\Http\Controllers\Website\PageController::class, 'dataTable'])->name('website.pages');
         Route::get('/website/page-sections', [\App\Http\Controllers\Website\SectionController::class, 'dataTable'])->name('website.sections');
@@ -172,6 +174,7 @@ Route::group([
         ], function () {
             Route::get('/',  [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
             Route::resource('/guardians', \App\Http\Controllers\GuardianController::class)->names('guardians')->except('create', 'edit', 'show');
+            Route::resource('/blog_categories', \App\Http\Controllers\Website\BlogCategoryController::class)->names('blog_categories');
             Route::resource('/divisions', \App\Http\Controllers\DivisionController::class)->names('divisions');
             Route::resource('/streams', \App\Http\Controllers\StreamController::class)->names('streams');
             Route::resource('/subjects', \App\Http\Controllers\SubjectController::class)->names('subjects');
@@ -201,6 +204,13 @@ Route::group([
         Route::group([
             'prefix' => 'website'
         ], function () {
+            Route::group([
+                'prefix' => 'components',
+            ], function () {
+                Route::get('/', [\App\Http\Controllers\Website\ComponentController::class, 'index'])->name('components.index');
+                Route::resource('/blogs', \App\Http\Controllers\Website\BlogController::class)->names('components.blogs')->only('store', 'update', 'destroy');
+            });
+            
             Route::get('/pages', [\App\Http\Controllers\Website\PageController::class, 'index'])->name('pages.index');
             Route::post('/pages', [\App\Http\Controllers\Website\PageController::class, 'store'])->name('pages.store');
             Route::patch('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'update'])->name('pages.update');
@@ -251,5 +261,5 @@ Route::get('/', function () {
     return view('website.template-1.landing-page');
 })->name('homepage');
 
-
+Route::get('/blogs/{blog}', [\App\Http\Controllers\Website\BlogController::class, 'show'])->name('blogs.show');
 Route::get('/{slug}', [\App\Http\Controllers\Website\PageController::class, 'show'])->name('page.show');

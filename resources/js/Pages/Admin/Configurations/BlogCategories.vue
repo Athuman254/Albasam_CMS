@@ -10,13 +10,13 @@
                <div class="flex-wrap text-end">
                   <div class="card-action">
                      <button type="button" class="btn btn-primary d-none d-sm-inline-block"
-                             @click="showCreateDivisionModal">
+                             @click="showCreateBlogCategoryModal">
                         <i class="bx bx-plus-circle me-2"></i>
-                        Add Division
+                        Add Blog Category
                      </button>
                      
                      <button type="button" class="btn btn-primary btn-icon d-sm-none"
-                             @click="showCreateDivisionModal">
+                             @click="showCreateBlogCategoryModal">
                         <i class="bx bx-plus"></i>
                      </button>
                   </div>
@@ -26,20 +26,20 @@
       </div>
       <VueTable
          :fields="fields"
-         api-url="datatable/divisions"
+         api-url="datatable/blog-categories"
          :append-params="appendParams"
-         ref="divisionsTable"
+         ref="blogCategoriesTable"
       >
          <template #status="props">
-                           <span v-if="props.rowData.activated" class="badge bg-success">
-                               Active
-                           </span>
+            <span v-if="props.rowData.activated" class="badge bg-success">
+                Active
+            </span>
             <span v-else-if="!props.rowData.activated" class="badge bg-danger">
-                               Deactivated
-                           </span>
+                Deactivated
+            </span>
             <span v-else class="badge bg-secondary">
-                               Unknown
-                           </span>
+                Unknown
+            </span>
          </template>
          
          <template #actions="props">
@@ -48,7 +48,7 @@
                   <i class="bx bx-dots-vertical"></i>
                </button>
                <div class="dropdown-menu dropdown-menu-end">
-                  <a class="dropdown-item" href="#" @click="editDivision(props.rowData)">
+                  <a class="dropdown-item" href="#" @click="editBlogCategory(props.rowData)">
                      <i class="bx bx-edit-alt me-2"></i>Edit
                   </a>
                   <a class="dropdown-item text-danger" href="#">
@@ -63,17 +63,17 @@
    <!-- Create Modal -->
    <div
       class="modal fade"
-      id="create-division-modal"
+      id="create-blog-category-modal"
       data-bs-backdrop="static"
       tabindex="-1"
-      aria-labelledby="create-division-modal-label"
+      aria-labelledby="create-blog-category-modal-label"
       aria-hidden="true"
-      ref="createDivisionModal"
+      ref="createBlogCategoryModal"
    >
       <div class="modal-dialog">
          <div class="modal-content">
             <div class="modal-header">
-               <h5 class="modal-title" id="create-division-modal-label">Add Division</h5>
+               <h5 class="modal-title" id="create-blog-category-modal-label">Add Blog Category</h5>
                <button
                   type="button"
                   class="btn-close"
@@ -83,7 +83,7 @@
                ></button>
             </div>
             <div class="modal-body">
-               <form id="createForm" @submit.prevent="createDivision">
+               <form id="createForm" @submit.prevent="createBlogCategory">
                   <div class="mb-3">
                      <label for="name" class="form-label">Name</label>
                      <input id="name" type="text" v-model="form.name" class="form-control">
@@ -100,7 +100,7 @@
                                                <input v-model="form.activated" class="form-check-input" type="checkbox">
                                            </label>
                                        </span>
-                        <span class="form-check-description">When enabled, the division will be used during students' admission process.</span>
+                        <span class="form-check-description">When enabled, the category will be used during students' admission process.</span>
                      </label>
                      <div v-if="form.errors.activated" class="text-danger">{{ form.errors.activated }}</div>
                   </div>
@@ -118,7 +118,7 @@
                <button
                   type="button"
                   class="btn btn-primary"
-                  @click.prevent="createDivision"
+                  @click.prevent="createBlogCategory"
                >
                   Submit
                </button>
@@ -130,17 +130,17 @@
    <!-- Edit Modal -->
    <div
       class="modal fade"
-      id="edit-division-modal"
+      id="edit-blog-category-modal"
       data-bs-backdrop="static"
       tabindex="-1"
-      aria-labelledby="edit-division-modal-label"
+      aria-labelledby="edit-blog-category-modal-label"
       aria-hidden="true"
-      ref="editDivisionModal"
+      ref="editBlogCategoryModal"
    >
       <div class="modal-dialog">
          <div class="modal-content">
             <div class="modal-header">
-               <h5 class="modal-title" id="edit-division-modal-label">Edit Division</h5>
+               <h5 class="modal-title" id="edit-blog-category-modal-label">Edit Blog Category</h5>
                <button
                   type="button"
                   class="btn-close"
@@ -150,7 +150,7 @@
                ></button>
             </div>
             <div class="modal-body">
-               <form id="createForm" @submit.prevent="updateDivision">
+               <form id="createForm" @submit.prevent="updateBlogCategory">
                   <div class="mb-3">
                      <label for="name" class="form-label">Name</label>
                      <input id="name" type="text" v-model="editForm.name" class="form-control">
@@ -168,7 +168,7 @@
                                                       type="checkbox">
                                            </label>
                                        </span>
-                        <span class="form-check-description">When enabled, the division will be used during students' admission process.</span>
+                        <span class="form-check-description">When enabled, the category will be used during students' admission process.</span>
                      </label>
                      <div v-if="editForm.errors.activated" class="text-danger">{{ editForm.errors.activated }}</div>
                   </div>
@@ -186,7 +186,7 @@
                <button
                   type="button"
                   class="btn btn-primary"
-                  @click.prevent="updateDivision"
+                  @click.prevent="updateBlogCategory"
                >
                   Submit
                </button>
@@ -239,54 +239,55 @@ export default {
       };
    },
    methods: {
-      showCreateDivisionModal() {
-         const modalElement = this.$refs.createDivisionModal;
+      showCreateBlogCategoryModal() {
+         const modalElement = this.$refs.createBlogCategoryModal;
          const modalInstance = Modal.getOrCreateInstance(modalElement);
          modalInstance.show();
       },
-      createDivision() {
-         this.form.post('/admin/settings/divisions', {
+      createBlogCategory() {
+         this.form.post('/admin/settings/blog_categories', {
             onSuccess: () => {
                this.form.reset(); // Reset the form on success
                this.form.clearErrors();
-               this.$refs.divisionsTable.reloadTable();
-               const modalElement = this.$refs.createDivisionModal;
+               this.$refs.blogCategoriesTable.reloadTable();
+               const modalElement = this.$refs.createBlogCategoryModal;
                const modalInstance = Modal.getInstance(modalElement);
                modalInstance.hide();
-               this.$toast.success('Division Created Successfully', 'Success')
+               this.$toast.success('Category Created Successfully', 'Success')
             },
             onError: (errors) => {
                this.$toast.error('An error occurred. Please try again', 'Error')
             },
          });
       },
-      editDivision(rowData) {
+      editBlogCategory(rowData) {
          this.editForm.id = rowData.hashid; // Assign the ID manually
          this.editForm.name = rowData.name;
          this.editForm.activated = rowData.activated;
          
-         const modalElement = this.$refs.editDivisionModal;
+         const modalElement = this.$refs.editBlogCategoryModal;
          const modalInstance = Modal.getOrCreateInstance(modalElement);
          modalInstance.show();
       },
-      updateDivision() {
-         this.editForm.patch('/admin/settings/divisions/' + this.editForm.id, {
+      updateBlogCategory() {
+         this.editForm.patch('/admin/settings/blog_categories/' + this.editForm.id, {
             onSuccess: () => {
                this.editForm.reset(); // Reset the form on success
                this.editForm.clearErrors();
-               this.$refs.divisionsTable.reloadTable();
-               const modalElement = this.$refs.editDivisionModal;
+               this.$refs.blogCategoriesTable.reloadTable();
+               const modalElement = this.$refs.editBlogCategoryModal;
                const modalInstance = Modal.getInstance(modalElement);
                modalInstance.hide();
-               this.$toast.success('Division Updated Successfully', 'Success')
+               this.$toast.success('Category Updated Successfully', 'Success')
             },
             onError: (errors) => {
+               console.log(errors);
                this.$toast.error('An error occurred. Please try again', 'Error')
             },
          })
       },
       applyFilter: _debounce(function () {
-         this.$refs.divisionsTable.reloadTable();
+         this.$refs.blogCategoriesTable.reloadTable();
       }, 800),
       formCleanUp() {
          this.form.reset()

@@ -15,10 +15,19 @@
                         <div class="img-menu float-lg-left float-none mt-3">
                             <div class="footer-social">
                                 <ul>
-                                    <li><a class="social-fb" href="#"><i class="icofont-facebook"></i></a></li>
-                                    <li><a class="social-gp" href="#"><i class="icofont-instagram"></i></a></li>
-                                    <li><a class="social-tw" href="#"><i class="icofont-twitter"></i></a></li>
-                                    <li><a class="social-gp" href="#"><i class="icofont-youtube"></i></a></li>
+                                @if($institution->fb_profile)
+                                    <li><a class="social-fb" href="{{ $institution->fb_profile }}"><i class="icofont-facebook"></i></a>
+                                    </li>
+                                @endif
+                                @if($institution->ig_profile)
+                                    <li><a class="social-gp" href="{{ $institution->ig_profile }}"><i class="icofont-instagram"></i></a></li>
+                                @endif
+                                @if($institution->x_profile)
+                                    <li><a class="social-tw" href="{{ $institution->x_profile }}"><i class="icofont-twitter"></i></a></li>
+                                @endif
+                                @if($institution->youtube_profile)
+                                    <li><a class="social-gp" href="{{ $institution->youtube_profile }}"><i class="icofont-youtube"></i></a></li>
+                                @endif
                                 </ul>
                             </div>
                         </div>
@@ -27,23 +36,18 @@
                 <!-- end col -->
                 <div class="col-lg-4 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
                     <div class="footer-widget-title col-12 p-0">
-                        <h4>Latest Post</h4>
+                        <h4>Latest Blogs</h4>
                     </div>
                     <div class="footer-widget-inner">
+                        @foreach($blogs->take(2) as $key => $blog)
                         <div class="singleRecpost">
-                            <img src="{{ asset('website/images/mission.jpeg') }}" alt="" class="img-fluid">
+                            <img src="{{ $blog->media[0]->original_url ?? asset('dummy-image.jpg') }}" alt="" class="img-fluid">
                             <h6 class="recTitle">
-                                <a href="#">Designing Learner-Centered Classroom</a>
+                                <a href="{{ route('blogs.show', $blog->slug) }}">{{ $blog->title }}</a>
                             </h6>
-                            <p class="posted-on">18 MAY 2021</p>
+                            <p class="posted-on">{{ date('d M Y', strtotime($blog->created_at)) }}</p>
                         </div>
-                        <div class="singleRecpost">
-                            <img src="{{ asset('website/images/mission.jpeg') }}" alt="" class="img-fluid">
-                            <h6 class="recTitle">
-                                <a href="#">Building an environment for learning</a>
-                            </h6>
-                            <p class="posted-on">17 MAY 2021</p>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
                 <!-- end col -->

@@ -36,6 +36,10 @@ class MenuRequest extends FormRequest
             'page_id' => ['nullable', Rule::exists('pages', 'id')],
             'url' => ['nullable', 'string', Rule::unique('menus', 'url')],
             'has_children' => ['boolean'],
+            'child_type' => ['nullable', 'string'],
+            'children' => ['nullable', 'array'],
+            'children.*' => ['nullable', Rule::exists('pages', 'id')],
+            'component' => ['nullable', 'string'],
         ];
     }
     
@@ -48,6 +52,19 @@ class MenuRequest extends FormRequest
             'url' => ['nullable', 'string', Rule::unique('menus', 'url')->ignore($this->menu)],
             'order' => ['nullable', 'integer', Rule::unique('menus', 'order')->ignore($this->menu)],
             'has_children' => ['boolean'],
+            'child_type' => ['nullable', 'string'],
+            'children' => ['nullable', 'array'],
+            'children.*' => ['nullable', Rule::exists('pages', 'id')],
+            'component' => ['nullable', 'string'],
         ];
+    }
+    
+    protected function prepareForValidation(): void
+    {
+        $this->merge(
+            collect($this->all())
+                ->map(fn($value) => $value === '' ? null : $value)
+                ->toArray()
+        );
     }
 }

@@ -29,18 +29,25 @@
             font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
             --ecbz-primary: {{ $customisation->primary_color ?? '#25615a' }};
          }
-         /*body {*/
-         /*   font-family: 'Dosis', 'Roboto', sans-serif !important;*/
-         /*}*/
-         /*h1, h2, h3, h4, h5, h6 {*/
-         /*   color: #333;*/
-         /*   font-family: 'Dosis', 'Roboto', sans-serif !important;*/
-         /*   font-weight: 700;*/
-         /*}*/
+         body {
+            font-family: 'Dosis', 'Roboto', sans-serif !important;
+         }
+         h1, h2, h3, h4, h5, h6 {
+            color: #333;
+            font-family: 'Dosis', 'Roboto', sans-serif !important;
+            font-weight: 700;
+         }
       </style>
    </head>
 
    <body id="main">
+
+      <!-- START PRELOADER -->
+      <div id="page-preloader">
+         <div class="loader"></div>
+         <div class="loa-shadow"></div>
+      </div>
+      <!-- END PRELOADER -->
 
       @include('website.template-1.layouts.shared.header')
 

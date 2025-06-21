@@ -18,19 +18,24 @@
          <div class="col-12">
             <div class="mb-3">
                <ul class="nav nav-pills mb-5" role="tablist">
-                  <li class="nav-item me-2" role="presentation">
+                  <li class="nav-item me-1" role="presentation">
                      <button type="button" class="nav-link" :class="{ active: activeTab === 'divisions' }" @click="activeTab = 'divisions'">
                         Divisions
                      </button>
                   </li>
-                  <li class="nav-item me-2" role="presentation">
+                  <li class="nav-item me-1" role="presentation">
                      <button type="button" class="nav-link" :class="{ active: activeTab === 'streams' }" @click="activeTab = 'streams'">
                         Streams
                      </button>
                   </li>
-                  <li class="nav-item me-2" role="presentation">
+                  <li class="nav-item me-1" role="presentation">
                      <button type="button" class="nav-link" :class="{ active: activeTab === 'subjects' }" @click="activeTab = 'subjects'">
                         Subjects
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'blog-categories' }" @click="activeTab = 'blog-categories'">
+                        Blog Categories
                      </button>
                   </li>
                </ul>
@@ -44,6 +49,9 @@
                <div v-if="activeTab === 'subjects'">
                   <subjects></subjects>
                </div>
+               <div v-if="activeTab === 'blog-categories'">
+                  <blog-categories></blog-categories>
+               </div>
             </div>
          </div>
       </div>
@@ -52,13 +60,14 @@
 
 <script>
 import DefaultLayout from "@layouts/DefaultLayout.vue";
-import {Link, Head, useForm} from "@inertiajs/vue3";
+import {Link, Head} from "@inertiajs/vue3";
 import Divisions from "./Divisions.vue";
 import Streams from "./Streams.vue";
 import Subjects from "./Subjects.vue";
+import BlogCategories from "./BlogCategories.vue";
 
 export default {
-   components: {DefaultLayout, Head, Link, Divisions, Streams, Subjects},
+   components: {BlogCategories, DefaultLayout, Head, Link, Divisions, Streams, Subjects},
    data() {
       return {
          activeTab: 'divisions'

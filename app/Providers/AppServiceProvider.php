@@ -46,10 +46,8 @@ class AppServiceProvider extends ServiceProvider
             }
         }
         if (Schema::hasTable('menus')) {
-            $menus = \App\Models\Website\Menu::whereHas('page', function($query) {
-                $query->where('published', '=', true);
-            })
-                ->with('page')
+            $menus = \App\Models\Website\Menu::where('parent_id', '=', null)
+                ->with('page', 'children')
                 ->orderBy('order')
                 ->get() ?? null;
             
@@ -66,7 +64,16 @@ class AppServiceProvider extends ServiceProvider
                 View::share('pages', $pages);
             }
         }
-        
+        if (Schema::hasTable('blogs')) {
+            $blogs = \App\Models\Website\Blog::orderByDesc('created_at')->get() ?? null;
+            $blogs->load('user', 'category', 'media');
+            
+            if ($blogs) {
+                View::share([
+                    'blogs' => $blogs,
+                ]);
+            }
+        }
         Inertia::share([
             'auth' => function () {
                 return [

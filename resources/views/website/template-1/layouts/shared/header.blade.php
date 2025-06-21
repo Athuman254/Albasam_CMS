@@ -6,10 +6,19 @@
             <div class="col-lg-4 col-md-12 col-sm-12 col-12 text-lg-left text-center">
                <div class="header-social">
                   <ul>
-                     <li><a href="#"><i class="icofont-facebook"></i></a></li>
-                     <li><a href="#"><i class="icofont-instagram"></i></a></li>
-                     <li><a href="#"><i class="icofont-twitter"></i></a></li>
-                     <li><a href="#"><i class="icofont-youtube"></i></a></li>
+                     @if($institution->fb_profile)
+                        <li><a href="{{ $institution->fb_profile }}"><i class="icofont-facebook"></i></a>
+                        </li>
+                     @endif
+                     @if($institution->ig_profile)
+                        <li><a href="{{ $institution->ig_profile }}"><i class="icofont-instagram"></i></a></li>
+                     @endif
+                     @if($institution->x_profile)
+                        <li><a href="{{ $institution->x_profile }}"><i class="icofont-twitter"></i></a></li>
+                     @endif
+                     @if($institution->youtube_profile)
+                        <li><a href="{{ $institution->youtube_profile }}"><i class="icofont-youtube"></i></a></li>
+                     @endif
                   </ul>
                </div>
             </div>
@@ -84,10 +93,57 @@
                   <nav class="navbar navbar-expand-lg justify-content-left">
                      <ul class="navbar-nav">
                         @foreach ($menus as $menu)
-                           <li class="nav-item @if (\Request::is($menu->page->slug)) active @endif">
-                              <a href="{{ route('page.show', $menu->page->slug) }}" class="nav-link">
-                                 {{ $menu->title }}
-                              </a>
+                           @php
+                              $hasChildren = $menu->has_children && $menu->children->isNotEmpty();
+                              $isActive = false;
+
+                              // Determine current active status
+                              if ($menu->type === 'page' && request()->is($menu->page->slug)) {
+                                  $isActive = true;
+                              } elseif ($menu->type === 'custom' && url()->current() === url($menu->url)) {
+                                  $isActive = true;
+                              }
+                           @endphp
+
+                           <li class="{{ $hasChildren ? 'dropdown' : '' }} {{ $isActive ? 'active' : '' }}">
+                              @if (!$hasChildren)
+                                 {{-- Simple link (either page or custom) --}}
+                                 <a href="{{ $menu->type === 'page' ? route('page.show', $menu->page->slug) : url($menu->url) }}"
+                                    class="nav-link">
+                                    {{ $menu->title }}
+                                 </a>
+                              @else
+                                 {{-- Dropdown parent --}}
+                                 <a href="#" class="nav-link">
+                                    {{ $menu->title }}
+                                 </a>
+                                 <ul class="dropdown-menu">
+                                    @if ($menu->child_type === 'pages')
+                                       @foreach ($menu->children as $child)
+                                          @if ($child->page)
+                                             <li>
+                                                <a href="{{ route('page.show', $child->page->slug) }}"
+                                                   class="{{ request()->is($child->page->slug) ? 'active' : '' }}">
+                                                   {{ $child->title }}
+                                                </a>
+                                             </li>
+                                          @endif
+                                       @endforeach
+                                    @elseif ($menu->child_type === 'component' && $menu->component)
+                                       @php
+                                          $componentItems = app($menu->component)->where('active', true)->orderBy('id')->get();
+                                       @endphp
+                                       @foreach ($componentItems as $item)
+                                          <li>
+                                             <a href="{{ url($item->slug) }}"
+                                                class="{{ request()->is($item->slug . '*') ? 'active' : '' }}">
+                                                {{ $item->title }}
+                                             </a>
+                                          </li>
+                                       @endforeach
+                                    @endif
+                                 </ul>
+                              @endif
                            </li>
                         @endforeach
                      </ul>

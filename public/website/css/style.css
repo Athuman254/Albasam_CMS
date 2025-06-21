@@ -41,7 +41,7 @@ Version      : 1.0
 }
 
 body {
-   font-family: 'Dosis', 'Roboto', sans-serif;
+   font-family: 'Roboto', 'Dosis', sans-serif;
    font-size: 16px;
    color: #767676;
    line-height: 1.9em;
@@ -75,7 +75,7 @@ a {
 
 a:focus,
 a:hover {
-   color: #034ea2;
+   color: var(--ecbz-primary);
    text-decoration: none;
 }
 
@@ -2557,7 +2557,7 @@ a.header-search {
    width: 100%;
    left: 0;
    bottom: 0;
-   background-color: #337ab7;
+   background-color: var(--ecbz-primary);
    opacity: 0;
    visibility: hidden;
    -webkit-transform: scaleX(0);
@@ -4725,7 +4725,8 @@ a.header-search {
    margin-top: 0;
 }
 
-.single-blog-post .single-blog-post-wrap .single-blog-post-content h4.single-blog-post-title a {
+.single-blog-post .single-blog-post-wrap .single-blog-post-content h4.single-blog-post-title a,
+.single-blog-post .single-blog-post-wrap .single-blog-post-content h4.single-blog-post-title span {
    color: #2d2d2d;
    letter-spacing: 1px;
    text-transform: uppercase;
@@ -4736,7 +4737,8 @@ a.header-search {
    -o-transition: all 0.3s ease-in-out 0s;
 }
 
-.single-blog-post .single-blog-post-wrap .single-blog-post-content h4.single-blog-post-title a:hover {
+.single-blog-post .single-blog-post-wrap .single-blog-post-content h4.single-blog-post-title a:hover,
+.single-blog-post .single-blog-post-wrap .single-blog-post-content h4.single-blog-post-title span:hover {
    color: var(--ecbz-primary);
 }
 

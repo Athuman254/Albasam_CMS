@@ -55,7 +55,7 @@ class PageController extends Controller
             'is_home' => $isHome,
         ]);
 
-        return to_route('pages.index')->with('success', 'Page created.');
+        return back(303)->with('success', 'Page created.');
     }
     
     public function show($page)
@@ -103,13 +103,13 @@ class PageController extends Controller
             'is_home' => $isHome,
         ]);
 
-        return to_route('pages.index')->with('success', 'Page updated successfully.');
+        return back(303)->with('success', 'Page updated successfully.');
     }
 
     public function destroy(Page $page)
     {
         $page->delete();
 
-        return to_route('pages.index')->with('success', 'Page deleted');
+        return back(303)->with('success', 'Page deleted');
     }
 }

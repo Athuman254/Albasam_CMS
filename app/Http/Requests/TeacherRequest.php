@@ -35,7 +35,7 @@ class TeacherRequest extends FormRequest
             'employee_details.emergency_contacts.*.email' => ['nullable', 'string', 'max:255'],
             'employee_details.emergency_contacts.*.phone' => ['nullable', 'string', 'max:255'],
             'employee_details.emergency_contacts.*.relationship_id' => ['nullable', Rule::exists('relationships', 'id')],
-            'other_details.specialization_area_id' => ['required', Rule::exists('specialization_areas', 'id')],
+            'other_details.specialization_area_id' => ['nullable', Rule::exists('specialization_areas', 'id')],
             'other_details.teacher_title_id' => ['nullable', Rule::exists('teacher_titles', 'id')],
             'other_details.tsc_number' => ['required', 'string', 'max:255'],
             'other_details.years_of_experience' => ['nullable', 'integer', 'min:0'],

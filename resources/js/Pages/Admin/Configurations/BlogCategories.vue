@@ -245,9 +245,9 @@ export default {
          modalInstance.show();
       },
       createBlogCategory() {
-         this.form.post('/admin/settings/blog_categories', {
+         this.form.post(route('admin.blog_categories.store'), {
             onSuccess: () => {
-               this.form.reset(); // Reset the form on success
+               this.form.reset();
                this.form.clearErrors();
                this.$refs.blogCategoriesTable.reloadTable();
                const modalElement = this.$refs.createBlogCategoryModal;
@@ -261,7 +261,7 @@ export default {
          });
       },
       editBlogCategory(rowData) {
-         this.editForm.id = rowData.hashid; // Assign the ID manually
+         this.editForm.id = rowData.hashid;
          this.editForm.name = rowData.name;
          this.editForm.activated = rowData.activated;
          
@@ -270,9 +270,9 @@ export default {
          modalInstance.show();
       },
       updateBlogCategory() {
-         this.editForm.patch('/admin/settings/blog_categories/' + this.editForm.id, {
+         this.editForm.patch(route('admin.blog_categories.update', this.editForm.id), {
             onSuccess: () => {
-               this.editForm.reset(); // Reset the form on success
+               this.editForm.reset();
                this.editForm.clearErrors();
                this.$refs.blogCategoriesTable.reloadTable();
                const modalElement = this.$refs.editBlogCategoryModal;

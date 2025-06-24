@@ -181,8 +181,7 @@
                                  </div>
                                  <div class="col-md-4">
                                     <div class="form-group mb-3">
-                                       <label class="form-label" for="permanentAddress">Permanent Address <span
-                                          class="text-danger ms-1">*</span></label>
+                                       <label class="form-label" for="permanentAddress">Permanent Address</label>
                                        <input type="text" id="permanentAddress" class="form-control"
                                               v-model="form.personal_details.permanent_physical_address"/>
                                        <div v-if="form.errors['personal_details.permanent_physical_address']"
@@ -424,7 +423,7 @@
                                           id="teacherTitleId"
                                           v-model="form.other_details.teacher_title_id"
                                           :options="teacherTitles"
-                                          label="name"
+                                          label="title"
                                           :reduce="(option) => option.id"
                                        ></v-select>
                                        <div v-if="form.errors['other_details.teacher_title_id']" class="text-danger">

@@ -120,8 +120,8 @@ class TeacherController extends Controller
         $errorMessages =[];
 
         $request->validate([
-            'other_details.specialization_area_id' => ['required', Rule::exists('specializations', 'id')],
-            'other_details.teacher_title_id' => ['required', Rule::exists('teacher_titles', 'id')],
+            'other_details.specialization_area_id' => ['nullable', Rule::exists('specializations', 'id')],
+            'other_details.teacher_title_id' => ['nullable', Rule::exists('teacher_titles', 'id')],
             'other_details.tsc_number' => ['required', 'string', 'max:255'],
             'other_details.years_of_experience' => ['nullable', 'integer', 'min:0'],
             'other_details.qualifications' => ['nullable', 'array'],

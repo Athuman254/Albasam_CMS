@@ -16,6 +16,7 @@ class EmployeeController extends Controller
             Employee::with(['employment_type', 'employment_status', 'job_title', 'honorific', 'marital_status', 'gender', 'religion', 'teacher'])
                 ->orderBy('first_name')
         )->allowedFilters([
+            AllowedFilter::exact('id'),
             AllowedFilter::scope('search', 'Search'),
         ])->jsonPaginate();
 

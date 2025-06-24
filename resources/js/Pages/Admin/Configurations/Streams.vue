@@ -241,9 +241,9 @@ export default {
          modalInstance.show();
       },
       createStream() {
-         this.form.post('/admin/settings/streams', {
+         this.form.post(route('admin.streams.store'), {
             onSuccess: () => {
-               this.form.reset(); // Reset the form on success
+               this.form.reset();
                this.form.clearErrors();
                this.$refs.streamsTable.reloadTable();
                const modalElement = this.$refs.createStreamModal;
@@ -266,9 +266,9 @@ export default {
          modalInstance.show();
       },
       updateStream() {
-         this.editForm.patch('/admin/settings/streams/' + this.editForm.id, {
+         this.editForm.patch(route('admin.streams.update', this.editForm.id), {
             onSuccess: () => {
-               this.editForm.reset(); // Reset the form on success
+               this.editForm.reset();
                this.editForm.clearErrors();
                this.$refs.streamsTable.reloadTable();
                const modalElement = this.$refs.editStreamModal;
@@ -276,7 +276,7 @@ export default {
                modalInstance.hide();
                this.$toast.success('Stream Updated Successfully', 'Success')
             },
-            onError: (errors) => {
+            onError: (error) => {
                this.$toast.error('An error occurred. Please try again', 'Error')
             },
          })

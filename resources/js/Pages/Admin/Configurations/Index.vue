@@ -34,6 +34,56 @@
                      </button>
                   </li>
                   <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'religions' }" @click="activeTab = 'religions'">
+                        Religions
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'relationships' }" @click="activeTab = 'relationships'">
+                        Relationships
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'honorifics' }" @click="activeTab = 'honorifics'">
+                        Honorifics
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'job-titles' }" @click="activeTab = 'job-titles'">
+                        Job Titles
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'employment-types' }" @click="activeTab = 'employment-types'">
+                        Employment Types
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'employment-statuses' }" @click="activeTab = 'employment-statuses'">
+                        Employment Statuses
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'teacher-titles' }" @click="activeTab = 'teacher-titles'">
+                        Teacher Titles
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'salary-scales' }" @click="activeTab = 'salary-scales'">
+                        Salary Scales
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'salary-grades' }" @click="activeTab = 'salary-grades'">
+                        Salary Grades
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'qualification-types' }" @click="activeTab = 'qualification-types'">
+                        Qualification Types
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
                      <button type="button" class="nav-link" :class="{ active: activeTab === 'blog-categories' }" @click="activeTab = 'blog-categories'">
                         Blog Categories
                      </button>
@@ -48,6 +98,36 @@
                </div>
                <div v-if="activeTab === 'subjects'">
                   <subjects></subjects>
+               </div>
+               <div v-if="activeTab === 'honorifics'">
+                  <honorifics></honorifics>
+               </div>
+               <div v-if="activeTab === 'religions'">
+                  <religions></religions>
+               </div>
+               <div v-if="activeTab === 'relationships'">
+                  <relationships></relationships>
+               </div>
+               <div v-if="activeTab === 'job-titles'">
+                  <job-titles></job-titles>
+               </div>
+               <div v-if="activeTab === 'employment-types'">
+                  <employment-types></employment-types>
+               </div>
+               <div v-if="activeTab === 'employment-statuses'">
+                  <employment-statuses></employment-statuses>
+               </div>
+               <div v-if="activeTab === 'teacher-titles'">
+                  <teacher-titles></teacher-titles>
+               </div>
+               <div v-if="activeTab === 'salary-scales'">
+                  <salary-scales></salary-scales>
+               </div>
+               <div v-if="activeTab === 'salary-grades'">
+                  <salary-grades></salary-grades>
+               </div>
+               <div v-if="activeTab === 'qualification-types'">
+                  <qualification-types></qualification-types>
                </div>
                <div v-if="activeTab === 'blog-categories'">
                   <blog-categories></blog-categories>
@@ -64,10 +144,23 @@ import {Link, Head} from "@inertiajs/vue3";
 import Divisions from "./Divisions.vue";
 import Streams from "./Streams.vue";
 import Subjects from "./Subjects.vue";
+import Religions from "./Religions.vue";
+import Relationships from "./Relationships.vue";
+import Honorifics from "./Honorifics.vue";
+import JobTitles from "./JobTitles.vue";
+import TeacherTitles from "./TeacherTitles.vue";
+import EmploymentTypes from "./EmploymentTypes.vue";
+import EmploymentStatuses from "./EmploymentStatuses.vue";
+import SalaryScales from "./SalaryScale.vue";
+import SalaryGrades from "./SalaryGrade.vue";
+import QualificationTypes from "./QualificationTypes.vue";
 import BlogCategories from "./BlogCategories.vue";
 
 export default {
-   components: {BlogCategories, DefaultLayout, Head, Link, Divisions, Streams, Subjects},
+   components: {
+      DefaultLayout, Head, Link, Divisions, Streams, Subjects, Religions,
+      Relationships, Honorifics, JobTitles, EmploymentTypes, EmploymentStatuses,
+      TeacherTitles, SalaryScales, SalaryGrades, QualificationTypes, BlogCategories},
    data() {
       return {
          activeTab: 'divisions'

@@ -13,7 +13,7 @@ class EmploymentStatus extends Model
 
     protected $table = 'employment_statuses';
     protected $primaryKey = 'id';
-    protected $casts = ['activated'];
+    protected $casts = ['activated' => 'boolean'];
     protected $appends = ['hashid'];
     protected $fillable = ['name', 'activated'];
 

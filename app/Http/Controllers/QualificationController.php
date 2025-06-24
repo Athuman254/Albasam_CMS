@@ -15,6 +15,7 @@ class QualificationController extends Controller
         $qualifications = QueryBuilder::for(
             Qualification::with('qualification_type')->orderBy('id')
         )->allowedFilters([
+            AllowedFilter::exact('id'),
             AllowedFilter::exact('employee_id'),
         ])->jsonPaginate();
 

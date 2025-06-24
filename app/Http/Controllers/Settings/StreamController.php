@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Settings;
 
+use App\Http\Controllers\Controller;
 use App\Http\Resources\Resource;
 use App\Models\Stream;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Inertia\Inertia;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -17,16 +17,12 @@ class StreamController extends Controller
         $streams = QueryBuilder::for(
             Stream::orderBy('id')
         )->allowedFilters([
+            AllowedFilter::exact('id'),
             AllowedFilter::exact('activated'),
             AllowedFilter::partial('name'),
         ])->jsonPaginate();
 
         return Resource::collection($streams);
-    }
-
-    public function index()
-    {
-        return Inertia::render('Admin/Configurations/Streams/Index', []);
     }
 
     public function store(Request $request)
@@ -41,13 +37,13 @@ class StreamController extends Controller
             'activated' => $validated['activated'],
         ]);
 
-        return to_route('streams.index')->with('success', 'Stream created.');
+        return back(303)->with('success', 'Stream created.');
     }
 
     public function update(Stream $stream, Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'max:255'],
+            'name' => ['required', 'max:255', Rule::unique('streams', 'name')->ignore($stream->id)],
             'activated' => ['required','boolean'],
         ]);
 
@@ -56,6 +52,6 @@ class StreamController extends Controller
             'activated' => $validated['activated'],
         ]);
 
-        return to_route('streams.index')->with('success', 'Stream details updated.');
+        return back(303)->with('success', 'Stream details updated.');
     }
 }

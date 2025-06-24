@@ -245,9 +245,9 @@ export default {
          modalInstance.show();
       },
       createDivision() {
-         this.form.post('/admin/settings/divisions', {
+         this.form.post(route('admin.divisions.store'), {
             onSuccess: () => {
-               this.form.reset(); // Reset the form on success
+               this.form.reset();
                this.form.clearErrors();
                this.$refs.divisionsTable.reloadTable();
                const modalElement = this.$refs.createDivisionModal;
@@ -261,7 +261,7 @@ export default {
          });
       },
       editDivision(rowData) {
-         this.editForm.id = rowData.hashid; // Assign the ID manually
+         this.editForm.id = rowData.hashid;
          this.editForm.name = rowData.name;
          this.editForm.activated = rowData.activated;
          
@@ -270,9 +270,9 @@ export default {
          modalInstance.show();
       },
       updateDivision() {
-         this.editForm.patch('/admin/settings/divisions/' + this.editForm.id, {
+         this.editForm.patch(route('admin.divisions.update', this.editForm.id), {
             onSuccess: () => {
-               this.editForm.reset(); // Reset the form on success
+               this.editForm.reset();
                this.editForm.clearErrors();
                this.$refs.divisionsTable.reloadTable();
                const modalElement = this.$refs.editDivisionModal;
@@ -280,7 +280,7 @@ export default {
                modalInstance.hide();
                this.$toast.success('Division Updated Successfully', 'Success')
             },
-            onError: (errors) => {
+            onError: (error) => {
                this.$toast.error('An error occurred. Please try again', 'Error')
             },
          })

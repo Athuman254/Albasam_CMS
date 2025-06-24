@@ -13,7 +13,7 @@ class Honorific extends Model
 
     protected $table = 'honorifics';
     protected $primaryKey = 'id';
-    protected $casts = ['activated'];
+    protected $casts = ['activated' => 'boolean'];
     protected $appends = ['hashid'];
     protected $fillable = ['name', 'activated'];
 

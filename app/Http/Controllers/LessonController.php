@@ -21,6 +21,8 @@ class LessonController extends Controller
             Lesson::with('rank', 'subject', 'teacher.honorific')
                 ->orderBy('id')
         )->allowedFilters([
+            AllowedFilter::exact('id'),
+            AllowedFilter::exact('activated'),
             AllowedFilter::exact('rank_id'),
             AllowedFilter::exact('subject_id'),
             AllowedFilter::exact('teacher_id'),

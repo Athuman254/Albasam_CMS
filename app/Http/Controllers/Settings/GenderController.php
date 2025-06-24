@@ -1,24 +1,25 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Settings;
 
+use App\Http\Controllers\Controller;
 use App\Http\Resources\Resource;
-use App\Models\TeacherTitle;
-use Illuminate\Http\Request;
+use App\Models\Gender;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
-class TeacherTitleController extends Controller
+class GenderController extends Controller
 {
     public function dataTable()
     {
-        $titles = QueryBuilder::for(
-            TeacherTitle::orderBy('id')
+        $genders = QueryBuilder::for(
+            Gender::orderBy('id')
         )->allowedFilters([
+            AllowedFilter::exact('id'),
             AllowedFilter::exact('activated'),
             AllowedFilter::partial('name'),
         ])->jsonPaginate();
 
-        return Resource::collection($titles);
+        return Resource::collection($genders);
     }
 }

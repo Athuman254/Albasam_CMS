@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Settings;
 
+use App\Http\Controllers\Controller;
 use App\Http\Resources\Resource;
 use App\Models\Rank;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ class RankController extends Controller
         $classes = QueryBuilder::for(
             Rank::with(['division', 'stream', 'teacher.honorific'])->orderBy('name')
         )->allowedFilters([
+            AllowedFilter::exact('id'),
             AllowedFilter::exact('activated'),
             AllowedFilter::partial('name'),
         ])->jsonPaginate();

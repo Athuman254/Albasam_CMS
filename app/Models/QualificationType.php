@@ -13,7 +13,7 @@ class QualificationType extends Model
 
     protected $table = 'qualification_types';
     protected $primaryKey = 'id';
-    protected $casts = ['activated'];
+    protected $casts = ['activated' => 'boolean'];
     protected $appends = ['hashid'];
     protected $fillable = ['name', 'activated'];
 

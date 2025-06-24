@@ -1,3 +1,18 @@
+<section id="calltoactiontwo" class="callto-action-padding bg-theme">
+    <div class="auto-container">
+        <div class="row">
+            <div class="col-lg-9 col-md-6 col-12 mb-lg-0 mb-4">
+                <div class="callto-action-left">
+                    <h2>Online Admission is going On</h2>
+                    <p>Visit the link to access the admission form. All admissions should be done online.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-12 mt-3 text-lg-right text-md-right text-left">
+                <a href="#" class="call-to-action-btn-2 wow fadeInUp">Admission Now </a>
+            </div>
+        </div>
+    </div>
+</section>
 <footer class="footer-section">
     <div id="top-footer" class="overlay-2 section-back-image-2">
         <div class="auto-container">

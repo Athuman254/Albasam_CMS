@@ -15,6 +15,7 @@ class EmergencyContactController extends Controller
         $emergencyContacts = QueryBuilder::for(
             EmergencyContact::with('relationship')->orderBy('id')
         )->allowedFilters([
+            AllowedFilter::exact('id'),
             AllowedFilter::exact('employee_id'),
         ])->jsonPaginate();
 

@@ -33,30 +33,30 @@ Route::group([
         Route::get('/siblings', [\App\Http\Controllers\SiblingController::class, 'dataTable']);
         Route::get('/institution', [\App\Http\Controllers\InstitutionController::class, 'dataTable']);
         Route::get('/users', [\App\Http\Controllers\UserController::class, 'dataTable']);
-        Route::get('/roles', [\App\Http\Controllers\RoleController::class, 'dataTable']);
-        Route::get('/permissions', [\App\Http\Controllers\PermissionController::class, 'dataTable']);
+        Route::get('/roles', [\App\Http\Controllers\Settings\RoleController::class, 'dataTable']);
+        Route::get('/permissions', [\App\Http\Controllers\Settings\PermissionController::class, 'dataTable']);
         Route::get('/blog-categories', [\App\Http\Controllers\Website\BlogCategoryController::class, 'dataTable']);
-        Route::get('/divisions', [\App\Http\Controllers\DivisionController::class, 'dataTable']);
-        Route::get('/streams', [\App\Http\Controllers\StreamController::class, 'dataTable']);
-        Route::get('/ranks', [\App\Http\Controllers\RankController::class, 'dataTable']);
-        Route::get('/subjects', [\App\Http\Controllers\SubjectController::class, 'dataTable']);
+        Route::get('/divisions', [\App\Http\Controllers\Settings\DivisionController::class, 'dataTable']);
+        Route::get('/streams', [\App\Http\Controllers\Settings\StreamController::class, 'dataTable']);
+        Route::get('/ranks', [\App\Http\Controllers\Settings\RankController::class, 'dataTable']);
+        Route::get('/subjects', [\App\Http\Controllers\Settings\SubjectController::class, 'dataTable']);
         Route::get('/lessons', [\App\Http\Controllers\LessonController::class, 'dataTable']);
         Route::get('/time-table', [\App\Http\Controllers\TimetableController::class, 'timeTableData']);
-        Route::get('/languages', [\App\Http\Controllers\LanguageController::class, 'dataTable']);
-        Route::get('/genders', [\App\Http\Controllers\GenderController::class, 'dataTable']);
-        Route::get('/religions', [\App\Http\Controllers\ReligionController::class, 'dataTable']);
-        Route::get('/relationships', [\App\Http\Controllers\RelationshipController::class, 'dataTable']);
-        Route::get('/departments', [\App\Http\Controllers\DepartmentController::class, 'dataTable']);
-        Route::get('/employment-types', [\App\Http\Controllers\EmploymentTypeController::class, 'dataTable']);
-        Route::get('/employment-statuses', [\App\Http\Controllers\EmploymentStatusController::class, 'dataTable']);
-        Route::get('/marital-statuses', [\App\Http\Controllers\MaritalStatusController::class, 'dataTable']);
-        Route::get('/honorifics', [\App\Http\Controllers\HonorificController::class, 'dataTable']);
-        Route::get('/job-titles', [\App\Http\Controllers\JobTitleController::class, 'dataTable']);
-        Route::get('/specializations', [\App\Http\Controllers\SpecializationController::class, 'dataTable']);
-        Route::get('/qualification-types', [\App\Http\Controllers\QualificationTypeController::class, 'dataTable']);
-        Route::get('/salary-grades', [\App\Http\Controllers\SalaryGradeController::class, 'dataTable']);
-        Route::get('/salary-scales', [\App\Http\Controllers\SalaryScaleController::class, 'dataTable']);
-        Route::get('/teacher-titles', [\App\Http\Controllers\TeacherTitleController::class, 'dataTable']);
+        Route::get('/languages', [\App\Http\Controllers\Settings\LanguageController::class, 'dataTable']);
+        Route::get('/genders', [\App\Http\Controllers\Settings\GenderController::class, 'dataTable']);
+        Route::get('/religions', [\App\Http\Controllers\Settings\ReligionController::class, 'dataTable']);
+        Route::get('/relationships', [\App\Http\Controllers\Settings\RelationshipController::class, 'dataTable']);
+        Route::get('/departments', [\App\Http\Controllers\Settings\DepartmentController::class, 'dataTable']);
+        Route::get('/employment-types', [\App\Http\Controllers\Settings\EmploymentTypeController::class, 'dataTable']);
+        Route::get('/employment-statuses', [\App\Http\Controllers\Settings\EmploymentStatusController::class, 'dataTable']);
+        Route::get('/marital-statuses', [\App\Http\Controllers\Settings\MaritalStatusController::class, 'dataTable']);
+        Route::get('/honorifics', [\App\Http\Controllers\Settings\HonorificController::class, 'dataTable']);
+        Route::get('/job-titles', [\App\Http\Controllers\Settings\JobTitleController::class, 'dataTable']);
+        Route::get('/specializations', [\App\Http\Controllers\Settings\SpecializationController::class, 'dataTable']);
+        Route::get('/qualification-types', [\App\Http\Controllers\Settings\QualificationTypeController::class, 'dataTable']);
+        Route::get('/salary-grades', [\App\Http\Controllers\Settings\SalaryGradeController::class, 'dataTable']);
+        Route::get('/salary-scales', [\App\Http\Controllers\Settings\SalaryScaleController::class, 'dataTable']);
+        Route::get('/teacher-titles', [\App\Http\Controllers\Settings\TeacherTitleController::class, 'dataTable']);
 
         // EMPLOYEES' DATATABLE ROUTES
         Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'dataTable']);
@@ -99,19 +99,26 @@ Route::group([
     ], function () {
 
         Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
-
-        Route::get('student-admissions', [\App\Http\Controllers\StudentAdmissionController::class, 'index'])->name('admissions.index');
-        Route::get('student-admissions/admission-form', [\App\Http\Controllers\StudentAdmissionController::class, 'create'])->name('admissions.form');
-        Route::post('student-admissions', [\App\Http\Controllers\StudentAdmissionController::class, 'store'])->name('admissions.store');
-        Route::get('student-admissions/{student_admission}/edit', [\App\Http\Controllers\StudentAdmissionController::class, 'edit'])->name('admissions.edit');
-        Route::patch('student-admissions/{student_admission}', [\App\Http\Controllers\StudentAdmissionController::class, 'update'])->name('admissions.update');
-        Route::post('student-admissions/first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('admissions.first.step');
-        Route::post('student-admissions/{student_admission}/first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('admissions.edit.first.step');
-        Route::post('student-admissions/second-step', [\App\Http\Controllers\StudentAdmissionController::class, 'secondStep'])->name('admissions.second.step');
-        Route::post('student-admissions/{student_admission}/second-step', [\App\Http\Controllers\StudentAdmissionController::class, 'secondStep'])->name('admissions.edit.second.step');
-        Route::post('student-admissions/third-step', [\App\Http\Controllers\StudentAdmissionController::class, 'thirdStep'])->name('admissions.third.step');
-        Route::post('student-admissions/{student_admission}/third-step', [\App\Http\Controllers\StudentAdmissionController::class, 'thirdStep'])->name('admissions.edit.third.step');
-        //    Route::post('student-admissions/fourth-step', [\App\Http\Controllers\StudentAdmissionController::class, 'fourthStep'])->name('admissions.fourth.step');
+        
+        /**
+         * FORM WIZARD ROUTES
+         */
+        Route::group([
+            'prefix' => '/student-admissions',
+        ], function () {
+            Route::get('/', [\App\Http\Controllers\StudentAdmissionController::class, 'index'])->name('admissions.index');
+            Route::get('/admission-form', [\App\Http\Controllers\StudentAdmissionController::class, 'create'])->name('admissions.form');
+            Route::post('/', [\App\Http\Controllers\StudentAdmissionController::class, 'store'])->name('admissions.store');
+            Route::get('/{student_admission}/edit', [\App\Http\Controllers\StudentAdmissionController::class, 'edit'])->name('admissions.edit');
+            Route::patch('/{student_admission}', [\App\Http\Controllers\StudentAdmissionController::class, 'update'])->name('admissions.update');
+            Route::post('/first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('admissions.first.step');
+            Route::post('/{student_admission}/first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('admissions.edit.first.step');
+            Route::post('/second-step', [\App\Http\Controllers\StudentAdmissionController::class, 'secondStep'])->name('admissions.second.step');
+            Route::post('/{student_admission}/second-step', [\App\Http\Controllers\StudentAdmissionController::class, 'secondStep'])->name('admissions.edit.second.step');
+            Route::post('/third-step', [\App\Http\Controllers\StudentAdmissionController::class, 'thirdStep'])->name('admissions.third.step');
+            Route::post('/{student_admission}/third-step', [\App\Http\Controllers\StudentAdmissionController::class, 'thirdStep'])->name('admissions.edit.third.step');
+            //    Route::post('student-admissions/fourth-step', [\App\Http\Controllers\StudentAdmissionController::class, 'fourthStep'])->name('admissions.fourth.step');
+        });
 
         Route::post('/users/{user}/permissions', [\App\Http\Controllers\UserController::class, 'updatePermission']);
         Route::post('/medias/institution', [\App\Http\Controllers\InstitutionController::class, 'uploadMedia'])->name('institution.media-upload');
@@ -174,31 +181,34 @@ Route::group([
         Route::group([
             'prefix' => 'settings',
         ], function () {
-            Route::get('/',  [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
-            Route::resource('/guardians', \App\Http\Controllers\GuardianController::class)->names('guardians')->except('create', 'edit', 'show');
-            Route::resource('/blog_categories', \App\Http\Controllers\Website\BlogCategoryController::class)->names('blog_categories');
-            Route::resource('/divisions', \App\Http\Controllers\DivisionController::class)->names('divisions');
-            Route::resource('/streams', \App\Http\Controllers\StreamController::class)->names('streams');
-            Route::resource('/subjects', \App\Http\Controllers\SubjectController::class)->names('subjects');
-            Route::resource('/departments', \App\Http\Controllers\DepartmentController::class)->names('departments');
-            Route::resource('/languages', \App\Http\Controllers\LanguageController::class)->names('languages');
-            Route::resource('/marital-statuses', \App\Http\Controllers\MaritalStatusController::class)->names('marital.statuses');
-            Route::resource('/honorifics', \App\Http\Controllers\HonorificController::class)->names('honorifics');
-            Route::resource('/employment-types', \App\Http\Controllers\EmploymentTypeController::class)->names('employment.types');
-            Route::resource('/employment-statuses', \App\Http\Controllers\EmploymentStatusController::class)->names('employment.statuses');
-            Route::resource('/job-titles', \App\Http\Controllers\JobTitleController::class)->names('job.titles');
-            Route::resource('/specializations', \App\Http\Controllers\SpecializationController::class)->names('specializations');
-            Route::resource('/qualification-types', \App\Http\Controllers\QualificationTypeController::class)->names('qualification.types');
-            Route::resource('/salary-grades', \App\Http\Controllers\SalaryGradeController::class)->names('salary-grades');
-            Route::resource('/salary-scales', \App\Http\Controllers\SalaryScaleController::class)->names('salary-scales');
-            Route::resource('/teacher-titles', \App\Http\Controllers\TeacherTitleController::class)->names('teacher.titles');
+            Route::get('/',  [\App\Http\Controllers\Settings\SettingController::class, 'index'])->name('settings.index');
+            Route::resource('/guardians', \App\Http\Controllers\GuardianController::class)->names('guardians')->only('store', 'update', 'destroy');
+            Route::resource('/blog_categories', \App\Http\Controllers\Website\BlogCategoryController::class)->names('blog_categories')->only('store', 'update', 'destroy');
+            Route::resource('/divisions', \App\Http\Controllers\Settings\DivisionController::class)->names('divisions')->only('store', 'update', 'destroy');
+            Route::resource('/streams', \App\Http\Controllers\Settings\StreamController::class)->names('streams')->only('store', 'update', 'destroy');
+            Route::resource('/subjects', \App\Http\Controllers\Settings\SubjectController::class)->names('subjects');
+            Route::resource('/departments', \App\Http\Controllers\Settings\DepartmentController::class)->names('departments')->only('store', 'update', 'destroy');
+            Route::resource('/genders', \App\Http\Controllers\Settings\GenderController::class)->names('genders')->only('store', 'update', 'destroy');
+            Route::resource('/religions', \App\Http\Controllers\Settings\ReligionController::class)->names('religions')->only('store', 'update', 'destroy');
+            Route::resource('/relationships', \App\Http\Controllers\Settings\RelationshipController::class)->names('relationships')->only('store', 'update', 'destroy');
+            Route::resource('/languages', \App\Http\Controllers\Settings\LanguageController::class)->names('languages')->only('store', 'update', 'destroy');
+            Route::resource('/marital-statuses', \App\Http\Controllers\Settings\MaritalStatusController::class)->names('marital.statuses')->only('store', 'update', 'destroy');
+            Route::resource('/honorifics', \App\Http\Controllers\Settings\HonorificController::class)->names('honorifics')->only('store', 'update', 'destroy');
+            Route::resource('/employment-types', \App\Http\Controllers\Settings\EmploymentTypeController::class)->names('employment-types')->only('store', 'update', 'destroy');
+            Route::resource('/employment-statuses', \App\Http\Controllers\Settings\EmploymentStatusController::class)->names('employment-statuses')->only('store', 'update', 'destroy');
+            Route::resource('/job-titles', \App\Http\Controllers\Settings\JobTitleController::class)->names('job-titles')->only('store', 'update', 'destroy');
+            Route::resource('/specializations', \App\Http\Controllers\Settings\SpecializationController::class)->names('specializations')->only('store', 'update', 'destroy');
+            Route::resource('/qualification-types', \App\Http\Controllers\Settings\QualificationTypeController::class)->names('qualification-types')->only('store', 'update', 'destroy');
+            Route::resource('/salary-grades', \App\Http\Controllers\Settings\SalaryGradeController::class)->names('salary-grades')->only('store', 'update', 'destroy');
+            Route::resource('/salary-scales', \App\Http\Controllers\Settings\SalaryScaleController::class)->names('salary-scales')->only('store', 'update', 'destroy');
+            Route::resource('/teacher-titles', \App\Http\Controllers\Settings\TeacherTitleController::class)->names('teacher-titles')->only('store', 'update', 'destroy');
         });
 
         Route::resource('/employees', \App\Http\Controllers\EmployeeController::class)->names('employees');
         Route::resource('/institutions', \App\Http\Controllers\InstitutionController::class)->names('institutions');
         Route::resource('/users', \App\Http\Controllers\UserController::class)->names('users');
-        Route::resource('/roles', \App\Http\Controllers\RoleController::class)->names('roles');
-        Route::resource('/ranks', \App\Http\Controllers\RankController::class)->names('ranks');
+        Route::resource('/roles', \App\Http\Controllers\Settings\RoleController::class)->names('roles');
+        Route::resource('/ranks', \App\Http\Controllers\Settings\RankController::class)->names('ranks');
         //        Route::resource('/permissions', \App\Http\Controllers\PermissionController::class)->names('permissions');
 
         /**

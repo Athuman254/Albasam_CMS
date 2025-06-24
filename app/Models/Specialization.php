@@ -13,7 +13,7 @@ class Specialization extends Model
 
     protected $table = 'specialization_areas';
     protected $primaryKey = 'id';
-    protected $casts = ['activated'];
+    protected $casts = ['activated' => 'bool'];
     protected $appends = ['hashid'];
     protected $fillable = ['name', 'activated'];
 

@@ -12,8 +12,6 @@ use App\Http\Requests\UpdateAttendanceRequest;
 
 class AttendanceController extends Controller
 {
-
-
     public function dataTable()
     {
         $attendance =  QueryBuilder::for(

@@ -15,6 +15,7 @@ class SiblingController extends Controller
         $siblings = QueryBuilder::for(
             Sibling::with('gender')
         )->allowedFilters([
+            AllowedFilter::exact('id'),
             AllowedFilter::exact('student_id'),
         ])->jsonPaginate();
 

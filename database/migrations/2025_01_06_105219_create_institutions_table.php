@@ -122,7 +122,7 @@ return new class extends Migration
 
         Schema::create('teacher_titles', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->unique();                            // e.g Principal, Deputy Principal
+            $table->string('title')->unique();    // e.g Principal, Deputy Principal
             $table->unsignedBigInteger('salary_grade_id');
             $table->unsignedBigInteger('salary_scale_id')->nullable();
             $table->boolean('activated')->default(true);

@@ -234,8 +234,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Pensionable', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Full-Time', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Part-Time', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Part-Time', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Attachment', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Internship', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Contract', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Other', 'created_at' => now(), 'updated_at' => now()],
         ]);

@@ -5,7 +5,7 @@ namespace App\Http\Requests\Website;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class BlogRequest extends FormRequest
+class CareerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -32,21 +32,26 @@ class BlogRequest extends FormRequest
     public function createRules(): array
     {
         return [
-            'title' => ['required', 'string', Rule::unique('blogs', 'title')],
-            'blog_category_id' => ['nullable', 'string', Rule::exists('blog_categories', 'id')],
-            'details' => ['required', 'string'],
+            'title' => ['required', 'string', Rule::unique('careers', 'title')],
+            'employment_type_id' => ['nullable', Rule::exists('employment_types', 'id')],
+            'location' => ['required', 'string'],
+//            'start_date' => ['required', 'date'],
+            'deadline_date' => ['required', 'date'],
+            'job_description' => ['required', 'string'],
             'active' => ['boolean'],
-            'media' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:10240'],
         ];
     }
     
     public function updateRules(): array
     {
         return [
-            'title' => ['required', 'string', Rule::unique('blogs', 'title')->ignore($this->blog)],
-            'slug' => ['nullable', 'string', Rule::unique('blogs', 'slug')->ignore($this->blog)],
-            'blog_category_id' => ['nullable', 'string', Rule::exists('blog_categories', 'id')],
-            'details' => ['required', 'string'],
+            'title' => ['required', 'string', Rule::unique('careers', 'title')->ignore($this->career)],
+            'slug' => ['nullable', 'string', Rule::unique('blogs', 'slug')->ignore($this->career)],
+            'employment_type_id' => ['nullable', Rule::exists('employment_types', 'id')],
+            'location' => ['required', 'string'],
+//            'start_date' => ['required', 'date'],
+            'deadline_date' => ['required', 'date'],
+            'job_description' => ['required', 'string'],
             'active' => ['boolean'],
         ];
     }
@@ -54,12 +59,9 @@ class BlogRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.required' => 'Blog title is required.',
-            'title.string' => 'Blog title must be a string.',
-            'title.unique' => 'Blog title already exists.',
-            'media.image' => 'Blog media must be a image.',
-            'media.mimes' => 'Blog media must be a file of type: jpeg, png, jpg.',
-            'media.max' => 'Blog media must be less than 5MB.',
+            'title.required' => 'Vacancy title is required.',
+            'title.string' => 'Vacancy title must be a string.',
+            'title.unique' => 'Vacancy title already exists.',
         ];
     }
     

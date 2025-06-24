@@ -46,6 +46,16 @@
                   :append-params="appendParams"
                   ref="menusTable"
                >
+                  <template #page="props">
+                     <span>
+                        {{ props.rowData.page ? props.rowData.page.title : '-' }}
+                     </span>
+                  </template>
+                  <template #url="props">
+                     <span>
+                        {{ props.rowData.url ? props.rowData.url : props.rowData.page?.slug }}
+                     </span>
+                  </template>
                   <template #actions="props">
                      <div class="dropdown">
                         <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
@@ -346,10 +356,16 @@ export default {
                dataClass: 'w__15',
             },
             {
-               name: 'page.title',
+               name: '__slot:page',
                title: 'PAGE',
                titleClass: 'w-auto',
                dataClass: 'w-auto',
+            },
+            {
+               name: '__slot:url',
+               title: 'URL',
+               titleClass: 'w__15',
+               dataClass: 'w__15',
             },
             {
                name: 'order',
@@ -465,9 +481,7 @@ export default {
          this.form.has_children = rowData.has_children;
          this.form.child_type = rowData.child_type;
          this.form.component = rowData.component;
-         this.form.children = rowData.children?.map(child => ({
-            page_id: child.page_id
-         })) ?? [];
+         this.form.children = rowData.children?.map(child => child.page_id) ?? [];
          
          const modalElement = this.$refs.editMenuModal;
          const modalInstance = Modal.getOrCreateInstance(modalElement);

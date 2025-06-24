@@ -95,6 +95,8 @@
                         @foreach ($menus as $menu)
                            @php
                               $hasChildren = $menu->has_children && $menu->children->isNotEmpty();
+                              $isPage = $menu->type === 'page';
+                              $isCustom = $menu->type === 'custom';
                               $isActive = false;
 
                               // Determine current active status
@@ -114,9 +116,19 @@
                                  </a>
                               @else
                                  {{-- Dropdown parent --}}
-                                 <a href="#" class="nav-link">
-                                    {{ $menu->title }}
-                                 </a>
+                                 @if($isPage)
+                                    <a href="{{ $menu->page->slug }}" class="nav-link">
+                                       {{ $menu->title }}
+                                    </a>
+                                 @elseif($isCustom)
+                                    <a href="{{ $menu->url ?? '#' }}" class="nav-link">
+                                       {{ $menu->title }}
+                                    </a>
+                                 @else
+                                    <a href="#" class="nav-link">
+                                       {{ $menu->title }}
+                                    </a>
+                                 @endif
                                  <ul class="dropdown-menu">
                                     @if ($menu->child_type === 'pages')
                                        @foreach ($menu->children as $child)

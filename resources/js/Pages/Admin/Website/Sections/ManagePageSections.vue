@@ -549,7 +549,7 @@ export default {
          ],
          componentTypes: [
             {value: 'blogs', name: 'Blogs'},
-            // {value: 'faqs', name: 'FAQs'},
+            {value: 'careers', name: 'Vacancies'},
          ],
          ctaButtonTypes: [
             {value: 'primary-btn', name: 'Primary Button'},

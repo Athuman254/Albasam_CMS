@@ -37,7 +37,11 @@
             font-family: 'Dosis', 'Roboto', sans-serif !important;
             font-weight: 700;
          }
+         p {
+            font-family: 'Roboto', 'Dosis', sans-serif !important;
+         }
       </style>
+      @stack('styles')
    </head>
 
    <body id="main">

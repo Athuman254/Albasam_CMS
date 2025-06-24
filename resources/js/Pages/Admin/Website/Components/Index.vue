@@ -28,16 +28,16 @@
                         Blogs
                      </button>
                   </li>
-<!--                  <li class="nav-item me-2" role="presentation">-->
-<!--                     <button-->
-<!--                        type="button"-->
-<!--                        class="nav-link"-->
-<!--                        :class="{ active: activeTab === 'vacancies' }"-->
-<!--                        @click="activeTab = 'vacancies'"-->
-<!--                     >-->
-<!--                        Vacancies-->
-<!--                     </button>-->
-<!--                  </li>-->
+                  <li class="nav-item me-2" role="presentation">
+                     <button
+                        type="button"
+                        class="nav-link"
+                        :class="{ active: activeTab === 'careers' }"
+                        @click="activeTab = 'careers'"
+                     >
+                        Careers/Vacancies
+                     </button>
+                  </li>
                </ul>
                
                <div class="tab-content">
@@ -46,11 +46,11 @@
                      <h6 class="text-muted">Blogs or news that will be displayed on the website.</h6>
                      <Blogs />
                   </div>
-<!--                  <div v-show="activeTab === 'faqs'">-->
-<!--                     <h5 class="mb-0">Vacancies</h5>-->
-<!--                     <h6 class="text-muted">Vacancies or careers to be displayed on the website.</h6>-->
-<!--                     <Vacancies />-->
-<!--                  </div>-->
+                  <div v-show="activeTab === 'careers'">
+                     <h5 class="mb-0">Careers/Vacancies</h5>
+                     <h6 class="text-muted">Vacancies or careers to be displayed on the website.</h6>
+                     <Careers />
+                  </div>
                </div>
             </div>
          </div>
@@ -62,9 +62,10 @@
 import DefaultLayout from "@layouts/DefaultLayout.vue";
 import { Head, Link } from "@inertiajs/vue3";
 import Blogs from "./Blogs.vue"
+import Careers from "./Careers.vue"
 
 export default {
-   components: {DefaultLayout, Head, Link, Blogs},
+   components: {DefaultLayout, Head, Link, Blogs, Careers},
    data() {
       return {
          activeTab: 'blogs'

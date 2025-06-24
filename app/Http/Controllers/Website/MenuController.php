@@ -20,7 +20,8 @@ class MenuController extends Controller
         $menus = QueryBuilder::for(
             Menu::with('page', 'parent', 'children')
                 ->where('parent_id', '=', null)
-                ->orderBy('title')
+                ->orderBy('order')
+                ->orderBy('created_at')
         )->allowedFilters([
             AllowedFilter::exact('id'),
             AllowedFilter::partial('title'),

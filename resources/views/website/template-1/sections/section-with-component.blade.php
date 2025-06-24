@@ -1,14 +1,13 @@
 <section id="servicelist" class="section-padding">
    <div class="auto-container">
       <div class="row">
+         @if($section->title)
          <div class="col-lg-7 col-md-7 col-12 mx-auto text-center">
             <div class="section-title">
                @if($section->sub_title)
                   <h6 class="theme-color">{{ $section->sub_title }}</h6>
                @endif
-               @if($section->title)
-                  <h2>{{ $section->title }}</h2>
-               @endif
+               <h2>{{ $section->title }}</h2>
                @if($section->details)
                   <div>
                      {!! $section->details !!}
@@ -26,6 +25,7 @@
                @endif
             </div>
          </div>
+         @endif
          <div class="col-12">
             <div class="row">
                @includeIf('website.template-1.' . $section->component_type, ['section' => $section, 'customisation' => $customisation])

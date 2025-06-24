@@ -74,6 +74,16 @@ class AppServiceProvider extends ServiceProvider
                 ]);
             }
         }
+        if (Schema::hasTable('careers')) {
+            $careers = \App\Models\Website\Career::where('active', '=', true)->orderByDesc('created_at')->get() ?? null;
+            $careers->load('user', 'contract_type');
+            
+            if ($careers) {
+                View::share([
+                    'careers' => $careers,
+                ]);
+            }
+        }
         Inertia::share([
             'auth' => function () {
                 return [

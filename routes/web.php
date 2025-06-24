@@ -42,6 +42,7 @@ Route::group([
         Route::get('/subjects', [\App\Http\Controllers\SubjectController::class, 'dataTable']);
         Route::get('/lessons', [\App\Http\Controllers\LessonController::class, 'dataTable']);
         Route::get('/time-table', [\App\Http\Controllers\TimetableController::class, 'timeTableData']);
+        Route::get('/languages', [\App\Http\Controllers\LanguageController::class, 'dataTable']);
         Route::get('/genders', [\App\Http\Controllers\GenderController::class, 'dataTable']);
         Route::get('/religions', [\App\Http\Controllers\ReligionController::class, 'dataTable']);
         Route::get('/relationships', [\App\Http\Controllers\RelationshipController::class, 'dataTable']);
@@ -67,6 +68,7 @@ Route::group([
         // WEBSITE MANAGEMENT DATATABLES
         Route::get('/website/customisations', [\App\Http\Controllers\Website\CustomisationController::class, 'dataTable'])->name('website.customisations');
         Route::get('/website/blogs', [\App\Http\Controllers\Website\BlogController::class, 'dataTable'])->name('website.blogs');
+        Route::get('/website/careers', [\App\Http\Controllers\Website\CareerController::class, 'dataTable'])->name('website.careers');
         Route::get('/website/menus', [\App\Http\Controllers\Website\MenuController::class, 'dataTable'])->name('website.menus');
         Route::get('/website/pages', [\App\Http\Controllers\Website\PageController::class, 'dataTable'])->name('website.pages');
         Route::get('/website/page-sections', [\App\Http\Controllers\Website\SectionController::class, 'dataTable'])->name('website.sections');
@@ -179,6 +181,7 @@ Route::group([
             Route::resource('/streams', \App\Http\Controllers\StreamController::class)->names('streams');
             Route::resource('/subjects', \App\Http\Controllers\SubjectController::class)->names('subjects');
             Route::resource('/departments', \App\Http\Controllers\DepartmentController::class)->names('departments');
+            Route::resource('/languages', \App\Http\Controllers\LanguageController::class)->names('languages');
             Route::resource('/marital-statuses', \App\Http\Controllers\MaritalStatusController::class)->names('marital.statuses');
             Route::resource('/honorifics', \App\Http\Controllers\HonorificController::class)->names('honorifics');
             Route::resource('/employment-types', \App\Http\Controllers\EmploymentTypeController::class)->names('employment.types');
@@ -209,6 +212,7 @@ Route::group([
             ], function () {
                 Route::get('/', [\App\Http\Controllers\Website\ComponentController::class, 'index'])->name('components.index');
                 Route::resource('/blogs', \App\Http\Controllers\Website\BlogController::class)->names('components.blogs')->only('store', 'update', 'destroy');
+                Route::resource('/careers', \App\Http\Controllers\Website\CareerController::class)->names('components.careers')->only('store', 'update', 'destroy');
             });
             
             Route::get('/pages', [\App\Http\Controllers\Website\PageController::class, 'index'])->name('pages.index');
@@ -262,4 +266,5 @@ Route::get('/', function () {
 })->name('homepage');
 
 Route::get('/blogs/{blog}', [\App\Http\Controllers\Website\BlogController::class, 'show'])->name('blogs.show');
+Route::get('/vacancies/{career}', [\App\Http\Controllers\Website\CareerController::class, 'show'])->name('careers.show');
 Route::get('/{slug}', [\App\Http\Controllers\Website\PageController::class, 'show'])->name('page.show');

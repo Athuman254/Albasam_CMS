@@ -1,3 +1,11 @@
+@push('styles')
+   <style>
+      .single-blog-post-content p {
+         margin: 5px 0;
+      }
+   </style>
+@endpush
+
 @extends('website.template-1.layouts.default')
 
 @section('page-content')

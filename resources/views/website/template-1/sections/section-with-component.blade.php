@@ -26,7 +26,7 @@
             </div>
          </div>
          @endif
-         <div class="col-12">
+         <div class="col-12 mb-3">
             <div class="row">
                @includeIf('website.template-1.' . $section->component_type, ['section' => $section, 'customisation' => $customisation])
             </div>

@@ -64,11 +64,6 @@
                      </button>
                   </li>
                   <li class="nav-item me-1" role="presentation">
-                     <button type="button" class="nav-link" :class="{ active: activeTab === 'teacher-titles' }" @click="activeTab = 'teacher-titles'">
-                        Teacher Titles
-                     </button>
-                  </li>
-                  <li class="nav-item me-1" role="presentation">
                      <button type="button" class="nav-link" :class="{ active: activeTab === 'salary-scales' }" @click="activeTab = 'salary-scales'">
                         Salary Scales
                      </button>
@@ -117,9 +112,6 @@
                <div v-if="activeTab === 'employment-statuses'">
                   <employment-statuses></employment-statuses>
                </div>
-               <div v-if="activeTab === 'teacher-titles'">
-                  <teacher-titles></teacher-titles>
-               </div>
                <div v-if="activeTab === 'salary-scales'">
                   <salary-scales></salary-scales>
                </div>
@@ -148,7 +140,6 @@ import Religions from "./Religions.vue";
 import Relationships from "./Relationships.vue";
 import Honorifics from "./Honorifics.vue";
 import JobTitles from "./JobTitles.vue";
-import TeacherTitles from "./TeacherTitles.vue";
 import EmploymentTypes from "./EmploymentTypes.vue";
 import EmploymentStatuses from "./EmploymentStatuses.vue";
 import SalaryScales from "./SalaryScale.vue";
@@ -160,7 +151,7 @@ export default {
    components: {
       DefaultLayout, Head, Link, Divisions, Streams, Subjects, Religions,
       Relationships, Honorifics, JobTitles, EmploymentTypes, EmploymentStatuses,
-      TeacherTitles, SalaryScales, SalaryGrades, QualificationTypes, BlogCategories},
+      SalaryScales, SalaryGrades, QualificationTypes, BlogCategories},
    data() {
       return {
          activeTab: 'divisions'

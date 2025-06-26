@@ -26,7 +26,7 @@ class TeacherController extends Controller
     public function dataTable()
     {
         $teachers = QueryBuilder::for(
-            Teacher::with(['employee.employment_type', 'employee.employment_status', 'honorific', 'specialization', 'title', 'user'])
+            Teacher::with(['employee.employment_type', 'employee.employment_status', 'honorific', 'specialization', 'job', 'user'])
                 ->orderBy('first_name')
         )->allowedFilters([
             AllowedFilter::scope('search', 'Search'),
@@ -48,6 +48,8 @@ class TeacherController extends Controller
     public function store(TeacherRequest $request): \Illuminate\Http\RedirectResponse
     {
         $validatedData = $request->validated();
+        
+//        dd($validatedData);
 
         DB::beginTransaction();
 
@@ -72,7 +74,6 @@ class TeacherController extends Controller
                 'date_of_hire' => $validatedData['employee_details']['date_of_hire'],
                 'employment_status_id' => $validatedData['employee_details']['employment_status_id'],
                 'employment_type_id' => $validatedData['employee_details']['employment_type_id'],
-                'job_title_id' => $validatedData['employee_details']['job_title_id'],
             ]);
 
             Teacher::create([
@@ -81,6 +82,7 @@ class TeacherController extends Controller
                 'middle_name' => $validatedData['personal_details']['middle_name'],
                 'last_name' => $validatedData['personal_details']['last_name'],
                 'honorific_id' => $validatedData['personal_details']['honorific_id'],
+                'job_title_id' => $validatedData['other_details']['job_title_id'],
                 'specialization_area_id' => $validatedData['other_details']['specialization_area_id'],
                 'tsc_number' => $validatedData['other_details']['tsc_number'],
                 'years_of_experience' => $validatedData['other_details']['years_of_experience'],
@@ -159,9 +161,9 @@ class TeacherController extends Controller
 
     public function show(Teacher $teacher): \Inertia\Response
     {
-        $teacher->load('specialization', 'user');
+        $teacher->load('specialization', 'job', 'user');
         $employee = Employee::findOrFail($teacher->employee_id);
-        $employee->load('employment_type', 'employment_status', 'job_title', 'honorific', 'marital_status', 'gender', 'religion', 'teacher', 'user');
+        $employee->load('employment_type', 'employment_status', 'honorific', 'marital_status', 'gender', 'religion', 'teacher', 'user');
 
         return Inertia::render('Admin/Employees/Teachers/Show', [
             'teacher' => $teacher,
@@ -206,7 +208,6 @@ class TeacherController extends Controller
                 'date_of_hire' => $validated['employee_details']['date_of_hire'],
                 'employment_status_id' => $validated['employee_details']['employment_status_id'],
                 'employment_type_id' => $validated['employee_details']['employment_type_id'],
-                'job_title_id' => $validated['employee_details']['job_title_id'],
             ]);
 
             $teacher->update([
@@ -215,7 +216,7 @@ class TeacherController extends Controller
                 'last_name' => $validated['personal_details']['last_name'],
                 'honorific_id' => $validated['personal_details']['honorific_id'],
                 'specialization_area_id' => $validated['other_details']['specialization_area_id'],
-                'teacher_title_id' => $validated['other_details']['teacher_title_id'],
+                'job_title_id' => $validated['other_details']['job_title_id'],
                 'tsc_number' => $validated['other_details']['tsc_number'],
                 'years_of_experience' => $validated['other_details']['years_of_experience'],
             ]);

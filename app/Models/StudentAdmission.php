@@ -17,6 +17,7 @@ class StudentAdmission extends Model
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
     protected $casts = ['has_exit_school' => 'boolean'];
+//    protected $guarded = ['id'];
     protected $fillable = [
         'date', 'date_of_exit', 'division_id', 'has_exit_school'
     ];
@@ -29,5 +30,17 @@ class StudentAdmission extends Model
     public function division(): BelongsTo
     {
         return $this->belongsTo(Division::class, 'division_id');
+    }
+    
+    public function scopeSearch($query, string $terms = null)
+    {
+        collect(explode(' ', $terms))->filter()->each(function ($term) use ($query) {
+            $term = '%'.$term.'%';
+            
+            $query->whereHas('student', function($q) use ($term) {
+                $q->where('first_name', 'like', $term)
+                    ->orWhere('last_name', 'like', $term);
+            });
+        });
     }
 }

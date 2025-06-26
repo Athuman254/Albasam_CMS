@@ -76,7 +76,7 @@
          </li>
          
          <li class="menu-item">
-            <a class="menu-link" href="/public" target="_blank" rel="noopener noreferrer">
+            <a class="menu-link" href="/" target="_blank" rel="noopener noreferrer">
                <span>
                   <i class='menu-icon tf-icons bx bx-link-external'></i>
                </span>

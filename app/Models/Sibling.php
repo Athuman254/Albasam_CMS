@@ -13,9 +13,10 @@ class Sibling extends Model
     protected $table = 'siblings';
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
-    protected $fillable = [
-        'student_id', 'name', 'age', 'gender_id', 'current_school', 'current_class'
-    ];
+    protected $guarded = ['id'];
+//    protected $fillable = [
+//        'student_id', 'name', 'age', 'gender_id', 'current_school', 'current_class'
+//    ];
 
     public function student()
     {

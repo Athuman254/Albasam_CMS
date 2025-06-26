@@ -224,8 +224,7 @@
                                  </div>
                                  <div class="col-md-4">
                                     <div class="form-group mb-3">
-                                       <label class="form-label" for="taxPIN">KRA PIN <span
-                                          class="text-danger ms-1">*</span></label>
+                                       <label class="form-label" for="taxPIN">KRA PIN</label>
                                        <input type="text" id="taxPIN" class="form-control"
                                               v-model="form.personal_details.tax_identification_pin"/>
                                        <div v-if="form.errors['personal_details.tax_identification_pin']"
@@ -302,21 +301,6 @@
                                        ></v-select>
                                        <div v-if="form.errors['employee_details.employment_type_id']" class="text-danger">
                                           {{ form.errors['employee_details.employment_type_id'] }}
-                                       </div>
-                                    </div>
-                                 </div>
-                                 <div class="col-md-4">
-                                    <div class="form-group mb-3">
-                                       <label class="form-label" for="jobTitleId">Job Title <span class="text-danger ms-1">*</span></label>
-                                       <v-select
-                                          id="jobTitleId"
-                                          v-model="form.employee_details.job_title_id"
-                                          :options="jobTitles"
-                                          label="name"
-                                          :reduce="(option) => option.id"
-                                       ></v-select>
-                                       <div v-if="form.errors['employee_details.job_title_id']" class="text-danger">
-                                          {{ form.errors['employee_details.job_title_id'] }}
                                        </div>
                                     </div>
                                  </div>
@@ -418,16 +402,16 @@
                                  </div>
                                  <div class="col-md-4">
                                     <div class="form-group mb-3">
-                                       <label class="form-label" for="teacherTitleId">Role/Title</label>
+                                       <label class="form-label" for="jobTitleId">Job Title <span class="text-danger ms-1">*</span></label>
                                        <v-select
-                                          id="teacherTitleId"
-                                          v-model="form.other_details.teacher_title_id"
-                                          :options="teacherTitles"
+                                          id="jobTitleId"
+                                          v-model="form.other_details.job_title_id"
+                                          :options="jobTitles"
                                           label="title"
                                           :reduce="(option) => option.id"
                                        ></v-select>
-                                       <div v-if="form.errors['other_details.teacher_title_id']" class="text-danger">
-                                          {{ form.errors['other_details.teacher_title_id'] }}
+                                       <div v-if="form.errors['other_details.job_title_id']" class="text-danger">
+                                          {{ form.errors['other_details.job_title_id'] }}
                                        </div>
                                     </div>
                                  </div>
@@ -692,7 +676,6 @@ export default {
                date_of_hire: new Date().toISOString().slice(0, 10),
                employment_type_id: null,
                employment_status_id: null,
-               job_title_id: null,
                emergency_contacts: [
                   // {
                   //    name: null',
@@ -704,7 +687,7 @@ export default {
             },
             other_details: {
                specialization_area_id: null,
-               teacher_title_id: null,
+               job_title_id: null,
                tsc_number: null,
                years_of_experience: null,
                qualifications: [
@@ -734,7 +717,6 @@ export default {
          religions: [],
          relationships: [],
          specializationAreas: [],
-         teacherTitles: [],
          qualificationTypes: [],
 
          currentStep: 1,
@@ -781,7 +763,6 @@ export default {
          this.fetchedReligions();
          this.fetchedRelationships();
          this.fetchedSpecializationAreas();
-         this.fetchedTeacherTitles();
          this.fetchedQualificationTypes();
 
          this.dataFetched = true;
@@ -918,21 +899,6 @@ export default {
                this.specializationAreas = data.data;
             }).catch((error) => {
             console.error(error)
-         })
-      },
-      fetchedTeacherTitles() {
-         axios.get('/datatable/teacher-titles', {
-            params: {
-               filter: {
-                  activated: true,
-               },
-            },
-         })
-            .then(({data}) => {
-               this.teacherTitles = data.data;
-            }).catch((error) => {
-            console.error(error)
-            // this.$toast.error('An error occurred while fetching the titles.')
          })
       },
       fetchedQualificationTypes() {

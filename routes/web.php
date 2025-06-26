@@ -27,6 +27,7 @@ Route::group([
         'as' => 'datatable.'
     ], function () {
         Route::get('/student-admissions', [\App\Http\Controllers\StudentAdmissionController::class, 'dataTable']);
+        
         Route::get('/students', [\App\Http\Controllers\StudentController::class, 'dataTable']);
         Route::get('/attendance', [\App\Http\Controllers\AttendanceController::class, 'dataTable']);
         Route::get('/guardians', [\App\Http\Controllers\GuardianController::class, 'dataTable']);
@@ -56,7 +57,6 @@ Route::group([
         Route::get('/qualification-types', [\App\Http\Controllers\Settings\QualificationTypeController::class, 'dataTable']);
         Route::get('/salary-grades', [\App\Http\Controllers\Settings\SalaryGradeController::class, 'dataTable']);
         Route::get('/salary-scales', [\App\Http\Controllers\Settings\SalaryScaleController::class, 'dataTable']);
-        Route::get('/teacher-titles', [\App\Http\Controllers\Settings\TeacherTitleController::class, 'dataTable']);
 
         // EMPLOYEES' DATATABLE ROUTES
         Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'dataTable']);
@@ -75,8 +75,8 @@ Route::group([
         Route::get('/website/page-sub-sections', [\App\Http\Controllers\Website\SubSectionController::class, 'dataTable']);
     });
 
-    Route::resource('/attendance', \App\Http\Controllers\AttendanceController::class)->names('attendace');
-    Route::get('/attendance-record', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('attendence-records');
+    Route::resource('/attendance', \App\Http\Controllers\AttendanceController::class)->names('attendance');
+    Route::get('/attendance-record', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('attendennce-records');
     
     /**
      * USER PROFILE ROUTES
@@ -111,6 +111,7 @@ Route::group([
             Route::post('/', [\App\Http\Controllers\StudentAdmissionController::class, 'store'])->name('admissions.store');
             Route::get('/{student_admission}/edit', [\App\Http\Controllers\StudentAdmissionController::class, 'edit'])->name('admissions.edit');
             Route::patch('/{student_admission}', [\App\Http\Controllers\StudentAdmissionController::class, 'update'])->name('admissions.update');
+            Route::get('/{student_admission}', [\App\Http\Controllers\StudentAdmissionController::class, 'show'])->name('admissions.show');
             Route::post('/first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('admissions.first.step');
             Route::post('/{student_admission}/first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('admissions.edit.first.step');
             Route::post('/second-step', [\App\Http\Controllers\StudentAdmissionController::class, 'secondStep'])->name('admissions.second.step');
@@ -201,7 +202,6 @@ Route::group([
             Route::resource('/qualification-types', \App\Http\Controllers\Settings\QualificationTypeController::class)->names('qualification-types')->only('store', 'update', 'destroy');
             Route::resource('/salary-grades', \App\Http\Controllers\Settings\SalaryGradeController::class)->names('salary-grades')->only('store', 'update', 'destroy');
             Route::resource('/salary-scales', \App\Http\Controllers\Settings\SalaryScaleController::class)->names('salary-scales')->only('store', 'update', 'destroy');
-            Route::resource('/teacher-titles', \App\Http\Controllers\Settings\TeacherTitleController::class)->names('teacher-titles')->only('store', 'update', 'destroy');
         });
 
         Route::resource('/employees', \App\Http\Controllers\EmployeeController::class)->names('employees');

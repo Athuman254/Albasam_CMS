@@ -21,7 +21,7 @@
                   <div class="row row-gap-1">
                      <div class="col-md-3 col-9">
                         <input type="search" id="search" class="form-control bg-muted-lt rounded-2" placeholder="Search..."
-                               @input="applyFilter" v-model="appendParams.filter.id">
+                               @input="applyFilter" v-model="appendParams.filter.search">
                      </div>
                      <div class="col-md-6 col-3 ms-lg-auto">
                         <div class="flex-wrap text-end">
@@ -46,6 +46,9 @@
                   ref="admissionsTable"
                   :append-params="appendParams"
                >
+                  <template v-slot:date="props">
+                     {{ $filters.date_DAY_MONTH_YEAR(props.rowData.date) }}
+                  </template>
                   <template v-slot:student="props">
                      {{ props.rowData.student.first_name }} {{ props.rowData.student.last_name }}
                   </template>
@@ -55,9 +58,9 @@
                            <i class="bx bx-dots-vertical"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
-                           <a class="dropdown-item" href="#">
+                           <Link class="dropdown-item" :href="route('admin.admissions.show', props.rowData.hashid)">
                               <i class="icon-base bx bx-detail me-1"></i> Details
-                           </a>
+                           </Link>
                            <Link :href="route('admin.admissions.edit', props.rowData.hashid)" class="dropdown-item">
                               <i class="icon-base bx bx-edit-alt me-1"></i> Edit
                            </Link>
@@ -82,8 +85,8 @@ export default {
       return {
          fields: [
             {
-               name: 'date',
-               title: 'DATE',
+               name: '__slot:date',
+               title: 'ADMISSION DATE',
                titleClass: 'font-weight-bold',
                width: '20%',
             },
@@ -107,7 +110,7 @@ export default {
          ],
          appendParams: {
             filter: {
-               id: '',
+               search: '',
             }
          },
       }

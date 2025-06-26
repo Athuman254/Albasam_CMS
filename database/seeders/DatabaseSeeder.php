@@ -9,7 +9,7 @@ use App\Models\EmploymentType;
 use App\Models\Gender;
 use App\Models\Honorific;
 use App\Models\Institution;
-use App\Models\JobTitle;
+use App\Models\OldJobTitle;
 use App\Models\MaritalStatus;
 use App\Models\QualificationType;
 use App\Models\Rank;
@@ -19,7 +19,7 @@ use App\Models\SalaryGrade;
 use App\Models\SalaryScale;
 use App\Models\Specialization;
 use App\Models\Stream;
-use App\Models\TeacherTitle;
+use App\Models\JobTitle;
 use App\Models\User;
 use App\Models\Website\Customisation;
 use App\Models\Website\Menu;
@@ -66,8 +66,6 @@ class DatabaseSeeder extends Seeder
         
         $this->employmentTypes();
         
-        $this->jobTitles();
-        
         $this->specialisations();
         
         $this->qualificationTypes();
@@ -75,6 +73,8 @@ class DatabaseSeeder extends Seeder
         $this->salaryGrades();
         
         $this->salaryScales();
+        
+        $this->jobTitles();
         
         $this->institution();
         
@@ -253,24 +253,6 @@ class DatabaseSeeder extends Seeder
         ]);
     }
     
-    public function jobTitles(): void
-    {
-        JobTitle::truncate();
-        
-        JobTitle::insert([
-            ['name' => 'Teacher', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Accountant', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Librarian', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Lab Technician', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Driver', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Carpenter', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Cleaner', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Cook', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Guard', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Electrician', 'created_at' => now(), 'updated_at' => now()],
-        ]);
-    }
-    
     public function specialisations(): void
     {
         Specialization::truncate();
@@ -309,7 +291,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'C3', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'C2', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'C1', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'B1', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'B5', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
     
@@ -330,7 +312,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'T-Scale 8', 'salary_grade_id' => $grades->firstWhere('name', '=', 'C3')->id],
             ['name' => 'T-Scale 7', 'salary_grade_id' => $grades->firstWhere('name', '=', 'C2')->id],
             ['name' => 'T-Scale 6', 'salary_grade_id' => $grades->firstWhere('name', '=', 'C1')->id],
-            ['name' => 'T-Scale 5', 'salary_grade_id' => $grades->firstWhere('name', '=', 'B1')->id],
+            ['name' => 'T-Scale 5', 'salary_grade_id' => $grades->firstWhere('name', '=', 'B5')->id],
         ];
         
         foreach($scales as $index => $scale) {
@@ -342,9 +324,19 @@ class DatabaseSeeder extends Seeder
         }
     }
     
-    public function teacherTitles(): void
+    public function jobTitles(): void
     {
-        TeacherTitle::truncate();
+        JobTitle::truncate();
+        
+        $inserts = $this->jobTitleInserts();
+        
+        foreach ($inserts as $insert) {
+            JobTitle::create([
+                'title' => $insert['title'],
+                'salary_scale_id' => $insert['salary_scale_id'],
+                'salary_grade_id' => $insert['salary_grade_id'],
+            ]);
+        }
     }
     
     public function institution(): void
@@ -352,13 +344,13 @@ class DatabaseSeeder extends Seeder
         Institution::truncate();
         
         Institution::create([
-            'name' => 'SHARIFF NASSIR GIRLS SECONDARY SCHOOL',
+            'name' => 'Shariff Nassir Girls Secondary School',
             'email' => 'info@shariffnassirgirls.co.ke',
             'phone' => '254776160927',
             'country' => 'KENYA',
             'state' => 'MOMBASA',
             'city' => 'MOMBASA',
-            'physical_address' => 'WMXC+PGR, Kisauni Rd, Off Sheik Abdullas Rd, Mombasa',
+            'physical_address' => 'Kisauni Rd, Off Sheikh Abdulla Rd, Mombasa',
             'postal_address' => '86716-80100',
             'tax_identification_pin' => '',
             'mission' => 'To empower students to become productive members of the society by providing a conducive environment that will nurture them academically, socially and emotionally.',
@@ -402,5 +394,154 @@ class DatabaseSeeder extends Seeder
                 'order' => Menu::max('order') + 1,
             ]);
         }
+    }
+    
+    public static function jobTitleInserts(): array
+    {
+        $scales = SalaryScale::all();
+        $grades = SalaryGrade::all();
+        
+        return [
+            [
+                'title' => 'Chief Principal',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 15')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D5')->id,
+            ],
+            [
+                'title' => 'Senior Principal',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 14')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D4')->id,
+            ],
+            [
+                'title' => 'Principal',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 13')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D3')->id,
+            ],
+            [
+                'title' => 'Deputy Principal I',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 13')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D3')->id,
+            ],
+            [
+                'title' => 'Deputy Principal II',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 12')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D2')->id,
+            ],
+            [
+                'title' => 'Senior Master I',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 12')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D2')->id,
+            ],
+            [
+                'title' => 'Senior Lecturer I',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 12')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D2')->id,
+            ],
+            [
+                'title' => 'Senior Master II',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 11')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D1')->id,
+            ],
+            [
+                'title' => 'Deputy Principal III',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 11')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D1')->id,
+            ],
+            [
+                'title' => 'Senior Head Teacher',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 11')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D1')->id,
+            ],
+            [
+                'title' => 'Senior Lecturer II',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 11')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'D1')->id,
+            ],
+            [
+                'title' => 'Senior Master III',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 10')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C5')->id,
+            ],
+            [
+                'title' => 'Senior Lecturer III',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 10')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C5')->id,
+            ],
+            [
+                'title' => 'Head Teacher',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 10')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C5')->id,
+            ],
+            [
+                'title' => 'Deputy Head Teacher I',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 10')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C5')->id,
+            ],
+            [
+                'title' => 'Senior Lecturer IV',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 9')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C4')->id,
+            ],
+            [
+                'title' => 'Senior Master IV',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 9')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C4')->id,
+            ],
+            [
+                'title' => 'Deputy Head Teacher II',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 9')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C4')->id,
+            ],
+            [
+                'title' => 'Secondary Teacher I',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 8')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C3')->id,
+            ],
+            [
+                'title' => 'Lecturer I',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 8')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C3')->id,
+            ],
+            [
+                'title' => 'Senior Teacher I',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 8')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C3')->id,
+            ],
+            [
+                'title' => 'Secondary Teacher II',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 7')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C2')->id,
+            ],
+            [
+                'title' => 'Lecturer II',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 7')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C2')->id,
+            ],
+            [
+                'title' => 'Senior Teacher II',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 7')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C2')->id,
+            ],
+            [
+                'title' => 'Secondary Teacher III',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 6')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C1')->id,
+            ],
+            [
+                'title' => 'Lecturer III',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 6')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C1')->id,
+            ],
+            [
+                'title' => 'Primary Teacher I',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 6')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'C1')->id,
+            ],
+            [
+                'title' => 'Primary Teacher II',
+                'salary_scale_id' => $scales->firstWhere('name', '=', 'T-Scale 5')->id,
+                'salary_grade_id' => $grades->firstWhere('name', '=', 'B5')->id,
+            ],
+        ];
     }
 }

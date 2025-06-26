@@ -4,7 +4,7 @@
          <div class="row row-gap-1">
             <div class="col-md-3 col-9">
                <input type="search" id="search" class="form-control bg-muted-lt rounded-2" placeholder="Search..."
-                      @input="applyFilter" v-model="appendParams.filter.name">
+                      @input="applyFilter" v-model="appendParams.filter.title">
             </div>
             <div class="col-md-6 col-3 ms-lg-auto">
                <div class="flex-wrap text-end">
@@ -30,6 +30,10 @@
          :append-params="appendParams"
          ref="jobTitlesTable"
       >
+         <template #scale="props">
+            <div>{{ props.rowData.scale.name }}</div>
+            <div class="small fst-italic me-2">Grade: <span class="text-primary">{{ props.rowData.grade.name }}</span></div>
+         </template>
          <template #status="props">
             <span v-if="props.rowData.activated" class="badge bg-success">
                Active
@@ -41,7 +45,6 @@
                Unknown
             </span>
          </template>
-         
          <template #actions="props">
             <div class="dropdown">
                <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
@@ -82,9 +85,30 @@
             <div class="modal-body">
                <form id="createForm" @submit.prevent="createJobTitle">
                   <div class="mb-3">
-                     <label for="name" class="form-label">Name</label>
-                     <input id="name" type="text" v-model="form.name" class="form-control">
-                     <div v-if="form.errors.name" class="text-danger">{{ form.errors.name }}</div>
+                     <label for="title" class="form-label">Title</label>
+                     <input id="title" type="text" v-model="form.title" class="form-control">
+                     <div v-if="form.errors.title" class="text-danger">{{ form.errors.title }}</div>
+                  </div>
+                  <div class="mb-3">
+                     <label for="scaleId" class="form-label">Salary Scale</label>
+                     <v-select
+                        id="scaleId"
+                        v-model="form.salary_scale_id"
+                        :options="salaryScales"
+                        label="name"
+                        :reduce="option => option.id"
+                     >
+                        <template #option="option">
+                           <div>{{ option.name }}</div>
+                           <div class="small text-primary"> Grade: {{ option.grade?.name }}</div>
+                        </template>
+                        <template #selected-option="option">
+                           <div>{{ option.name }}</div>
+                        </template>
+                     </v-select>
+                     <div v-if="form.errors.salary_scale_id" class="text-danger">
+                        {{ form.errors.salary_scale_id }}
+                     </div>
                   </div>
                   <div class="mb-3">
                      <label class="row d-flex">
@@ -147,9 +171,30 @@
             <div class="modal-body">
                <form id="createForm" @submit.prevent="updateJobTitle">
                   <div class="mb-3">
-                     <label for="name" class="form-label">Name</label>
-                     <input id="name" type="text" v-model="editForm.name" class="form-control">
-                     <div v-if="editForm.errors.name" class="text-danger">{{ editForm.errors.name }}</div>
+                     <label for="title" class="form-label">Title</label>
+                     <input id="title" type="text" v-model="editForm.title" class="form-control">
+                     <div v-if="editForm.errors.title" class="text-danger">{{ editForm.errors.title }}</div>
+                  </div>
+                  <div class="mb-3">
+                     <label for="scaleId" class="form-label">Salary Scale</label>
+                     <v-select
+                        id="scaleId"
+                        v-model="editForm.salary_scale_id"
+                        :options="salaryScales"
+                        label="name"
+                        :reduce="option => option.id"
+                     >
+                        <template #option="option">
+                           <div>{{ option.name }}</div>
+                           <div class="small text-primary">Grade: {{ option.grade?.name }}</div>
+                        </template>
+                        <template #selected-option="option">
+                           <div>{{ option.name }}</div>
+                        </template>
+                     </v-select>
+                     <div v-if="editForm.errors.salary_scale_id" class="text-danger">
+                        {{ editForm.errors.salary_scale_id }}
+                     </div>
                   </div>
                   <div class="mb-3">
                      <label class="row d-flex">
@@ -193,6 +238,7 @@ import DefaultLayout from "@layouts/DefaultLayout.vue";
 import {Head, Link, useForm} from "@inertiajs/vue3";
 import {Modal} from 'bootstrap';
 import _debounce from "lodash/debounce.js";
+import axios from "axios";
 
 export default {
    components: {DefaultLayout, Head, Link},
@@ -200,8 +246,12 @@ export default {
       return {
          fields: [
             {
-               name: 'name',
-               title: 'NAME',
+               name: 'title',
+               title: 'TITLE',
+            },
+            {
+               name: '__slot:scale',
+               title: 'SCALE',
             },
             {
                name: '__slot:status',
@@ -216,25 +266,41 @@ export default {
          ],
          appendParams: {
             filter: {
-               name: '',
+               title: '',
             }
          },
          form: useForm({
-            name: '',
-            code: '',
-            group: '',
-            activated: '',
+            title: '',
+            salary_scale_id: null,
+            activated: false,
          }),
          editForm: useForm({
             id: '',
-            name: '',
-            code: '',
-            group: '',
-            activated: '',
+            title: '',
+            salary_scale_id: null,
+            activated: false,
          }),
+         salaryScales: [],
       };
    },
+   created() {
+      this.fetchSalaryScales();
+   },
    methods: {
+      fetchSalaryScales() {
+         axios.get('/datatable/salary-scales', {
+            params: {
+               filter: {
+                  activated: true,
+               }
+            }
+         })
+            .then(({data}) => {
+               this.salaryScales = data.data;
+            }).catch((error) => {
+            console.error(error)
+         })
+      },
       showCreateJobTitleModal() {
          const modalElement = this.$refs.createJobTitleModal;
          const modalInstance = Modal.getOrCreateInstance(modalElement);
@@ -243,7 +309,7 @@ export default {
       createJobTitle() {
          this.form.post(route('admin.job-titles.store'), {
             onSuccess: () => {
-               this.form.reset();
+               this.form.reset(); // Reset the form on success
                this.form.clearErrors();
                this.$refs.jobTitlesTable.reloadTable();
                const modalElement = this.$refs.createJobTitleModal;
@@ -257,8 +323,9 @@ export default {
          });
       },
       editJobTitle(rowData) {
-         this.editForm.id = rowData.hashid;
-         this.editForm.name = rowData.name;
+         this.editForm.id = rowData.hashid; // Assign the ID manually
+         this.editForm.title = rowData.title;
+         this.editForm.salary_scale_id = rowData.salary_scale_id;
          this.editForm.activated = rowData.activated;
          
          const modalElement = this.$refs.editJobTitleModal;
@@ -268,7 +335,7 @@ export default {
       updateJobTitle() {
          this.editForm.patch(route('admin.job-titles.update', this.editForm.id), {
             onSuccess: () => {
-               this.editForm.reset();
+               this.editForm.reset(); // Reset the form on success
                this.editForm.clearErrors();
                this.$refs.jobTitlesTable.reloadTable();
                const modalElement = this.$refs.editJobTitleModal;

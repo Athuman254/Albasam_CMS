@@ -17,7 +17,6 @@ class GuardianController extends Controller
         $guardians = QueryBuilder::for(
             Guardian::with('relationship')
         )->allowedFilters([
-            AllowedFilter::exact('id'),
             AllowedFilter::exact('student_id'),
         ])->jsonPaginate();
 

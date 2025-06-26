@@ -10,7 +10,7 @@
                   <Link :href="route('admin.dashboard')">Home</Link>
                </li>
                <li class="breadcrumb-item">
-                  <Link href="/admin/employees/teachers">Registered Teachers</Link>
+                  <Link :href="route('admin.teachers.index')">Registered Teachers</Link>
                </li>
                <li class="breadcrumb-item text-primary">
                   Details
@@ -181,7 +181,7 @@
                            </tr>
                            <tr>
                               <td>Job Title</td>
-                              <td class="fw-medium text-heading">{{ employee.job_title?.name ?? '-'}}</td>
+                              <td class="fw-medium text-heading">{{ teacher.job?.title ?? '-'}}</td>
                            </tr>
                            <tr>
                               <td>Year of experience</td>
@@ -546,14 +546,14 @@
 </template>
 
 <script>
-import axios from "axios";
-import {Inertia} from "@inertiajs/inertia";
-import {useForm} from "@inertiajs/vue3";
-import {Modal} from "bootstrap";
 import DefaultLayout from "@layouts/DefaultLayout.vue";
+import {Head, Link, useForm} from "@inertiajs/vue3";
+import {Inertia} from "@inertiajs/inertia";
+import axios from "axios";
+import {Modal} from "bootstrap";
 
 export default {
-   components: {DefaultLayout},
+   components: {DefaultLayout, Head, Link},
    props: ['teacher', 'employee'],
    
    data() {

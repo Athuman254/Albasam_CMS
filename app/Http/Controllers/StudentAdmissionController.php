@@ -29,24 +29,20 @@ class StudentAdmissionController extends Controller
 {
     public function dataTable()
     {
-        $admissions =  QueryBuilder::for(
-            StudentAdmission::with(['division', 'student'])->orderBy('date')
-        )->allowedFilters([
-            AllowedFilter::exact('id'),
-        ])->jsonPaginate();
+        $admissions = QueryBuilder::for(
+                StudentAdmission::with('student', 'division')
+                    ->orderByDesc('created_at')
+            )->allowedFilters([
+                AllowedFilter::exact('id'),
+                AllowedFilter::scope('search', 'Search'),
+            ])->jsonPaginate();
 
         return Resource::collection($admissions);
     }
 
     public function index()
     {
-        return Inertia::render('Admin/StudentAdmissions/Index', [
-            'divisions' => Division::activated()->orderBy('name')->get(),
-            'classes' => Rank::activated()->orderBy('name')->get(),
-            'genders' => Gender::activated()->orderBy('name')->get(),
-            'religions' => Religion::activated()->orderBy('name')->get(),
-            'relationships' => Relationship::activated()->orderBy('name')->get(),
-        ]);
+        return Inertia::render('Admin/StudentAdmissions/Index');
     }
 
     public function create()
@@ -93,61 +89,74 @@ class StudentAdmissionController extends Controller
             
 //            dd($student);
 
-//            if (isset($validated['guardians']) && is_array($validated['guardians'])) {
-//                $guardianRecords = collect($validated['guardians'])
-//                    ->filter(function ($guardian) {
-//                        return isset($guardian['relationship_id'], $guardian['first_name']);
-//                    })
-//                    ->map(function ($guardian) use ($student) {
-//                        return [
-//                            'student_id' => $student->id,
-//                            'relationship_id' => $guardian['relationship_id'],
-//                            'first_name' => $guardian['first_name'],
-//                            'middle_name' => $guardian['middle_name'],
-//                            'last_name' => $guardian['last_name'],
-//                            'email' => $guardian['email'],
-//                            'phone' => $guardian['phone'],
-//                            'profession' => $guardian['profession'],
-//                            'identification_number' => $guardian['identification_number']
-//                        ];
-//                    })->toArray();
-//
-//                if (!empty($guardianRecords)) {
-//                    Guardian::insert($guardianRecords);
-//                }
-//            }
-//
-//            if (isset($validated['other_details']['siblings']) && is_array($validated['other_details']['siblings'])) {
-//                $siblingRecords = collect($validated['other_details']['siblings'])
-//                    ->filter(function ($sibling) {
-//                        return !empty($sibling['name']) && !empty($sibling['age']);
-//                    })
-//                    ->map(function ($sibling) use ($student) {
-//                        return [
-//                            'student_id' => $student->id,
-//                            'name' => $sibling['name'],
-//                            'age' => $sibling['age'],
-//                            'gender_id' => $sibling['gender_id'],
-//                            'current_school' => $sibling['current_school'],
-//                            'current_class' => $sibling['current_class'],
-//                        ];
-//                    })->toArray();
-//
-//                if(!empty($siblingRecords)) {
-//                    Sibling::insert($siblingRecords);
-//                }
-//            }
+            if (isset($validated['guardians']) && is_array($validated['guardians'])) {
+                $guardianRecords = collect($validated['guardians'])
+                    ->filter(function ($guardian) {
+                        return isset($guardian['relationship_id'], $guardian['first_name']);
+                    })
+                    ->map(function ($guardian) use ($student) {
+                        return [
+                            'student_id' => $student->id,
+                            'relationship_id' => $guardian['relationship_id'],
+                            'first_name' => $guardian['first_name'],
+                            'middle_name' => $guardian['middle_name'],
+                            'last_name' => $guardian['last_name'],
+                            'email' => $guardian['email'],
+                            'phone' => $guardian['phone'],
+                            'profession' => $guardian['profession'],
+                            'identification_number' => $guardian['identification_number']
+                        ];
+                    })->toArray();
 
+                if (!empty($guardianRecords)) {
+                    Guardian::insert($guardianRecords);
+                }
+            }
+
+            if (isset($validated['other_details']['siblings']) && is_array($validated['other_details']['siblings'])) {
+                $siblingRecords = collect($validated['other_details']['siblings'])
+                    ->filter(function ($sibling) {
+                        return !empty($sibling['name']) && !empty($sibling['age']);
+                    })
+                    ->map(function ($sibling) use ($student) {
+                        return [
+                            'student_id' => $student->id,
+                            'name' => $sibling['name'],
+                            'age' => $sibling['age'],
+                            'gender_id' => $sibling['gender_id'],
+                            'current_school' => $sibling['current_school'],
+                            'current_class' => $sibling['current_class'],
+                        ];
+                    })->toArray();
+
+                if(!empty($siblingRecords)) {
+                    Sibling::insert($siblingRecords);
+                }
+            }
+            
             DB::commit();
+//            dd('something happened');
             return to_route('admin.admissions.index');
 
         } catch (\Throwable $exception) {
-
+//            dd($exception);
             DB::rollBack();
             Log::error('Error: ' . $exception->getMessage());
             report($exception);
             return to_route('admin.admissions.form');
         }
+    }
+    
+    public function show(StudentAdmission $studentAdmission)
+    {
+        $studentAdmission->load('division');
+        $student = Student::where('student_admission_id', '=', $studentAdmission->id)->first();
+        $student->load('rank.stream', 'gender', 'religion');
+        
+        return Inertia::render('Admin/StudentAdmissions/Show', [
+            'student' => $student,
+            'admission' => $studentAdmission,
+        ]);
     }
 
     public function edit(StudentAdmission $studentAdmission)

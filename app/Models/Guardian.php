@@ -19,12 +19,12 @@ class Guardian extends Model
         'email', 'phone', 'identification_number', 'profession'
     ];
 
-    public function student()
+    public function student(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Student::class, 'student_id', 'id');
     }
 
-    public function relationship()
+    public function relationship(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Relationship::class, 'relationship_id', 'id');
     }

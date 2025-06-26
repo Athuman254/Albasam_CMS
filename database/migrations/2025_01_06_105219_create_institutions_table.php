@@ -75,13 +75,13 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create('job_titles', function (Blueprint $table) {      // e.g. Teacher, Head Of Department
-            $table->id();
-            $table->string('name');
-            $table->boolean('activated')->default(true);
-            $table->timestamps();
-            $table->softDeletes();
-        });
+//        Schema::create('job_titles', function (Blueprint $table) {      // e.g. Teacher, Head Of Department
+//            $table->id();
+//            $table->string('name');
+//            $table->boolean('activated')->default(true);
+//            $table->timestamps();
+//            $table->softDeletes();
+//        });
 
         Schema::create('specialization_areas', function (Blueprint $table) {    // e.g. STEM, Arts, Science
             $table->id();
@@ -120,7 +120,7 @@ return new class extends Migration
             $table->index('salary_grade_id');
         });
 
-        Schema::create('teacher_titles', function (Blueprint $table) {
+        Schema::create('job_titles', function (Blueprint $table) {
             $table->id();
             $table->string('title')->unique();    // e.g Principal, Deputy Principal
             $table->unsignedBigInteger('salary_grade_id');

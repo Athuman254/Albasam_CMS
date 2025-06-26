@@ -16,7 +16,9 @@ class Teacher extends Model
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
     protected $fillable = [
-        'user_id', 'employee_id', 'first_name', 'middle_name', 'last_name', 'honorific_id', 'specialization_area_id', 'teacher_title_id', 'tsc_number', 'years_of_experience',
+        'user_id', 'employee_id', 'first_name', 'middle_name', 'last_name',
+        'honorific_id', 'job_title_id', 'specialization_area_id',
+        'tsc_number', 'years_of_experience',
     ];
 
     public function user(): BelongsTo
@@ -39,9 +41,9 @@ class Teacher extends Model
         return $this->belongsTo(Specialization::class, 'specialization_area_id', 'id');
     }
 
-    public function title(): BelongsTo
+    public function job(): BelongsTo
     {
-        return $this->belongsTo(TeacherTitle::class, 'teacher_title_id', 'id');
+        return $this->belongsTo(JobTitle::class, 'job_title_id', 'id');
     }
     
     public function scopeSearch($query, string $terms = null)

@@ -17,7 +17,7 @@
     <div id="top-footer" class="overlay-2 section-back-image-2">
         <div class="auto-container">
             <div class="row">
-                <div class="col-lg-4 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
+                <div class="col-lg-3 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
                     <div class="footer-widget-title col-12 p-0">
                         <div class="logo">
                             <a href="#">
@@ -49,9 +49,9 @@
                     </div>
                 </div>
                 <!-- end col -->
-                <div class="col-lg-4 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
+                <div class="col-lg-3 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-5 mb-sm-5 mb-5">
                     <div class="footer-widget-title col-12 p-0">
-                        <h4>Latest Blogs</h4>
+                        <h4>Latest News</h4>
                     </div>
                     <div class="footer-widget-inner">
                         @foreach($blogs->take(2) as $key => $blog)
@@ -65,8 +65,29 @@
                         @endforeach
                     </div>
                 </div>
-                <!-- end col -->
-                <div class="col-lg-4 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-0 mb-sm-0 mb-0">
+                <div class="col-lg-3 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-0 mb-sm-5 mb-5">
+                    <div class="footer-widget-title col-12 p-0">
+                        <h4>Useful Links</h4>
+                    </div>
+                    <div class="footer-widget-inner">
+                        <ul>
+                            @foreach ($menus as $menu)
+                                @php
+                                    $noChildren = $menu->has_children === false;
+                                    $isPage = $menu->type === 'page';
+                                @endphp
+                                @if($isPage && $noChildren)
+                                    <li>
+                                        <a href="{{ route('page.show', $menu->page->slug) }}">
+                                            <i class="icofont-circled-right"></i> {{ $menu->title }}
+                                        </a>
+                                    </li>
+                                @endif
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12 col-12 mb-lg-0 mb-md-0 mb-sm-0 mb-0">
                     <div class="footer-widget-title col-12 p-0">
                         <h4>Get In Touch</h4>
                     </div>

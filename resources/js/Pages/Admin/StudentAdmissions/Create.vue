@@ -843,7 +843,7 @@ export default {
          })
       },
       submitForm() {
-         this.form.post("/admin/student-admissions", {
+         this.form.post(route('admin.admissions.store'), {
             onSuccess: () => {
                this.form.reset();
                (this.currentStep = 1);

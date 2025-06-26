@@ -35,7 +35,7 @@
             </div>
          </div>
          <!-- end col -->
-         <div class="col-lg-7 col-md-7 col-12 pl-lg-5 pl-md-3 pl-0">
+         <div class="col-lg-7 col-md-7 col-12 pl-lg-5 pl-md-3 pl-0 mb-3">
             <div class="contact-heading mb-5">
                <h2>{{ $section->title }}</h2>
             </div>

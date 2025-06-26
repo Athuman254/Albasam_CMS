@@ -19,7 +19,6 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('employment_type_id')->nullable();
             $table->unsignedBigInteger('employment_status_id')->nullable();
-            $table->unsignedBigInteger('job_title_id')->nullable();
             $table->unsignedBigInteger('honorific_id')->nullable();
             $table->unsignedBigInteger('marital_status_id')->nullable();
             $table->unsignedBigInteger('gender_id');
@@ -41,7 +40,6 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('employment_type_id')->references('id')->on('employment_types');
             $table->foreign('employment_status_id')->references('id')->on('employment_statuses');
-            $table->foreign('job_title_id')->references('id')->on('job_titles');
             $table->foreign('honorific_id')->references('id')->on('honorifics');
             $table->foreign('marital_status_id')->references('id')->on('marital_statuses');
             $table->foreign('gender_id')->references('id')->on('genders');
@@ -58,7 +56,7 @@ return new class extends Migration
             $table->string('middle_name')->nullable();
             $table->string('last_name');
             $table->unsignedBigInteger('honorific_id')->nullable();
-            $table->unsignedBigInteger('teacher_title_id')->nullable();
+            $table->unsignedBigInteger('job_title_id')->nullable();
             $table->unsignedBigInteger('specialization_area_id')->nullable();
             $table->string('tsc_number')->nullable();
             $table->tinyInteger('years_of_experience')->default(0)->nullable();
@@ -67,12 +65,15 @@ return new class extends Migration
 
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('employee_id')->references('id')->on('employees');
+            $table->foreign('honorific_id')->references('id')->on('honorifics');
+            $table->foreign('job_title_id')->references('id')->on('job_titles');
             $table->foreign('specialization_area_id')->references('id')->on('specialization_areas');
-            $table->foreign('teacher_title_id')->references('id')->on('teacher_titles');
 
             $table->index('user_id');
             $table->index('employee_id');
-            $table->index('teacher_title_id');
+            $table->index('honorific_id');
+            $table->index('job_title_id');
+            $table->index('specialization_area_id');
         });
 
         Schema::create('qualifications', function (Blueprint $table) {

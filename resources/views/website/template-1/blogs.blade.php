@@ -10,8 +10,11 @@
             </div>
          </div>
          <div class="service-list-des">
-{{--            <h4><i class="icofont-paper"></i>{{ $blog->title }}</h4>--}}
-            <h4><i class="icofont-paper"></i>{{ Str::words($blog->title, 3) }}</h4>
+            <h4>
+               <a href="{{ route('blogs.show', $blog->slug) }}">
+                  <i class="icofont-paper"></i>{{ Str::words($blog->title, 3) }}
+               </a>
+            </h4>
             <div>
                {!! Str::words($blog->details, 15) !!}
             </div>

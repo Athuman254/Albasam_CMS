@@ -82,8 +82,6 @@ class TeacherController extends Controller
             'employee_details.employment_type_id.exists' => 'The selected employment type is invalid.',
             'employee_details.employment_status_id.required' => 'The employment status is required.',
             'employee_details.employment_status_id.exists' => 'The selected employment status is invalid.',
-            'employee_details.job_title_id.required' => 'The job title is required.',
-            'employee_details.job_title_id.exists' => 'The selected job title is invalid.',
             'employee_details.emergency_contacts.array' => 'The emergency contacts must be an array.',
             'employee_details.emergency_contacts.*.name.string' => 'Each emergency contact name must be a valid string.',
             'employee_details.emergency_contacts.*.name.max' => 'Each emergency contact name must not exceed 255 characters.',
@@ -99,7 +97,6 @@ class TeacherController extends Controller
             'employee_details.date_of_hire' => ['nullable', 'date'],
             'employee_details.employment_type_id' => ['required', Rule::exists('employment_types', 'id')],
             'employee_details.employment_status_id' => ['required', Rule::exists('employment_statuses', 'id')],
-            'employee_details.job_title_id' => ['required', Rule::exists('job_titles', 'id')],
             'employee_details.emergency_contacts' => ['nullable', 'array'],
             'employee_details.emergency_contacts.*.name' => ['nullable', 'string', 'max:255'],
             'employee_details.emergency_contacts.*.email' => ['nullable', 'string', 'max:255'],
@@ -121,7 +118,7 @@ class TeacherController extends Controller
 
         $request->validate([
             'other_details.specialization_area_id' => ['nullable', Rule::exists('specializations', 'id')],
-            'other_details.teacher_title_id' => ['nullable', Rule::exists('teacher_titles', 'id')],
+            'other_details.job_title_id' => ['nullable', Rule::exists('job_titles', 'id')],
             'other_details.tsc_number' => ['required', 'string', 'max:255'],
             'other_details.years_of_experience' => ['nullable', 'integer', 'min:0'],
             'other_details.qualifications' => ['nullable', 'array'],
@@ -143,7 +140,7 @@ class TeacherController extends Controller
     {
         return $request->validate([
             'other_details.specialization_area_id' => ['required', Rule::exists('specialization_areas', 'id')],
-            'other_details.teacher_title_id' => ['nullable', Rule::exists('teacher_titles', 'id')],
+            'other_details.job_title_id' => ['nullable', Rule::exists('job_titles', 'id')],
             'other_details.tsc_number' => ['required', 'string', 'max:255'],
             'other_details.years_of_experience' => ['nullable', 'integer', 'min:0'],
             'other_details.qualifications' => ['nullable', 'array'],

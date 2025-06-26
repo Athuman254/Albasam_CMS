@@ -9,6 +9,7 @@
 /public/media
 /public/mix-manifest.json
 /public/storage
+/public/sitemap.xml
 /storage/*.key
 /vendor
 .env

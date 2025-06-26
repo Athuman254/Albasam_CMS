@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Traits\HasHashid;
 use App\Traits\HashidRouting;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Artisan;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\File;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -38,5 +39,20 @@ class Career extends Model
     public function language(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Language::class, 'language_id', 'id');
+    }
+    
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            Artisan::call('sitemap:generate');
+        });
+        
+        static::updated(function () {
+            Artisan::call('sitemap:generate');
+        });
+        
+        static::deleted(function () {
+            Artisan::call('sitemap:generate');
+        });
     }
 }

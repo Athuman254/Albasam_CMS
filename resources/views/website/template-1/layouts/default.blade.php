@@ -5,9 +5,9 @@
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <meta name="viewport" content="width=device-width, initial-scale=1">
 
-      <link rel="shortcut icon" type="image/x-icon" href="{{ $favicon ?? '' }}" />
+      {!! SEOTools::generate() !!}
 
-      <title>{{ $institution->name ?? 'Shariff Nassir Girls Secondary School' }}</title>
+      <link rel="shortcut icon" type="image/x-icon" href="{{ $favicon ?? '' }}" />
 
       <!-- Core CSS -->
       <link rel="stylesheet" href="{{ asset('website/css/fonts.css') }}">

@@ -8,6 +8,7 @@ use App\Http\Resources\Resource;
 use App\Models\Website\Blog;
 use App\Services\HtmlPurifierService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -32,7 +33,7 @@ class BlogController extends Controller
         $user = auth()->user();
         $validated = $request->validated();
         
-        $validated['slug'] = strtolower(str_replace(' ', '-', $validated['title']));
+        $validated['slug'] = Str::slug($validated['title']);
         $validated['details'] = $purifier->purify($validated['details']);
         
         if($validated['blog_category_id'] === '') {
@@ -56,31 +57,10 @@ class BlogController extends Controller
         return back(303);
     }
     
-    public function show($blog)
-    {
-        $blog = Blog::where('slug', '=', $blog)->firstOrFail();
-        $blog->load('user', 'category', 'media');
-        $otherBlogs = Blog::where('id', '!=', $blog->id)->orderByDesc('created_at')->get();
-        $previousBlog = Blog::where('created_at', '<', $blog->created_at)
-        ->orderBy('created_at', 'desc')
-        ->first();
-        $nextBlog = Blog::where('created_at', '>', $blog->created_at)
-            ->orderBy('created_at', 'asc')
-            ->first();
-        
-        
-        return view('website.template-1.blog-details', [
-            'blog' => $blog,
-            'otherBlogs' => $otherBlogs,
-            'previousBlog' => $previousBlog,
-            'nextBlog' => $nextBlog,
-        ]);
-    }
-    
     public function update(BlogRequest $request, Blog $blog)
     {
         $validated = $request->validated();
-        $validated['slug'] = strtolower(str_replace(' ', '-', $validated['slug']));
+        $validated['slug'] = Str::slug($validated['slug']);
         
         $blog->update([
             'title' => $validated['title'],
@@ -98,5 +78,31 @@ class BlogController extends Controller
         $blog->delete();
         
         return redirect()->route('admin.components.index');
+    }
+    
+    public function show($blog)
+    {
+        $blog = Blog::where('slug', '=', $blog)->firstOrFail();
+        $blog->load('user', 'category', 'media');
+        $otherBlogs = Blog::where('id', '!=', $blog->id)->orderByDesc('created_at')->get();
+        $previousBlog = Blog::where('created_at', '<', $blog->created_at)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        $nextBlog = Blog::where('created_at', '>', $blog->created_at)
+            ->orderBy('created_at', 'asc')
+            ->first();
+        
+        $seo = $blog->seoMeta;
+        
+        if($seo) {
+            \App\Models\SeoMeta::applyMeta($seo);
+        }
+        
+        return view('website.template-1.blog-details', [
+            'blog' => $blog,
+            'otherBlogs' => $otherBlogs,
+            'previousBlog' => $previousBlog,
+            'nextBlog' => $nextBlog,
+        ]);
     }
 }

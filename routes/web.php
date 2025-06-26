@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MediaController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 //Route::get('/admin', function () {
@@ -10,18 +11,18 @@ use Illuminate\Support\Facades\Route;
 Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'index'])->name('login.index');
 Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'store'])->name('login');
 
-/***************************
+/********************************
  *  SYSTEM DASHBOARD ROUTES
- ***************************/
+ *******************************/
 Route::group([
     'middleware' => 'auth'
 ], function () {
 
     Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'destroy'])->name('logout');
     
-    /**
+    /********************************
      * DATATABLE ROUTES
-     */
+     *******************************/
     Route::group([
         'prefix' => 'datatable',
         'as' => 'datatable.'
@@ -73,14 +74,15 @@ Route::group([
         Route::get('/website/pages', [\App\Http\Controllers\Website\PageController::class, 'dataTable'])->name('website.pages');
         Route::get('/website/page-sections', [\App\Http\Controllers\Website\SectionController::class, 'dataTable'])->name('website.sections');
         Route::get('/website/page-sub-sections', [\App\Http\Controllers\Website\SubSectionController::class, 'dataTable']);
+        Route::get('/website/seo-metas', [\App\Http\Controllers\Website\SeoMetaController::class, 'dataTable']);
     });
 
     Route::resource('/attendance', \App\Http\Controllers\AttendanceController::class)->names('attendance');
-    Route::get('/attendance-record', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('attendennce-records');
+    Route::get('/attendance-record', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('attendance-records');
     
-    /**
+    /********************************
      * USER PROFILE ROUTES
-     */
+     *******************************/
     Route::group([
         'prefix' => 'profile',
         'as' => 'profile.'
@@ -92,7 +94,7 @@ Route::group([
     
     /**********************************************************************
      *  ADMIN ROUTES
-     *********************************************************************/
+     *******************************/
     Route::group([
         'prefix' => 'admin',
         'as' => 'admin.'
@@ -100,9 +102,9 @@ Route::group([
 
         Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
         
-        /**
+        /********************************
          * FORM WIZARD ROUTES
-         */
+         *******************************/
         Route::group([
             'prefix' => '/student-admissions',
         ], function () {
@@ -131,15 +133,15 @@ Route::group([
         Route::patch('/lessons/{lesson}', [\App\Http\Controllers\LessonController::class, 'update']);
         Route::delete('/lessons/{lesson}', [\App\Http\Controllers\LessonController::class, 'destroy']);
         
-        /**
+        /********************************
          * EMPLOYEE MANAGEMENT ROUTES
-         */
+         *******************************/
         Route::group([
             'prefix' => 'employees',
         ], function () {
-            /**
+            /********************************
              * FORM WIZARD ROUTES
-             */
+             *******************************/
             Route::group([
                 'prefix' => '/teacher-registration',
             ], function () {
@@ -165,9 +167,9 @@ Route::group([
             Route::resource('/emergency-contacts', \App\Http\Controllers\EmergencyContactController::class)->names('emergency.contacts');
         });
         
-        /**
+        /********************************
          * SMS MANAGEMENT ROUTES
-         */
+         *******************************/
         Route::group([
             'prefix' => 'sms'
         ], function () {
@@ -176,9 +178,9 @@ Route::group([
             Route::get('outbox', [\App\Http\Controllers\SmsController::class, 'index'])->name('sms.outbox');
         });
         
-        /**
+        /********************************
          * SYSTEM SETTINGS ROUTES
-         */
+         *******************************/
         Route::group([
             'prefix' => 'settings',
         ], function () {
@@ -210,10 +212,10 @@ Route::group([
         Route::resource('/roles', \App\Http\Controllers\Settings\RoleController::class)->names('roles');
         Route::resource('/ranks', \App\Http\Controllers\Settings\RankController::class)->names('ranks');
         //        Route::resource('/permissions', \App\Http\Controllers\PermissionController::class)->names('permissions');
-
-        /**
+        
+        /********************************
         * WEBSITE MANAGEMENT ROUTES
-        */
+         *******************************/
         Route::group([
             'prefix' => 'website'
         ], function () {
@@ -237,15 +239,25 @@ Route::group([
             Route::post('/medias/section', [MediaController::class, 'uploadSectionMedia'])->name('pages.sections.media');
             Route::delete('/medias/{section}', [MediaController::class, 'deleteSectionMedia'])->name('pages.sections.delete-media');
             
+            Route::post('/sitemap/generate', function() {
+                Artisan::call('app:generate-sitemap');
+                return back()->with('success', 'Sitemap generated successfully.');
+            })->name('sitemap.generate');
+            
+            Route::get('/sitemap.xml', function () {
+                return response()->file(public_path('sitemap.xml'));
+            });
+            
             Route::resource('/menus', \App\Http\Controllers\Website\MenuController::class)->names('menus');
             Route::resource('/customisations', \App\Http\Controllers\Website\CustomisationController::class)->names('customisations');
             Route::resource('/sections-cta-buttons', \App\Http\Controllers\Website\SectionCtaButtonController::class)->names('cta-buttons')->only('store', 'update', 'destroy');
+            Route::resource('/seo-metas', \App\Http\Controllers\Website\SeoMetaController::class)->names('seo-metas')->except('create', 'edit', 'show');
         });
    });
     
-    /**
+    /********************************
      *  TEACHER ROUTES
-     */
+     *******************************/
     Route::group([
         'prefix' => 'teacher',
         'as' => 'teacher.',
@@ -254,27 +266,19 @@ Route::group([
     });
 });
 
-/**********************************************************************
+
+/********************************
  *  WEBSITE ROUTES
- *********************************************************************/
-
-Route::get('/', function () {
-    $homePage = \App\Models\Website\Page::where('title', '=', 'Home')->firstOrFail();
-    $customisation = \App\Models\Website\Customisation::orderBy('id')->first() ?? null;
-    
-    if ($homePage) {
-        $homePage->load('sections.cta_buttons.page');
-        $sections = \App\Models\Website\Section::with('cta_buttons.page', 'media')->where('page_id', '=', $homePage->id)->get() ?? null;
-        
-        return view('website.template-1.pages.home', [
-            'page' => $homePage,
-            'sections' => $sections,
-            'customisation' => $customisation,
-        ]);
-    }
-    return view('website.template-1.landing-page');
-})->name('homepage');
-
+ *******************************/
+Route::get('/', [\App\Http\Controllers\Website\HomePageController::class, 'index'])->name('homepage');
 Route::get('/blogs/{blog}', [\App\Http\Controllers\Website\BlogController::class, 'show'])->name('blogs.show');
 Route::get('/vacancies/{career}', [\App\Http\Controllers\Website\CareerController::class, 'show'])->name('careers.show');
 Route::get('/{slug}', [\App\Http\Controllers\Website\PageController::class, 'show'])->name('page.show');
+
+
+/********************************
+ *  SITEMAP
+ *******************************/
+Route::get('/sitemap.xml', function () {
+    return response()->file(public_path('sitemap.xml'));
+});

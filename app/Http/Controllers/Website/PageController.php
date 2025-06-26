@@ -7,6 +7,7 @@ use App\Http\Resources\Resource;
 use App\Models\Website\Page;
 use App\Models\Website\Section;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -45,7 +46,7 @@ class PageController extends Controller
             $isHome = true;
         }
 
-        $slug = strtolower(str_replace(' ', '-', $validated['title']));
+        $slug = Str::slug($validated['title']);
 
         Page::create([
             'title' => $validated['title'],
@@ -56,19 +57,6 @@ class PageController extends Controller
         ]);
 
         return back(303)->with('success', 'Page created.');
-    }
-    
-    public function show($page)
-    {
-        $page = Page::where('slug', '=', $page)->firstOrFail();
-        $sections = Section::with('cta_buttons.page', 'media')->where('page_id', '=', $page->id)->orderBy('order')->get() ?? null;
-        $customisation = \App\Models\Website\Customisation::orderBy('id')->first() ?? null;
-        
-        return view('website.template-1.pages.show', [
-            'page' => $page,
-            'sections' => $sections,
-            'customisation' => $customisation,
-        ]);
     }
     
     public function manageSections(Page $page)
@@ -92,8 +80,8 @@ class PageController extends Controller
         if ($validated['title'] == 'Home' || $validated['slug'] == 'home') {
             $isHome = true;
         }
-
-        $slug = strtolower(str_replace(' ', '-', $validated['slug']));
+        
+        $slug = Str::slug($validated['title']);
 
         $page->update([
             'title' => $validated['title'],
@@ -105,11 +93,33 @@ class PageController extends Controller
 
         return back(303)->with('success', 'Page updated successfully.');
     }
-
+    
     public function destroy(Page $page)
     {
+        foreach ($page->sections as $section) {
+            $section->delete();
+        }
         $page->delete();
-
-        return back(303)->with('success', 'Page deleted');
+        
+        return back(303)->with('success', 'Page deleted successfully');
+    }
+    
+    public function show($page)
+    {
+        $page = Page::where('slug', '=', $page)->firstOrFail();
+        $sections = Section::with('cta_buttons.page', 'media')->where('page_id', '=', $page->id)->orderBy('order')->get() ?? null;
+        $customisation = \App\Models\Website\Customisation::orderBy('id')->first() ?? null;
+        
+        $seo = $page->seoMeta;
+        
+        if($seo) {
+            \App\Models\SeoMeta::applyMeta($seo);
+        }
+        
+        return view('website.template-1.pages.show', [
+            'page' => $page,
+            'sections' => $sections,
+            'customisation' => $customisation,
+        ]);
     }
 }

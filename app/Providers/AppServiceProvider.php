@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
@@ -92,5 +93,7 @@ class AppServiceProvider extends ServiceProvider
                 ];
             },
         ]);
+        $loader = AliasLoader::getInstance();
+        $loader->alias('SEOTools', \Artesaos\SEOTools\Facades\SEOTools::class);
     }
 }

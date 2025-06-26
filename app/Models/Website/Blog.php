@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Traits\HasHashid;
 use App\Traits\HashidRouting;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Artisan;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\File;
@@ -47,5 +48,16 @@ class Blog extends Model implements HasMedia
                     ->width(831)
                     ->height(301);
             });
+    }
+    
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            Artisan::call('sitemap:generate');
+        });
+        
+        static::deleted(function () {
+            Artisan::call('sitemap:generate');
+        });
     }
 }

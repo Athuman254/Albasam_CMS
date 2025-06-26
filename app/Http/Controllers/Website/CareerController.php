@@ -8,6 +8,7 @@ use App\Http\Resources\Resource;
 use App\Models\Website\Career;
 use App\Services\HtmlPurifierService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -31,7 +32,7 @@ class CareerController extends Controller
         $user = auth()->user();
         $validated = $request->validated();
         
-        $validated['slug'] = strtolower(str_replace(' ', '-', $validated['title']));
+        $validated['slug'] = Str::slug($validated['title']);
         $validated['job_description'] = $purifier->purify($validated['job_description']);
         
         if($validated['employment_type_id'] === '') {
@@ -76,7 +77,7 @@ class CareerController extends Controller
     public function update(CareerRequest $request, Career $career)
     {
         $validated = $request->validated();
-        $validated['slug'] = strtolower(str_replace(' ', '-', $validated['slug']));
+        $validated['slug'] = Str::slug($validated['slug']);
         
         $career->update([
             'title' => $validated['title'],

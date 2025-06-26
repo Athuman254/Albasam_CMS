@@ -1,5 +1,5 @@
 <template>
-   <Head title="Website Menus"/>
+   <Head title="Website Pages"/>
    
    <DefaultLayout>
       <div class="row">
@@ -70,7 +70,7 @@
                            <Link class="dropdown-item" :href="route('admin.pages.manage-sections', props.rowData.hashid)">
                               <i class="bx bx-detail me-2"></i> Page Sections
                            </Link>
-                           <a class="dropdown-item text-danger" href="#">
+                           <a class="dropdown-item text-danger" href="#" @click.prevent="deletePage(props.rowData)">
                               <i class="bx bx-trash me-2"></i>Delete
                            </a>
                         </div>
@@ -335,8 +335,19 @@ export default {
             },
          })
       },
-      deletePage() {
-         //
+      deletePage(page) {
+         this.$toast.question('Are you sure? This process is irreversible!', `Deleting ${page.title}`).then(() => {
+            this.$inertia.delete(route('admin.pages.destroy', page.hashid), {
+               onSuccess: () => {
+                  this.$toast.success('Page deleted successfully!', 'Success');
+                  this.$refs.pagesTable.reloadTable();
+               },
+               onError: (error) => {
+                  console.log(error)
+                  this.$toast.error('An error occurred while deleting the page!', 'Error');
+               }
+            })
+         })
       },
       applyFilter: _debounce(function () {
          this.$refs.pagesTable.reloadTable();

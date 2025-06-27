@@ -5,6 +5,7 @@ namespace App\Models\Website;
 use App\Models\User;
 use App\Traits\HasHashid;
 use App\Traits\HashidRouting;
+use App\Traits\HasSeoMeta;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
 use Spatie\MediaLibrary\HasMedia;
@@ -14,7 +15,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Blog extends Model implements HasMedia
 {
-    use HasHashid, HashidRouting, InteractsWithMedia;
+    use HasHashid, HashidRouting, InteractsWithMedia, HasSeoMeta;
     
     protected $table = 'blogs';
     protected $primaryKey = 'id';
@@ -53,11 +54,15 @@ class Blog extends Model implements HasMedia
     protected static function booted(): void
     {
         static::saved(function () {
-            Artisan::call('sitemap:generate');
+            Artisan::call('app:generate-sitemap');
+        });
+        
+        static::updated(function () {
+            Artisan::call('app:generate-sitemap');
         });
         
         static::deleted(function () {
-            Artisan::call('sitemap:generate');
+            Artisan::call('app:generate-sitemap');
         });
     }
 }

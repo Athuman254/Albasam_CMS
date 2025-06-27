@@ -1,3 +1,9 @@
+@extends('website.template-1.layouts.default')
+
+{{--@push('meta_tags')--}}
+{{--   {!! SEOTools::generate() !!}--}}
+{{--@endpush--}}
+
 @push('styles')
    <style>
       .single-blog-post-content p {
@@ -5,8 +11,6 @@
       }
    </style>
 @endpush
-
-@extends('website.template-1.layouts.default')
 
 @section('page-content')
    @include('website.template-1.layouts.shared.banner', ['title' => $blog->title])

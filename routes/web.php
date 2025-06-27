@@ -244,10 +244,6 @@ Route::group([
                 return back()->with('success', 'Sitemap generated successfully.');
             })->name('sitemap.generate');
             
-            Route::get('/sitemap.xml', function () {
-                return response()->file(public_path('sitemap.xml'));
-            });
-            
             Route::resource('/menus', \App\Http\Controllers\Website\MenuController::class)->names('menus');
             Route::resource('/customisations', \App\Http\Controllers\Website\CustomisationController::class)->names('customisations');
             Route::resource('/sections-cta-buttons', \App\Http\Controllers\Website\SectionCtaButtonController::class)->names('cta-buttons')->only('store', 'update', 'destroy');

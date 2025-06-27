@@ -49,4 +49,11 @@ class SeoMetaController extends Controller
         
         return back(303)->with('success', 'SEO Meta has been updated.');
     }
+    
+    public function destroy(SeoMeta $seoMeta)
+    {
+        $seoMeta->delete();
+        
+        return back(303)->with('success', 'Meta SEO has been deleted.');
+    }
 }

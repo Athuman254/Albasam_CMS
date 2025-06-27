@@ -1,6 +1,8 @@
 @extends('website.template-1.layouts.default')
-@section('meta_tags')
-@endsection
+
+@push('meta_tags')
+   {!! SEOTools::generate() !!}
+@endpush
 
 @section('page-content')
 @if($sections->isNotEmpty())

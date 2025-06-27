@@ -28,11 +28,15 @@ class Page extends Model
     protected static function booted(): void
     {
         static::saved(function () {
-            Artisan::call('sitemap:generate');
+            Artisan::call('app:generate-sitemap');
+        });
+        
+        static::updated(function () {
+            Artisan::call('app:generate-sitemap');
         });
         
         static::deleted(function () {
-            Artisan::call('sitemap:generate');
+            Artisan::call('app:generate-sitemap');
         });
     }
 }

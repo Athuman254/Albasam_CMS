@@ -10,7 +10,7 @@
                   <Link :href="route('admin.dashboard')">Home</Link>
                </li>
                <li class="breadcrumb-item text-primary">
-                  <a href="#">SEO Configurations</a>
+                  SEO Configurations
                </li>
             </ol>
          </nav>
@@ -28,7 +28,7 @@
                            Visit this link to view the sitemap file: <a href="/sitemap.xml" target="_blank" class="ms-2 text-primary text-decoration-underline">SITEMAP</a>
                         </div>
                      </div>
-                     <div class="col-auto ms-auto d-print-none">
+                     <div class="col-auto ms-md-auto mt-md-0 ms-0 mt-3 d-print-none">
                         <div class="btn-list">
                            <button class="btn btn-primary d-none d-sm-inline-block" :disabled="form.processing" @click="generateSiteMap">
                               Generate
@@ -47,7 +47,7 @@
                                placeholder="Search..."
                                @input="applyFilter" v-model="appendParams.filter.title">
                      </div>
-                     <div class="col-md-6 col-3 ms-lg-auto">
+                     <div class="col-md-6 col-3 ms-md-auto">
                         <div class="flex-wrap text-end">
                            <div class="card-action">
                               <button type="button" class="btn btn-primary d-none d-sm-inline-block" @click="createSeoMeta">

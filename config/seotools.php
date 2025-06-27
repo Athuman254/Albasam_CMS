@@ -14,7 +14,7 @@ return [
             'titleBefore'  => false, // Put defaults.title before page title, like 'It's Over 9000! - Dashboard'
             'description'  => 'A school management system and website', // set false to total remove
             'separator'    => ' - ',
-            'keywords'     => ['school management system', 'website', 'system', 'technology'],
+            'keywords'     => ['school management system', 'website', 'system', 'technology', 'student'],
             'canonical'    => 'current', // Set to null or 'full' to use Url::full(), set to 'current' to use Url::current(), set false to total remove
             'robots'       => 'all', // Set to 'all', 'none' or any combination of index/noindex and follow/nofollow
         ],

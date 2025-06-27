@@ -4,12 +4,11 @@
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-
-      {!! SEOTools::generate() !!}
+      <meta name="google-site-verification" content="u7fyCOjASVh_qUiSHCOEotYDc6D7BvcnbV_S7Eoxg6c" />
+      @stack('meta_tags')
 
       <link rel="shortcut icon" type="image/x-icon" href="{{ $favicon ?? '' }}" />
 
-      <!-- Core CSS -->
       <link rel="stylesheet" href="{{ asset('website/css/fonts.css') }}">
       <link rel="stylesheet" href="{{ asset('website/css/custom.css') }}">
       <link rel="stylesheet" href="{{ asset('website/css/bootstrap.min.css') }}">
@@ -23,7 +22,6 @@
       <link rel="stylesheet" href="{{ asset('/website/css/responsive.css') }}">
 
       <style>
-         /* CSS */
          :root {
             font-family: 'Dosis', 'Roboto', sans-serif !important;
             font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
@@ -45,13 +43,10 @@
    </head>
 
    <body id="main">
-
-      <!-- START PRELOADER -->
       <div id="page-preloader">
          <div class="loader"></div>
          <div class="loa-shadow"></div>
       </div>
-      <!-- END PRELOADER -->
 
       @include('website.template-1.layouts.shared.header')
 

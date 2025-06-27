@@ -7,6 +7,7 @@ use App\Models\Language;
 use App\Models\User;
 use App\Traits\HasHashid;
 use App\Traits\HashidRouting;
+use App\Traits\HasSeoMeta;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -15,7 +16,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Career extends Model
 {
-    use HasHashid, HashidRouting, InteractsWithMedia;
+    use HasHashid, HashidRouting, InteractsWithMedia, HasSeoMeta;
     
     protected $table = 'careers';
     protected $primaryKey = 'id';

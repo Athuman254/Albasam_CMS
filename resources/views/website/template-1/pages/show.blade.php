@@ -1,5 +1,9 @@
 @extends('website.template-1.layouts.default')
 
+@push('meta_tags')
+   {!! SEOTools::generate() !!}
+@endpush
+
 @section('page-content')
     @include('website.template-1.layouts.shared.banner', ['title' => $page->title])
 

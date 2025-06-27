@@ -1,25 +1,29 @@
+@extends('website.template-1.layouts.default')
+
 @push('styles')
-    <style>
-       ul {
-          list-style: none;
-       }
-       .job-details p {
-          /*color: #15141A;*/
-          margin-bottom: 8px;
-       }
-       .job-details ul {
-          margin-left: 25px;
-       }
-       .job-details li {
-          list-style: square;
-       }
-       .job-details ul li p {
-          margin-bottom: 0;
-       }
-    </style>
+   <style>
+      ul {
+         list-style: none;
+      }
+      .job-details p {
+         /*color: #15141A;*/
+         margin-bottom: 8px;
+      }
+      .job-details ul {
+         margin-left: 25px;
+      }
+      .job-details li {
+         list-style: square;
+      }
+      .job-details ul li p {
+         margin-bottom: 0;
+      }
+   </style>
 @endpush
 
-@extends('website.template-1.layouts.default')
+{{--@push('meta_tags')--}}
+{{--   {!! SEOTools::generate() !!}--}}
+{{--@endpush--}}
 
 @section('page-content')
    @include('website.template-1.layouts.shared.banner', ['title' => $career->title])

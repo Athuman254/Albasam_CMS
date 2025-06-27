@@ -22,7 +22,6 @@
                   </ul>
                </div>
             </div>
-            <!-- end col -->
             <div class="col-lg-8 col-md-12 col-sm-12 col-12 text-lg-right text-center">
                <div class="top-menu">
                   <ul>
@@ -31,7 +30,6 @@
                   </ul>
                </div>
             </div>
-            <!-- end col -->
          </div>
       </div>
    </div>
@@ -54,7 +52,6 @@
                   </a>
                </div>
             </div>
-            <!-- end col -->
             <div class="col-lg-9 col-12">
                <div class="header-info-box float-end">
                   <div class="header-info-icon">
@@ -78,7 +75,6 @@
 {{--                  <p>Mon - Fri : 07:00 - 17:00</p>--}}
 {{--               </div>--}}
             </div>
-            <!-- end col -->
          </div>
       </div>
    </div>

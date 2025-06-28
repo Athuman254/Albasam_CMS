@@ -2,69 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    public function index()
+    /**
+     * Display the user's profile form.
+     */
+    public function edit(Request $request): Response
     {
         $user = auth()->user();
-        $user->load('roles');
-
-        return Inertia::render('Profile/Index', [
+        
+        return Inertia::render('Profile/Edit', [
             'user' => $user,
+            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'status' => session('status'),
         ]);
     }
 
-    public function update(Request $request)
+    /**
+     * Update the user's profile information.
+     */
+    public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'max:50'],
-            'username' => ['required', 'max:100'],
-            'email' => ['required', 'email', 'max:100'],
-            'phone' => ['nullable'],
-            'password' => ['nullable', 'max:30']
-        ]);
+        $request->user()->fill($request->validated());
 
-        $loggedInUser = User::find(auth()->user()->id);
-
-        if($validated['email'] === $loggedInUser->email){
-            if($validated['password'] === null || $validated['password'] === ''){
-                $loggedInUser->update([
-                    'name' => $validated['name'],
-                    'username' => $validated['username'],
-                    'phone' => $validated['phone'],
-                ]);
-            }else{
-                $loggedInUser->update([
-                    'name' => $validated['name'],
-                    'username' => $validated['username'],
-                    'phone' => $validated['phone'],
-                    'password' => Hash::make($validated['password'])
-                ]);
-            }
-        }else{
-            if($validated['password'] === null || $validated['password'] === ''){
-                $loggedInUser->update([
-                    'name' => $validated['name'],
-                    'username' => $validated['username'],
-                    'email' => $validated['email'],
-                    'phone' => $validated['phone'],
-                ]);
-            }else{
-                $loggedInUser->update([
-                    'name' => $validated['name'],
-                    'username' => $validated['username'],
-                    'email' => $validated['email'],
-                    'phone' => $validated['phone'],
-                    'password' => Hash::make($validated['password'])
-                ]);
-            }
+        if ($request->user()->isDirty('email')) {
+            $request->user()->email_verified_at = null;
         }
 
-        return to_route('profile.index')->with('success', 'Details updated.');
+        $request->user()->save();
+
+        return Redirect::route('profile.edit');
+    }
+
+    /**
+     * Delete the user's account.
+     */
+    public function destroy(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/');
     }
 }

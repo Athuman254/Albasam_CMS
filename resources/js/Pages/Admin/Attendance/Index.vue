@@ -80,7 +80,7 @@
 import _debounce from 'lodash/debounce.js';
 import axios from 'axios';
 import DefaultLayout from '@layouts/DefaultLayout.vue';
-import {VueTable} from '@componentsDatable.vue';
+import {VueTable} from '@components/global/DataTable.vue';
 import {Head, Link, useForm} from "@inertiajs/vue3";
 import {Modal} from 'bootstrap';
 import {Inertia} from '@inertiajs/inertia';

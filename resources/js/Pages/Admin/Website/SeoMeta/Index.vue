@@ -24,9 +24,9 @@
                         <div class="markdown text-secondary">
                            You can manually generate your website sitemap file with the button
                         </div>
-                        <div class="markdown text-secondary">
-                           Visit this link to view the sitemap file: <a href="/sitemap.xml" target="_blank" class="ms-2 text-primary text-decoration-underline">SITEMAP</a>
-                        </div>
+<!--                        <div class="markdown text-secondary">-->
+<!--                           Visit this link to view the sitemap file: <a href="/sitemap.xml" target="_blank" class="ms-2 text-primary text-decoration-underline">SITEMAP</a>-->
+<!--                        </div>-->
                      </div>
                      <div class="col-auto ms-md-auto mt-md-0 ms-0 mt-3 d-print-none">
                         <div class="btn-list">

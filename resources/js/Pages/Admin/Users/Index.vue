@@ -59,7 +59,7 @@
                            <button class="dropdown-item" type="button" @click="editPermissions(props.rowData)">
                               <i class="bx bx-key me-2"></i>Permissions
                            </button>
-                           <a class="dropdown-item text-danger" href="#">
+                           <a class="dropdown-item text-danger disabled" href="#">
                               <i class="bx bx-trash me-2"></i>Delete
                            </a>
                         </div>
@@ -81,7 +81,7 @@
          >
             <div class="modal-dialog modal-body-simple">
                <div class="modal-content">
-                  <div class="modal-header pb-5">
+                  <div class="modal-header">
                      <h5 class="modal-title" id="create-user-modal-label">Add User</h5>
                      <button
                         type="button"
@@ -153,48 +153,6 @@
                               <span class="form-check-description">When enabled, the user can login into the system.</span>
                            </label>
                         </div>
-                        
-                        <div class="mb-3">
-                           <label class="row d-flex">
-                              <span class="col">
-                                 <span class="fw-bold me-3">Admin</span>
-                              </span>
-                              <span class="col-auto">
-                                 <label class="form-check form-switch">
-                                    <input v-model="form.is_admin" class="form-check-input" type="checkbox">
-                                 </label>
-                              </span>
-                              <span class="form-check-description">When enabled, the user can login into the system as an admin.</span>
-                           </label>
-                        </div>
-                        
-                        <div class="mb-3">
-                           <label class="row d-flex">
-                              <span class="col">
-                                 <span class="fw-bold me-3">Teacher</span>
-                              </span>
-                              <span class="col-auto">
-                                 <label class="form-check form-switch">
-                                    <input v-model="form.is_teacher" class="form-check-input" type="checkbox">
-                                 </label>
-                              </span>
-                              <span class="form-check-description">When enabled, the user can login into the system as a teacher.</span>
-                           </label>
-                        </div>
-                        
-                        <div class="mb-3">
-                           <label class="row">
-                              <span class="col">
-                                 <span class="fw-bold">Parent</span>
-                              </span>
-                              <span class="col-auto">
-                                 <label class="form-check form-switch">
-                                    <input v-model="form.is_parent" class="form-check-input" type="checkbox">
-                                 </label>
-                              </span>
-                              <span class="form-check-description">When enabled, the user can login into the system as a parent.</span>
-                           </label>
-                        </div>
                      </form>
                   </div>
                   <div class="modal-footer pt-5">
@@ -230,7 +188,7 @@
          >
             <div class="modal-dialog modal-body-simple">
                <div class="modal-content">
-                  <div class="modal-header pb-5">
+                  <div class="modal-header">
                      <h5 class="modal-title" id="edit-user-modal-label">Edit User</h5>
                      <button
                         type="button"
@@ -303,50 +261,6 @@
                               <span class="form-check-description">When enabled, the user can login into the system.</span>
                            </label>
                         </div>
-                        
-                        <div class="mb-3">
-                           <label class="row d-flex">
-                              <span class="col">
-                                 <span class="fw-bold me-3">Admin</span>
-                              </span>
-                              <span class="col-auto">
-                                 <label class="form-check form-switch">
-                                    <input v-model="editForm.is_admin" class="form-check-input"
-                                           type="checkbox">
-                                 </label>
-                              </span>
-                              <span class="form-check-description">When enabled, the user can login into the system as an admin.</span>
-                           </label>
-                        </div>
-                        
-                        <div class="mb-3">
-                           <label class="row d-flex">
-                              <span class="col">
-                                 <span class="fw-bold me-3">Teacher</span>
-                              </span>
-                              <span class="col-auto">
-                                 <label class="form-check form-switch">
-                                    <input v-model="editForm.is_teacher" class="form-check-input"
-                                           type="checkbox">
-                                 </label>
-                              </span>
-                              <span class="form-check-description">When enabled, the user can login into the system as a teacher.</span>
-                           </label>
-                        </div>
-                        
-                        <div class="mb-3">
-                           <label class="row">
-                              <span class="col">
-                                 <span class="fw-bold">Parent</span>
-                              </span>
-                              <span class="col-auto">
-                                 <label class="form-check form-switch">
-                                    <input v-model="editForm.is_parent" class="form-check-input" type="checkbox">
-                                 </label>
-                              </span>
-                              <span class="form-check-description">When enabled, the user can login into the system as a parent.</span>
-                           </label>
-                        </div>
                      </form>
                   </div>
                   <div class="modal-footer pt-5">
@@ -363,7 +277,7 @@
                         class="btn btn-primary"
                         @click.prevent="updateUser"
                      >
-                        Submit
+                        Update
                      </button>
                   </div>
                </div>
@@ -484,9 +398,6 @@ export default {
             role_id: '',
             password: '',
             activated: '',
-            is_admin: '',
-            is_teacher: '',
-            is_parent: '',
          }),
          editForm: useForm({
             id: '',
@@ -497,9 +408,6 @@ export default {
             role_id: '',
             password: '',
             activated: '',
-            is_admin: '',
-            is_teacher: '',
-            is_parent: '',
          }),
          permissionForm: useForm({
             id: '',
@@ -576,9 +484,6 @@ export default {
          this.editForm.email = rowData.email;
          this.editForm.phone = rowData.phone;
          this.editForm.activated = rowData.activated;
-         this.editForm.is_admin = rowData.is_admin;
-         this.editForm.is_teacher = rowData.is_teacher;
-         this.editForm.is_parent = rowData.is_parent;
          
          if (rowData.roles.length) {
             this.editForm.role_id = rowData.roles[0].id

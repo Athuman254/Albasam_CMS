@@ -26,9 +26,6 @@ class UserRequest extends FormRequest
             'role_id' => ['nullable', Rule::exists('roles', 'id')],
             'password' => ['required', 'min:8', 'max:15'],
             'activated' => ['boolean'],
-            'is_admin' => ['boolean'],
-            'is_teacher' => ['boolean'],
-            'is_parent' => ['boolean'],
         ];
     }
     
@@ -42,9 +39,6 @@ class UserRequest extends FormRequest
             'role_id' => ['nullable', Rule::exists('roles', 'id')],
             'password' => ['nullable', 'min:8', 'max:15'],
             'activated' => ['boolean'],
-            'is_admin' => ['boolean'],
-            'is_teacher' => ['boolean'],
-            'is_parent' => ['boolean'],
         ];
     }
 }

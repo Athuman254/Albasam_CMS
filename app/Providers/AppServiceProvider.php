@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
@@ -27,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
     {
         if (Schema::hasTable('institutions')) {
             $institution = \App\Models\Institution::first(); // Fetch the first institution
-
+            
             if ($institution) {
                 $logo = $institution->hasMedia('logo') ? $institution->getMedia('logo')->sortByDesc('created_at')->first()->getUrl() : null;
                 $favicon = $institution->hasMedia('favicon') ? $institution->getMedia('favicon')->sortByDesc('created_at')->first()->getUrl() : null;
@@ -60,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
         }
         if(Schema::hasTable('pages')) {
             $pages = \App\Models\Website\Page::where('published', true)->where('is_home', false)->get();
-
+            
             if ($pages) {
                 View::share('pages', $pages);
             }
@@ -88,12 +89,13 @@ class AppServiceProvider extends ServiceProvider
         Inertia::share([
             'auth' => function () {
                 return [
-                    'user' => Auth::user() ? Auth::user()->only(['id', 'name', 'email', 'is_admin', 'is_teacher', 'is_parent']) : null,
-                    'logged_in_as' => Session::get('logged_in_as'), // Pass logged-in role
+                    'user' => Auth::user() ? Auth::user()->only(['id', 'name', 'username', 'email', 'email_verified_at', 'phone', 'activated']) : null,
                 ];
             },
         ]);
         $loader = AliasLoader::getInstance();
         $loader->alias('SEOTools', \Artesaos\SEOTools\Facades\SEOTools::class);
+        
+        Vite::prefetch(concurrency: 3);
     }
 }

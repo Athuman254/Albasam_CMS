@@ -158,7 +158,7 @@
                   </nav>
                </div>
                <div class="col-lg-3 d-lg-block text-right">
-                  <a href="{{ route('login.index') }}" target="blank" class="header-search h5 mb-0">
+                  <a href="{{ route('login') }}" target="blank" class="header-search h5 mb-0">
                      Portal
                   </a>
                </div>

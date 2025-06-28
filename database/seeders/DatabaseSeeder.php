@@ -88,9 +88,7 @@ class DatabaseSeeder extends Seeder
             'name'      => 'John Doe',
             'username'  => 'admin',
             'email'     => 'admin@app.com',
-            'phone'     => '0712345678',
             'password'  => Hash::make('admin@!2025'),
-            'is_admin' => true,
         ]);
         
         $this->call(LaratrustSeeder::class);

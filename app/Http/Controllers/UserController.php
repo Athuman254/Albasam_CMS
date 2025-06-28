@@ -23,9 +23,6 @@ class UserController extends Controller
         )->allowedFilters([
             AllowedFilter::exact('id'),
             AllowedFilter::exact('activated'),
-            AllowedFilter::exact('is_admin'),
-            AllowedFilter::exact('is_teacher'),
-            AllowedFilter::exact('is_parent'),
             AllowedFilter::partial('name'),
         ])->jsonPaginate();
 
@@ -50,9 +47,6 @@ class UserController extends Controller
                 'phone' => $validated['phone'],
                 'password' => Hash::make($validated['password']),
                 'activated' => $validated['activated'] ?? false,
-                'is_admin' => true,
-                'is_teacher' => $validated['is_teacher'] ?? false,
-                'is_parent' => $validated['is_parent'] ?? false,
             ]);
 
             if (isset($validated['role_id'])) {
@@ -70,7 +64,7 @@ class UserController extends Controller
 
         });
 
-        return to_route('users.index')->with('success', 'User created.');
+        return back(303)->with('success', 'User created.');
     }
 
     public function show(User $user)
@@ -91,9 +85,6 @@ class UserController extends Controller
                 'phone' => $validated['phone'],
                 'password' => Hash::make($validated['password']),
                 'activated' => $validated['activated'] ?? false,
-                'is_admin' => $validated['is_admin'] ?? false,
-                'is_teacher' => $validated['is_teacher'] ?? false,
-                'is_parent' => $validated['is_parent'] ?? false,
             ]);
 
             if (! $validated['password']) {
@@ -121,7 +112,7 @@ class UserController extends Controller
             }
         });
 
-        return to_route('users.index')->with('success', 'User updated.');
+        return back(303)->with('success', 'User updated.');
     }
 
     public function updatePermission(Request $request, User $user): \Illuminate\Http\RedirectResponse
@@ -130,6 +121,6 @@ class UserController extends Controller
 
         $user->syncPermissions($permissions->pluck('id')->toArray());
 
-        return to_route('users.index')->with('success', 'User permissions updated.');
+        return back(303)->with('success', 'User permissions updated.');
     }
 }

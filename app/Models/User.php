@@ -38,10 +38,8 @@ class User extends Authenticatable implements LaratrustUser
         'phone',
         'branch_id',
         'password',
+        'email_verified_at',
         'activated',
-        'is_admin',
-        'is_teacher',
-        'is_parent',
     ];
 
     /**

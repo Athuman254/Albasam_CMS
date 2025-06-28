@@ -64,7 +64,7 @@
       
       <div class="menu-inner-shadow"></div>
       
-      <ul v-if="loggedInAs === 'admin'" class="menu-inner py-1">
+      <ul class="menu-inner py-1">
          <!-- Dashboard -->
          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/dashboard') }">
             <Link :href="route('admin.dashboard')" class="menu-link">
@@ -275,12 +275,6 @@ export default {
       user() {
          return this.$page.props.auth.user;
       },
-      loggedInAs() {
-         return localStorage.getItem('loggedInAs') || this.$page.props.auth.user.logged_in_as;
-      },
-      institution() {
-         return this.$page.props.institution;
-      }
    },
    mounted() {
       this.initializeMenu();
@@ -333,14 +327,14 @@ export default {
    margin-bottom: 12px;
 }
 .app-brand-link {
-   width: inherit !important;
+   width: 100% !important;
 }
 .app-brand-logo.demo {
-   width: inherit;
+   width: 100%;
 }
 .app-brand-logo img {
-   object-fit: cover;
+   //object-fit: cover;
    height: auto;
-   width: auto;
+   width: 100%;
 }
 </style>

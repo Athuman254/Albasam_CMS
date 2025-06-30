@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Artisan;
 use Inertia\Inertia;
 
 Route::get('/dashboard', function () {
-    return redirect()->route('dashboard');
+    return redirect()->route('admin.dashboard');
 });
 
 /********************************
@@ -145,14 +145,15 @@ Route::middleware('auth')->group(function () {
                 Route::post('/fourth-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'fourthStep'])->name('teacher.registration.fourth.step');
             });
             
+            Route::post('/system-access/{employee}', [\App\Http\Controllers\TeacherController::class, 'systemAccess'])->name('employees.system-access');
+            Route::patch('/system-access/{employee}', [\App\Http\Controllers\TeacherController::class, 'revokeSystemAccess'])->name('employees.revoke-system-access');
+            
             Route::get('/teachers', [\App\Http\Controllers\TeacherController::class, 'index'])->name('teachers.index');
             Route::get('/teachers/create', [\App\Http\Controllers\TeacherController::class, 'create'])->name('teachers.create');
             Route::post('/teachers', [\App\Http\Controllers\TeacherController::class, 'store'])->name('teachers.store');
             Route::get('/teachers/{teacher}', [\App\Http\Controllers\TeacherController::class, 'show'])->name('teachers.show');
             Route::get('/teachers/{teacher}/edit', [\App\Http\Controllers\TeacherController::class, 'edit'])->name('teachers.edit');
             Route::patch('/teachers/{teacher}', [\App\Http\Controllers\TeacherController::class, 'update'])->name('teachers.update');
-            Route::post('/teachers/credentials', [\App\Http\Controllers\TeacherController::class, 'storeCredentials'])->name('teachers.store.credentials');
-            Route::patch('/teachers/credentials/{user}', [\App\Http\Controllers\TeacherController::class, 'updateCredentials'])->name('teachers.update.credentials');
             Route::resource('/qualifications', \App\Http\Controllers\QualificationController::class)->names('qualifications');
             Route::resource('/work-histories', \App\Http\Controllers\WorkHistoryController::class)->names('work.histories');
             Route::resource('/emergency-contacts', \App\Http\Controllers\EmergencyContactController::class)->names('emergency.contacts');
@@ -244,6 +245,7 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+require __DIR__.'/employee.php';
 
 /********************************
  *  WEBSITE ROUTES

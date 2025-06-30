@@ -25,7 +25,7 @@ class TeacherRequest extends FormRequest
             'personal_details.postal_address' => ['nullable', 'string'],
             'personal_details.identification_number' => ['required', 'string', 'max:255'],
             'personal_details.tax_identification_pin' => ['nullable', 'string', 'max:255'],
-            'employee_details.staff_number' => ['nullable', 'string', 'max:255'],
+//            'employee_details.staff_number' => ['nullable', 'string', 'max:255'],
             'employee_details.date_of_hire' => ['nullable', 'date'],
             'employee_details.employment_type_id' => ['required', Rule::exists('employment_types', 'id')],
             'employee_details.employment_status_id' => ['required', Rule::exists('employment_statuses', 'id')],

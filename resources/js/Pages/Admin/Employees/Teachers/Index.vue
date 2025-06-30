@@ -58,11 +58,11 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                            <Link class="dropdown-item" :href="'/admin/employees/teachers/' + props.rowData.hashid">
-                              <i class="bx bx-detail me-2"></i> Details
+                              <i class="icon-base bx bx-detail me-2"></i> Details
                            </Link>
                            <Link class="dropdown-item"
                                  :href="'/admin/employees/teachers/' + props.rowData.hashid + '/edit'">
-                              <i class="bx bx-edit-alt me-2"></i> Edit
+                              <i class="icon-base bx bx-edit-alt me-2"></i> Edit
                            </Link>
                         </div>
                      </div>

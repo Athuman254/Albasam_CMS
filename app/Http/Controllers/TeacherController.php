@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Employees\TeacherCredentialRequest;
+use App\Http\Requests\Employees\EmployeeCredentialRequest;
 use App\Http\Requests\TeacherRequest;
 use App\Http\Resources\Resource;
 use App\Models\EmergencyContact;
@@ -70,7 +70,8 @@ class TeacherController extends Controller
                 'postal_address' => $validatedData['personal_details']['postal_address'],
                 'identification_number' => $validatedData['personal_details']['identification_number'],
                 'tax_identification_pin' => $validatedData['personal_details']['tax_identification_pin'],
-                'staff_number' => $validatedData['employee_details']['staff_number'],
+//                'staff_number' => $validatedData['employee_details']['staff_number'],
+                'staff_number' => Employee::generateStaffNumber(),
                 'date_of_hire' => $validatedData['employee_details']['date_of_hire'],
                 'employment_status_id' => $validatedData['employee_details']['employment_status_id'],
                 'employment_type_id' => $validatedData['employee_details']['employment_type_id'],
@@ -204,7 +205,7 @@ class TeacherController extends Controller
                 'postal_address' => $validated['personal_details']['postal_address'],
                 'identification_number' => $validated['personal_details']['identification_number'],
                 'tax_identification_pin' => $validated['personal_details']['tax_identification_pin'],
-                'staff_number' => $validated['employee_details']['staff_number'],
+//                'staff_number' => $validated['employee_details']['staff_number'],
                 'date_of_hire' => $validated['employee_details']['date_of_hire'],
                 'employment_status_id' => $validated['employee_details']['employment_status_id'],
                 'employment_type_id' => $validated['employee_details']['employment_type_id'],
@@ -299,82 +300,25 @@ class TeacherController extends Controller
         }
     }
 
-    public function storeCredentials(TeacherCredentialRequest $request): \Illuminate\Http\RedirectResponse
+    public function systemAccess(EmployeeCredentialRequest $request, Employee $employee): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validated();
+        
+        $employee->update([
+            'has_system_access' => $validated['has_system_access'],
+            'password' => Hash::make($validated['password']),
+        ]);
 
-        $teacher = Teacher::findOrFail($validated['teacher_id']);
-
-        $employee = Employee::findOrFail($validated['employee_id']);
-
-        DB::transaction(function () use ($validated, $teacher, $employee) {
-
-            if($validated['use_existing_user'] && isset($validated['user_id'])) {
-                $user = User::findOrFail($validated['user_id']);
-                $user->update([
-                    'is_teacher' => true,
-                    'activated' => true,
-                ]);
-            } else {
-                $user = User::create([
-                    'name'                => $validated['name'],
-                    'username'            => $validated['username'],
-                    'email'               => $validated['email'],
-                    'phone'               => $validated['phone'],
-                    'password'            => Hash::make($validated['password']),
-                    'activated'           => $validated['activated'] ?? false,
-                    'is_teacher'          => $validated['is_teacher'] ?? true,
-                ]);
-            }
-
-            $employee->update([
-                'use_existing_user' => $validated['use_existing_user'],
-                'user_id' => $user->id,
-            ]);
-
-            $teacher->update([
-                'user_id' => $user->id
-            ]);
-        });
-
-        return to_route('admin.teachers.show', $teacher->hashid)->with('success', 'Credentials captured.');
+        return back(303)->with('success', 'Credentials captured.');
     }
 
-    public function updateCredentials(TeacherCredentialRequest $request, User $user)
+    public function revokeSystemAccess(Employee $employee)
     {
-        $validated = $request->validated();
-
-        $teacher = Teacher::findOrFail($validated['teacher_id']);
-
-        $employee = Employee::findOrFail($validated['employee_id']);
-
-        if($validated['use_existing_user'] && isset($validated['user_id'])) {
-
-            if($user->id !== $validated['user_id']) {
-                $newUser = User::findOrFail($validated['user_id']);
-                $newUser->update([
-                    'is_teacher' => true,
-                    'activated' => $validated['activated'],
-                ]);
-            }
-        } else {
-            if($user->is_teacher) {
-                $user->update(['is_teacher' => false,]);
-            }
-
-            $newUser = User::create([
-                'name'                => $validated['name'],
-                'username'            => $validated['username'],
-                'email'               => $validated['email'],
-                'phone'               => $validated['phone'],
-                'password'            => Hash::make($validated['password']),
-                'activated'           => $validated['activated'] ?? false,
-                'is_teacher'          => $validated['is_teacher'] ?? true,
-            ]);
-
-            $employee->update(['user_id' => $newUser->id]);
-            $teacher->update(['user_id' => $newUser->id]);
-        }
+        $employee->update([
+            'has_system_access' => false,
+        ]);
+        
+        return back(303)->with('success', 'Access Revoked');
     }
 
 //    /**

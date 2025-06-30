@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Institution;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Inertia\Middleware;
 
@@ -47,9 +48,8 @@ class HandleInertiaRequests extends Middleware
                 return $institution->exists() ? $institution : null;
             },
             'auth.user' => function () use ($request) {
-                $user = $request->user();
-                $loggedInAs = Session::get('logged_in_as');
-
+                $user = Auth::guard('web')->user();
+                
                 return $user
                     ? [
                         'id' => $user->hashid,
@@ -60,13 +60,24 @@ class HandleInertiaRequests extends Middleware
                         'username' => $user->username,
                         'roles' => $user->roles->pluck('name'),
                         'permissions' => $user->permissions->pluck('name'),
-                        'is_admin' => $user->is_admin,
-                        'is_teacher' => $user->is_teacher,
-                        'is_parent' => $user->is_parent,
-                        'logged_in_as' => Session::get('logged_in_as'),
                     ]
                     : null;
             },
+            
+            'auth.employee' => function () use ($request) {
+                $employee = Auth::guard('employee')->user();
+                
+                return $employee
+                    ? [
+                        'id' => $employee->hashid,
+                        'employee_id' => $employee->id,
+                        'staff_number' => $employee->staff_number ?? '',
+                        'name' => $employee->first_name . ' ' . $employee->last_name,
+                        'email' => $employee->email,
+                        'phone' => $employee->primary_phone,
+                    ]
+                    : null;
+            }
         ]);
     }
 }

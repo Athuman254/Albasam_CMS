@@ -15,7 +15,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <!-- Page CSS -->
-        <link rel="stylesheet" href="{{ asset('/fonts/boxicons.scss') }}" />
+        <link type="text/css" href="{{ asset('/fonts/boxicons.scss') }}" />
 
         <!-- Helpers -->
         <script src="{{ asset('assets/js/helpers.js') }}"></script>

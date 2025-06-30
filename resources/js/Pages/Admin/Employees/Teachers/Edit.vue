@@ -11,7 +11,7 @@
                      <Link :href="route('admin.dashboard')">Home</Link>
                   </li>
                   <li class="breadcrumb-item">
-                     <Link href="/admin/employees/teachers">Registered Teachers</Link>
+                     <Link :href="route('admin.teachers.index')">Registered Teachers</Link>
                   </li>
                   <li class="breadcrumb-item text-primary">
                      Edit Employee Details
@@ -262,16 +262,16 @@
                                        </div>
                                     </div>
                                  </div>
-                                 <div class="col-md-4">
-                                    <div class="form-group mb-3">
-                                       <label class="form-label" for="staffNumber">Staff/Employee Number</label>
-                                       <input type="text" id="staffNumber" class="form-control"
-                                              v-model="form.employee_details.staff_number"/>
-                                       <div v-if="form.errors['employee_details.staff_number']" class="text-danger">
-                                          {{ form.errors['employee_details.staff_number'] }}
-                                       </div>
-                                    </div>
-                                 </div>
+<!--                                 <div class="col-md-4">-->
+<!--                                    <div class="form-group mb-3">-->
+<!--                                       <label class="form-label" for="staffNumber">Staff/Employee Number</label>-->
+<!--                                       <input type="text" id="staffNumber" class="form-control"-->
+<!--                                              v-model="form.employee_details.staff_number"/>-->
+<!--                                       <div v-if="form.errors['employee_details.staff_number']" class="text-danger">-->
+<!--                                          {{ form.errors['employee_details.staff_number'] }}-->
+<!--                                       </div>-->
+<!--                                    </div>-->
+<!--                                 </div>-->
                                  <div class="col-md-4">
                                     <div class="form-group mb-3">
                                        <label class="form-label" for="employmentType">Employment Type <span
@@ -658,27 +658,27 @@ export default {
          form: useForm({
             id: '',
             personal_details: {
-               first_name: '',
-               middle_name: '',
-               last_name: '',
-               honorific_id: '',
-               marital_status_id: '',
-               gender_id: '',
-               religion_id: '',
-               email: '',
-               primary_phone: '',
-               secondary_phone: '',
-               permanent_physical_address: '',
-               secondary_physical_address: '',
-               postal_address: '',
-               identification_number: '',
-               tax_identification_pin: '',
+               first_name: null,
+               middle_name: null,
+               last_name: null,
+               honorific_id: null,
+               marital_status_id: null,
+               gender_id: null,
+               religion_id: null,
+               email: null,
+               primary_phone: null,
+               secondary_phone: null,
+               permanent_physical_address: null,
+               secondary_physical_address: null,
+               postal_address: null,
+               identification_number: null,
+               tax_identification_pin: null,
             },
             employee_details: {
-               staff_number: '',
+               // staff_number: null,
                date_of_hire: new Date().toISOString().slice(0, 10),
-               employment_type_id: '',
-               employment_status_id: '',
+               employment_type_id: null,
+               employment_status_id: null,
                emergency_contacts: [
                   // {
                   //     name: '',
@@ -689,10 +689,10 @@ export default {
                ],
             },
             other_details: {
-               specialization_area_id: '',
-               job_title_id: '',
-               tsc_number: '',
-               years_of_experience: '',
+               specialization_area_id: null,
+               job_title_id: null,
+               tsc_number: null,
+               years_of_experience: null,
                qualifications: [
                   // {
                   //     institution_name: '',

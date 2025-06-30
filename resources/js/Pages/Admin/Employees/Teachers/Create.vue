@@ -254,24 +254,24 @@
                                           :value="form.employee_details.date_of_hire"
                                           :max-date="new Date()"
                                           @on-change="function(dateObj, dateStr) {
-                                                           form.employee_details.date_of_hire = dateStr
-                                                       }"
+                                             this.form.employee_details.date_of_hire = dateStr
+                                          }"
                                        ></date-picker>
                                        <div v-if="form.errors['employee_details.date_of_hire']" class="text-danger">
                                           {{ form.errors['employee_details.date_of_hire'] }}
                                        </div>
                                     </div>
                                  </div>
-                                 <div class="col-md-4">
-                                    <div class="form-group mb-3">
-                                       <label class="form-label" for="staffNumber">Staff/Employee Number</label>
-                                       <input type="text" id="staffNumber" class="form-control"
-                                              v-model="form.employee_details.staff_number"/>
-                                       <div v-if="form.errors['employee_details.staff_number']" class="text-danger">
-                                          {{ form.errors['employee_details.staff_number'] }}
-                                       </div>
-                                    </div>
-                                 </div>
+<!--                                 <div class="col-md-4">-->
+<!--                                    <div class="form-group mb-3">-->
+<!--                                       <label class="form-label" for="staffNumber">Staff/Employee Number</label>-->
+<!--                                       <input type="text" id="staffNumber" class="form-control"-->
+<!--                                              v-model="form.employee_details.staff_number"/>-->
+<!--                                       <div v-if="form.errors['employee_details.staff_number']" class="text-danger">-->
+<!--                                          {{ form.errors['employee_details.staff_number'] }}-->
+<!--                                       </div>-->
+<!--                                    </div>-->
+<!--                                 </div>-->
                                  <div class="col-md-4">
                                     <div class="form-group mb-3">
                                        <label class="form-label" for="employmentType">Employment Type <span
@@ -672,7 +672,7 @@ export default {
                tax_identification_pin: null,
             },
             employee_details: {
-               staff_number: null,
+               // staff_number: null,
                date_of_hire: new Date().toISOString().slice(0, 10),
                employment_type_id: null,
                employment_status_id: null,

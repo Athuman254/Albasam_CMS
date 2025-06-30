@@ -5,20 +5,24 @@ namespace App\Models;
 use App\Traits\HasHashid;
 use App\Traits\HashidRouting;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 
-class Employee extends Model
+class Employee extends Authenticatable
 {
-    use SoftDeletes, HasHashid, HashidRouting;
+    use Notifiable, SoftDeletes, HasHashid, HashidRouting;
+    
+    protected string $guard = 'employee';
 
     protected $table = 'employees';
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
-    protected $casts = ['use_existing_user' => 'bool'];
+    protected $casts = ['use_existing_user' => 'bool', 'has_system_access' => 'bool'];
     protected $fillable = [
         'use_existing_user', 'user_id', 'employment_type_id', 'employment_status_id', 'honorific_id', 'marital_status_id', 'gender_id', 'religion_id',
         'staff_number', 'date_of_hire', 'first_name', 'middle_name', 'last_name', 'email', 'primary_phone', 'secondary_phone', 'permanent_physical_address',
-        'secondary_physical_address', 'postal_address', 'identification_number', 'tax_identification_pin',
+        'secondary_physical_address', 'postal_address', 'identification_number', 'tax_identification_pin', 'has_system_access', 'password',
     ];
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -74,6 +78,25 @@ class Employee extends Model
     public function histories(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(WorkHistory::class);
+    }
+    
+    public static function generateStaffNumber(): string
+    {
+        $lastEmployee = Employee::orderBy('id', 'desc')->first();
+        $prefix = 'EMP-';
+        $month = now()->format('m');
+        $year = now()->format('y');
+        
+        // Determine the next number
+        if ($lastEmployee) {
+            $lastCode = $lastEmployee->staff_number;
+            $lastNumber = intval(substr($lastCode, 4, 3)); // Extract the number part from EMP-xxxmy
+            $nextNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        } else {
+            $nextNumber = '001';
+        }
+        
+        return "{$prefix}{$nextNumber}{$month}{$year}";
     }
 
     public function scopeSearch($query, string $terms = null)

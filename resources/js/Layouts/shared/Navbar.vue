@@ -10,19 +10,6 @@
          </div>
          
          <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-            <!-- Search -->
-            <!--                <div class="navbar-nav align-items-center">-->
-            <!--                    <div class="nav-item d-flex align-items-center">-->
-            <!--                        <i class="bx bx-search bx-md"></i>-->
-            <!--                        <input-->
-            <!--                            type="text"-->
-            <!--                            class="form-control border-0 shadow-none ps-1 ps-sm-2"-->
-            <!--                            placeholder="Search..."-->
-            <!--                            aria-label="Search..." />-->
-            <!--                    </div>-->
-            <!--                </div>-->
-            <!-- /Search -->
-            
             <ul class="navbar-nav flex-row align-items-center ms-auto">
                <!-- User -->
                <li class="nav-item navbar-dropdown dropdown-user dropdown">
@@ -39,7 +26,7 @@
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
                      <li>
-                        <Link class="dropdown-item" :href="route('profile.edit')">
+                        <Link v-if="user" class="dropdown-item" :href="route('profile.edit')">
                            <div class="d-flex">
                               <div class="flex-shrink-0 me-3">
                                  <div class="avatar-wrapper">
@@ -54,13 +41,31 @@
                               </div>
                            </div>
                         </Link>
+                        <Link v-if="staff" class="dropdown-item" href="#">
+                           <div class="d-flex">
+                              <div class="flex-shrink-0 me-3">
+                                 <div class="avatar-wrapper">
+                                    <div class="avatar avatar-online">
+                                       <i class=" avatar-initial rounded-circle bg-label-secondary bx bxs-user bx-sm"></i>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="flex-grow-1">
+                                 <h6 class="mb-0">{{ staff.name }}</h6>
+                                 <small class="text-muted">{{ staff.staff_number }}</small>
+                              </div>
+                           </div>
+                        </Link>
                      </li>
                      <li>
                         <div class="dropdown-divider my-1"></div>
                      </li>
                      <li>
-                        <a class="dropdown-item" href="#" @click.prevent="logout">
-                           <i class="bx bx-power-off bx-sm me-3"></i>Log Out
+                        <a v-if="user" class="dropdown-item" href="#" @click.prevent="logout">
+                           <i class="icon-base bx bx-power-off bx-sm me-3"></i>Log Out
+                        </a>
+                        <a v-if="staff" class="dropdown-item" href="#" @click.prevent="staffLogout">
+                           <i class="icon-base bx bx-power-off bx-sm me-3"></i>Log Out
                         </a>
                      </li>
                   </ul>
@@ -81,6 +86,9 @@ export default {
       user() {
          return this.$page.props.auth.user;
       },
+      staff() {
+         return this.$page.props.auth.employee;
+      },
    },
    methods: {
       toggleSidebar() {
@@ -92,6 +100,9 @@ export default {
       },
       logout() {
          router.post('/logout');
+      },
+      staffLogout() {
+         router.post('/employee/logout');
       }
    },
 };

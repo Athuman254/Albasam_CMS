@@ -92,6 +92,12 @@ class AppServiceProvider extends ServiceProvider
                     'user' => Auth::user() ? Auth::user()->only(['id', 'name', 'username', 'email', 'email_verified_at', 'phone', 'activated']) : null,
                 ];
             },
+            'employee' => function () {
+                $employee = Auth::guard('employee')->user();
+                return [
+                    'staff' => $employee ? $employee->only(['id', 'first_name', 'last_name', 'email']) : null,
+                ];
+            }
         ]);
         $loader = AliasLoader::getInstance();
         $loader->alias('SEOTools', \Artesaos\SEOTools\Facades\SEOTools::class);

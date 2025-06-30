@@ -1,10 +1,33 @@
 <template>
    <GuestLayout>
-      <Head title="Log in"/>
+      <Head title="Staff Portal"/>
       
-      <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-         {{ status }}
+      <div class="nav-align-top mb-4">
+         <ul class="nav nav-pills mx-auto" role="tablist">
+            <li class="nav-item me-2" role="presentation">
+               <Link :href="route('login')" class="nav-link" :class="{ 'active': $page.url.startsWith('/login') }">
+                  Administrator
+               </Link>
+            </li>
+            <li class="nav-item me-2" role="presentation">
+               <Link :href="route('employee.login')" class="nav-link" :class="{ 'active': $page.url.startsWith('/employee/login') }">
+                  Staff
+               </Link>
+            </li>
+<!--            <li class="nav-item" role="presentation">-->
+<!--               <Link href="#" class="nav-link" :class="{ 'active': $page.url.startsWith('/guardian/login') }">-->
+<!--                  Parent-->
+<!--               </Link>-->
+<!--            </li>-->
+<!--            <li class="nav-item" role="presentation">-->
+<!--               <Link href="#" class="nav-link" :class="{ 'active': $page.url.startsWith('/student/login') }">-->
+<!--                  Student-->
+<!--               </Link>-->
+<!--            </li>-->
+         </ul>
       </div>
+      
+      <h5 class="text-center">Staff Portal</h5>
       
       <div class="card px-sm-6 px-0">
          <div class="card-body">
@@ -69,23 +92,12 @@
                </a>
             </div>
             <!-- /Logo -->
-            <!--            <h4 class="mb-1 text-center">Welcome</h4>-->
-            <p class="mb-6 text-center">Please sign-in to your account</p>
             <form id="formAuthentication" class="mb-6">
-<!--               <div class="mb-6">-->
-<!--                  <label for="email" class="form-label">Login as</label>-->
-<!--                  <select v-model="form.loginAs" class="form-select" name="" id="">-->
-<!--                     <option value="admin">Admin</option>-->
-<!--                     <option value="teacher">Teacher</option>-->
-<!--                     <option value="parent">Parent</option>-->
-<!--                  </select>-->
-<!--                  <div v-if="form.errors.loginAs" class="text-danger">{{ form.errors.loginAs }}</div>-->
-<!--               </div>-->
                <div class="mb-6">
-                  <label for="email" class="form-label">Email</label>
-                  <input v-model="form.email" type="email" class="form-control" id="email" required
-                         placeholder="Enter your email"/>
-                  <div v-if="form.errors.email" class="text-danger">{{ form.errors.email }}</div>
+                  <label for="identifier" class="form-label">Email</label>
+                  <input v-model="form.identifier" type="text" class="form-control" id="identifier"
+                         placeholder="Enter your email/phone number/staff number"/>
+                  <div v-if="form.errors.identifier" class="text-danger">{{ form.errors.identifier }}</div>
                </div>
                <div class="mb-6 form-password-toggle">
                   <label class="form-label" for="password">Password</label>
@@ -105,18 +117,6 @@
                   </div>
                   <div v-if="form.errors.password" class="text-danger">{{ form.errors.password }}</div>
                </div>
-               <div class="mb-8">
-                  <div class="d-flex justify-content-between mt-8">
-                     <div class="form-check mb-0 ms-2">
-                        <Checkbox v-model:checked="form.remember" class="form-check-input" type="checkbox" id="remember"
-                                  name="remember"/>
-                        <label class="form-check-label" for="remember"> Remember Me </label>
-                     </div>
-                     <Link v-if="canResetPassword" :href="route('password.request')">
-                        <span>Forgot Password?</span>
-                     </Link>
-                  </div>
-               </div>
                <div class="mb-6">
                   <button @click.prevent="submit" class="btn btn-primary d-grid w-100" type="submit">Login</button>
                </div>
@@ -127,25 +127,15 @@
 </template>
 
 <script>
-import Checkbox from '@components/Checkbox.vue';
 import GuestLayout from '@layouts/GuestLayout.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
 
 export default {
-   components: {GuestLayout, Head, Link, Checkbox},
-   props: {
-      canResetPassword: {
-         type: Boolean,
-      },
-      status: {
-         type: String,
-      }
-   },
+   components: {GuestLayout, Head, Link},
    data() {
       return {
          form: useForm({
-            // loginAs: '',
-            email: '',
+            identifier: '',
             password: '',
             remember: false,
          }),
@@ -159,17 +149,8 @@ export default {
    },
    methods: {
       submit() {
-         // axios.post('/login', this.form)
-         //    .then(({ data }) => {
-         //       localStorage.setItem('loggedInAs', this.form.loginAs);
-         //       window.location.href = data.redirect;
-         //    })
-         //    .catch((error) => {
-         //       this.$toast.error('Login failed');
-         //    });
-         this.form.post('login', {
+         this.form.post(route('employee.login.submit'), {
             onSuccess: () => {
-               localStorage.setItem('loggedInAs', this.form.loginAs);
                this.form.reset('password')
             },
             onError: () => {

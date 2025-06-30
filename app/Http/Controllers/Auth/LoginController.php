@@ -12,7 +12,7 @@ use Inertia\Inertia;
 class LoginController extends Controller
 {
     public function index(Request $request){
-        return Inertia::render('Auth/Login');
+        return Inertia::render('Admin/Auth/Login');
     }
 
     public function store(LoginRequest $request): RedirectResponse

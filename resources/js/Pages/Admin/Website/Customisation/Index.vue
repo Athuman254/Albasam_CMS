@@ -37,7 +37,7 @@
                   <div class="card mb-3">
                      <div class="card-header py-3">
                         <h5 class="card-title mb-0">
-                           <i class="bx bxs-brush bx-md"></i>
+                           <i class="icon-base bx bxs-brush bx-md"></i>
                            Colors
                         </h5>
                      </div>

@@ -29,13 +29,13 @@
                            <div class="card-action">
                               <button type="button" class="btn btn-primary d-none d-sm-inline-block"
                                       @click="showCreateRoleModal">
-                                 <i class="bx bx-plus-circle me-2"></i>
+                                 <i class="icon-base bx bx-plus-circle me-2"></i>
                                  Add Role
                               </button>
                               
                               <button type="button" class="btn btn-primary btn-icon d-sm-none"
                                       @click="showCreateRoleModal">
-                                 <i class="bx bx-plus"></i>
+                                 <i class="icon-base bx bx-plus"></i>
                               </button>
                            </div>
                         </div>
@@ -51,11 +51,11 @@
                   <template #actions="props">
                      <div class="dropdown">
                         <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                           <i class="bx bx-dots-vertical"></i>
+                           <i class="icon-base bx bx-dots-vertical"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                            <a class="dropdown-item" href="#" @click="editRole(props.rowData)">
-                              <i class="bx bx-edit-alt me-2"></i>Edit
+                              <i class="icon-base bx bx-edit-alt me-2"></i>Edit
                            </a>
                         </div>
                      </div>

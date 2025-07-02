@@ -1,5 +1,7 @@
 import 'bootstrap';
 import './bootstrap';
+import 'perfect-scrollbar/dist/perfect-scrollbar.min.js';
+import '@plugins/index.js';
 
 import {createInertiaApp, Link} from '@inertiajs/vue3';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
@@ -9,7 +11,6 @@ import vSelect from 'vue-select';
 import NProgress from 'nprogress'
 import toast from '@plugins/notifications.js';
 import filters from '@plugins/filter.js';
-import '@plugins/index.js';
 import {VueTable} from '@components/global/DataTable.vue';
 import datePickerPlugin from '@plugins/datePickerPlugin';
 

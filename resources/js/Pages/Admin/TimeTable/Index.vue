@@ -41,17 +41,17 @@
                               </div>
                               <div class="col-md-2 col-2">
                                  <button type="button" class="btn btn-sm btn-outline-primary" @click.prevent="fetchLessons()">
-                                    <i class="bx bx-filter-alt"></i>
+                                    <i class="icon-base bx bx-filter-alt"></i>
                                  </button>
                               </div>
                               <div class="col-md-auto col-auto ms-auto">
                                  <div v-if="rankSelected">
                                     <button class="btn btn-primary d-none d-sm-inline-block" @click.prevent="createLessonModal">
-                                       <i class="bx bx-plus-circle me-2"></i>
+                                       <i class="icon-base bx bx-plus-circle me-2"></i>
                                        Add Lesson
                                     </button>
                                     <button type="button" class="btn btn-primary btn-sm d-sm-none" @click.prevent="createLessonModal">
-                                       <i class="bx bx-plus"></i>
+                                       <i class="icon-base bx bx-plus"></i>
                                     </button>
                                  </div>
                               </div>
@@ -78,15 +78,15 @@
                            <div class="ms-auto">
                               <div class="dropdown z-2">
                                  <button type="button" class="btn btn-icon btn-text-secondary rounded-pill align-text-top dropdown-toggle p-0 hide-arrow" data-bs-toggle="dropdown">
-                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                    <i class="icon-base bx bx-dots-vertical-rounded"></i>
                                  </button>
                                  <div class="dropdown-menu dropdown-menu-end py-0">
                                     <a class="dropdown-item" href="#" @click.prevent="editLesson(lesson)">
-                                       <i class="bx bx-edit-alt me-2"></i>
+                                       <i class="icon-base bx bx-edit-alt me-2"></i>
                                        Edit
                                     </a>
                                     <a class="dropdown-item text-danger" href="#">
-                                       <i class="bx bx-trash me-2"></i>
+                                       <i class="icon-base bx bx-trash me-2"></i>
                                        Delete
                                     </a>
                                  </div>
@@ -102,7 +102,7 @@
                                  <tr>
                                     <td colspan="8">
                                        <div class="btn btn-light float-end">
-                                          <i class="bx bx-download me-2"></i>
+                                          <i class="icon-base bx bx-download me-2"></i>
                                           Download
                                        </div>
                                     </td>

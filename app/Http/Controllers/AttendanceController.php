@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Rank;
+use App\Models\Teacher;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use App\Models\Attendance;
 use App\Http\Resources\Resource;
@@ -19,7 +24,7 @@ class AttendanceController extends Controller
         )->allowedFilters([
             AllowedFilter::scope('search'),
             AllowedFilter::partial('date'),
-            AllowedFilter::partial('class_id'),
+            AllowedFilter::partial('rank_id'),
         ])->jsonPaginate();
 
         // dd($students);
@@ -30,83 +35,65 @@ class AttendanceController extends Controller
      */
     public function index()
     {
-
-        // return Inertia::render("Website/SiteSettings");
         return Inertia::render("Admin/Attendance/Index");
     }
 
     public function records(){
-        return Inertia::render("Admin/Attendance/Records");
+        return Inertia::render("Admin/Attendance/Report");
     }
-    /**
-     * Show the form for creating a new resource.
-     */
+    
     public function create()
     {
         //
     }
-
-    /**
-     * Store a newly created resource in storage.
-     */
+    
     public function store(StoreAttendanceRequest $request)
     {
-        // $validated = $request->validate([
-        //     '*.teacher_id' => 'required|exists:users,id',
-        //     '*.student_id' => 'required|exists:students,id',
-        //     '*.class_id' => 'required|exists:classes,id',
-        //     '*.date' => 'required|date',
-        //     '*.status' => 'required|in:Present,Absent,Late,Excused',
-        //     '*.remarks' => 'nullable|string|max:255',
-        // ]);
-
         $validated = $request->validated();
-        // dd($validated);
-        foreach ($validated as $record) {
-            Attendance::updateOrCreate(
-                [
-                    'student_id' => $record['id'],
-                    'class_id' => $record['class_id'],
-                    'date' => $record['date'],
-                ],
-                [
-                    'teacher_id' => $record['teacher_id'],
-                    'status' => $record['status'],
-                    'remarks' => $record['remarks'],
-                ]
-            );
+        $rank = Rank::findOrFail($validated['rank_id']);
+        $teacher = Teacher::find($rank->teacher_id) ?? null;
+        
+        DB::beginTransaction();
+        
+        try {
+            foreach ($validated['attendances'] as $attendance)  {
+                Attendance::updateOrCreate(
+                    [
+                        'student_id' => $attendance['student_id'],
+                        'rank_id' => $validated['rank_id'],
+                        'date' => $validated['date'],
+                    ],
+                    [
+                        'teacher_id' => $teacher ? $teacher->id : 1,
+                        'status' => $attendance['status'],
+                        'remarks' => $attendance['remarks'] ?? null,
+                    ]
+                );
+            }
+            DB::commit();
+            return back(303)->with('Attendance record created.');
+            
+        } catch (\Throwable $exception) {
+            DB::rollBack();
+            Log::error('Error: ' . $exception->getMessage());
+            report($exception);
+            return redirect()->back()->withInput()->withErrors(['message' => $exception->getMessage()]);
         }
     }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Attendance $attendance)
+    
+    public function fetchForDate(Request $request)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Attendance $attendance)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateAttendanceRequest $request, Attendance $attendance)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Attendance $attendance)
-    {
-        //
+        $data = $request->validate([
+            'rank_id' => 'required|exists:ranks,id',
+            'date' => 'required|date',
+        ]);
+        
+        $attendances = Attendance::where('rank_id', $data['rank_id'])
+            ->where('date', $data['date'])
+            ->get();
+        
+        return response()->json([
+            'attendances' => $attendances,
+        ]);
     }
 }

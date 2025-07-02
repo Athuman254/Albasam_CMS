@@ -88,20 +88,20 @@
          </li>
       </ul>
    </li>
-   <li v-if="canAny(['access-attendance-workspace', 'access-attendance-report'])" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/attendance') }">
+   <li v-if="canAny(['access-attendance-workspace', 'access-attendance-report'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='bx bx-calendar-check menu-icon tf-icons'></i>
          <div class="text-truncate" data-i18n="Account Settings">Attendance</div>
       </a>
       <ul class="menu-sub">
-         <li v-if="can('access-attendance-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/attendance') }">
-            <Link :href="route('attendance.create')" class="menu-link">
-               <div class="text-truncate">Mark</div>
+         <li v-if="can('access-attendance-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/attendances') }">
+            <Link :href="route('admin.attendances.index')" class="menu-link">
+               <div class="text-truncate">Mark Attendance</div>
             </Link>
          </li>
-         <li v-if="can('access-attendance-report')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/attendance-record') }">
-            <Link :href="route('attendance-records')" class="menu-link">
-               <div class="text-truncate">Records</div>
+         <li v-if="can('access-attendance-report')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
+            <Link :href="route('admin.reports.attendance')" class="menu-link">
+               <div class="text-truncate">Attendance Report</div>
             </Link>
          </li>
       </ul>

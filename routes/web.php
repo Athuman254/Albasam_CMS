@@ -73,9 +73,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/website/seo-metas', [\App\Http\Controllers\Website\SeoMetaController::class, 'dataTable']);
     });
     
-    Route::resource('/attendance', \App\Http\Controllers\AttendanceController::class)->names('attendance');
-    Route::get('/attendance-record', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('attendance-records');
-    
     /********************************
      * USER PROFILE ROUTES
      *******************************/
@@ -92,6 +89,10 @@ Route::middleware('auth')->group(function () {
     ], function () {
         
         Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+        
+        Route::resource('/attendances', \App\Http\Controllers\AttendanceController::class)->names('attendances');
+        Route::get('/reports/attendance', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('reports.attendance');
+        Route::get('/attendance/fetch', [\App\Http\Controllers\AttendanceController::class, 'fetchForDate']);
         
         /********************************
          * FORM WIZARD ROUTES

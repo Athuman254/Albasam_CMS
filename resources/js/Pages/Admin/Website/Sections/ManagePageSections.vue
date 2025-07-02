@@ -28,7 +28,7 @@
                   Add Section
                </button>
                <button type="button" class="btn btn-primary btn-icon d-sm-none" @click.prevent="openAddSectionModal">
-                  <i class="bx bx-plus"></i>
+                  <i class="icon-base bx bx-plus"></i>
                </button>
             </div>
          </div>
@@ -186,7 +186,7 @@
                                                 <td>{{ cta.cta_button_type }}</td>
                                                 <td>
                                                    <button type="button" class="btn btn-sm btn-icon btn-danger" @click.prevent="deleteCtaButton(section, cta)">
-                                                      <i class="bx bx-trash"></i>
+                                                      <i class="icon-base bx bx-trash"></i>
                                                    </button>
                                                 </td>
                                              </tr>
@@ -395,7 +395,7 @@
                                              <td>{{ cta.cta_button_type.name }}</td>
                                              <td>
                                                 <button type="button" class="btn btn-sm btn-icon btn-danger" @click.prevent="removeCtaButton()">
-                                                   <i class="bx bx-trash"></i>
+                                                   <i class="icon-base bx bx-trash"></i>
                                                 </button>
                                              </td>
                                           </tr>

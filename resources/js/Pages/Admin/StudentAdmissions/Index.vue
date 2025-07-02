@@ -27,12 +27,12 @@
                         <div class="flex-wrap text-end">
                            <div class="card-action">
                               <Link :href="route('admin.admissions.form')" class="btn btn-primary d-none d-sm-inline-block">
-                                 <i class="bx bx-plus-circle me-2"></i>
+                                 <i class="icon-base bx bx-plus-circle me-2"></i>
                                  New Registration
                               </Link>
                               
                               <Link :href="route('admin.admissions.form')" class="btn btn-primary btn-icon d-sm-none">
-                                 <i class="bx bx-plus"></i>
+                                 <i class="icon-base bx bx-plus"></i>
                               </Link>
                            </div>
                         </div>
@@ -55,7 +55,7 @@
                   <template v-slot:actions="props">
                      <div class="dropdown">
                         <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                           <i class="bx bx-dots-vertical"></i>
+                           <i class="icon-base bx bx-dots-vertical"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                            <Link class="dropdown-item" :href="route('admin.admissions.show', props.rowData.hashid)">

@@ -4,7 +4,7 @@
       <nav class="mb-3">
          <ol class="breadcrumb">
             <li class="breadcrumb-item">
-               <Link href="/admin/dashboard">Home</Link>
+               <Link :href="route('admin.dashboard')">Home</Link>
             </li>
             <li class="breadcrumb-item text-primary">
                Guardians

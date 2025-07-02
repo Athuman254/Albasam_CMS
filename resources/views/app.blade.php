@@ -18,7 +18,7 @@
         <link type="text/css" href="{{ asset('/fonts/boxicons.scss') }}" />
 
         <!-- Helpers -->
-        <script src="{{ asset('assets/js/helpers.js') }}"></script>
+        <script src="{{ asset('vendor/js/helpers.js') }}"></script>
 
         <!-- Scripts -->
         @routes
@@ -27,6 +27,9 @@
     <body>
         @inertia
 
+        <script async defer src="{{ asset('vendor/js/menu.js') }}"></script>
+        <script async defer src="{{ asset('assets/js/main.js') }}"></script>
+        <script async defer src="{{ asset('assets/js/perfect-scrollbar.js') }}"></script>
         <script async defer src="{{ asset('assets/js/buttons.js') }}"></script>
     </body>
 </html>

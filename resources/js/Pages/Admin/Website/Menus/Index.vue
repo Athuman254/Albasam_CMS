@@ -28,12 +28,12 @@
                         <div class="flex-wrap text-end">
                            <div class="card-action">
                               <button type="button" class="btn btn-primary d-none d-sm-inline-block" @click="createMenu">
-                                 <i class="bx bx-plus-circle me-2"></i>
+                                 <i class="icon-base bx bx-plus-circle me-2"></i>
                                  Add Menu
                               </button>
                               
                               <button type="button" class="btn btn-primary btn-icon d-sm-none" @click="createMenu">
-                                 <i class="bx bx-plus"></i>
+                                 <i class="icon-base bx bx-plus"></i>
                               </button>
                            </div>
                         </div>
@@ -59,14 +59,14 @@
                   <template #actions="props">
                      <div class="dropdown">
                         <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                           <i class="bx bx-dots-vertical"></i>
+                           <i class="icon-base bx bx-dots-vertical"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                            <a class="dropdown-item" href="#" @click.prevent="editMenu(props.rowData)">
-                              <i class="bx bx-edit-alt me-2"></i>Edit
+                              <i class="icon-base bx bx-edit-alt me-2"></i>Edit
                            </a>
                            <a class="dropdown-item text-danger" href="#" @click.prevent="deleteMenu(props.rowData)">
-                              <i class="bx bx-trash me-2"></i>Delete
+                              <i class="icon-base bx bx-trash me-2"></i>Delete
                            </a>
                         </div>
                      </div>

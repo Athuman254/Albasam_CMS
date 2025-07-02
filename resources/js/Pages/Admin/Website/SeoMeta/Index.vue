@@ -24,9 +24,9 @@
                         <div class="markdown text-secondary">
                            You can manually generate your website sitemap file with the button
                         </div>
-<!--                        <div class="markdown text-secondary">-->
-<!--                           Visit this link to view the sitemap file: <a href="/sitemap.xml" target="_blank" class="ms-2 text-primary text-decoration-underline">SITEMAP</a>-->
-<!--                        </div>-->
+                        <div class="markdown text-secondary">
+                           Visit this link to view the sitemap file: <a href="/sitemap.xml" target="_blank" class="ms-2 text-primary text-decoration-underline">SITEMAP</a>
+                        </div>
                      </div>
                      <div class="col-auto ms-md-auto mt-md-0 ms-0 mt-3 d-print-none">
                         <div class="btn-list">
@@ -51,11 +51,11 @@
                         <div class="flex-wrap text-end">
                            <div class="card-action">
                               <button type="button" class="btn btn-primary d-none d-sm-inline-block" @click="createSeoMeta">
-                                 <i class="bx bx-plus-circle me-2"></i>
+                                 <i class="icon-base bx bx-plus-circle me-2"></i>
                                  Add Meta
                               </button>
                               <button type="button" class="btn btn-primary btn-icon d-sm-none" @click="createSeoMeta">
-                                 <i class="bx bx-plus"></i>
+                                 <i class="icon-base bx bx-plus"></i>
                               </button>
                            </div>
                         </div>
@@ -85,14 +85,14 @@
                   <template #actions="props">
                      <div class="dropdown">
                         <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                           <i class="bx bx-dots-vertical"></i>
+                           <i class="icon-base bx bx-dots-vertical"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                            <a class="dropdown-item" href="#" @click="editSeoMeta(props.rowData)">
-                              <i class="bx bx-edit-alt me-2"></i>Edit
+                              <i class="icon-base bx bx-edit-alt me-2"></i>Edit
                            </a>
                            <a class="dropdown-item text-danger" href="#" @click.prevent="deleteSeoMeta(props.rowData)">
-                              <i class="bx bx-trash me-2"></i>Delete
+                              <i class="icon-base bx bx-trash me-2"></i>Delete
                            </a>
                         </div>
                      </div>

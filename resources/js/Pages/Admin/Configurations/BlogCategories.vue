@@ -11,13 +11,13 @@
                   <div class="card-action">
                      <button type="button" class="btn btn-primary d-none d-sm-inline-block"
                              @click="showCreateBlogCategoryModal">
-                        <i class="bx bx-plus-circle me-2"></i>
+                        <i class="icon-base bx bx-plus-circle me-2"></i>
                         Add Blog Category
                      </button>
                      
                      <button type="button" class="btn btn-primary btn-icon d-sm-none"
                              @click="showCreateBlogCategoryModal">
-                        <i class="bx bx-plus"></i>
+                        <i class="icon-base bx bx-plus"></i>
                      </button>
                   </div>
                </div>
@@ -45,14 +45,14 @@
          <template #actions="props">
             <div class="dropdown">
                <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                  <i class="bx bx-dots-vertical"></i>
+                  <i class="icon-base bx bx-dots-vertical"></i>
                </button>
                <div class="dropdown-menu dropdown-menu-end">
                   <a class="dropdown-item" href="#" @click="editBlogCategory(props.rowData)">
-                     <i class="bx bx-edit-alt me-2"></i>Edit
+                     <i class="icon-base bx bx-edit-alt me-2"></i>Edit
                   </a>
                   <a class="dropdown-item text-danger" href="#">
-                     <i class="bx bx-trash me-2"></i>Delete
+                     <i class="icon-base bx bx-trash me-2"></i>Delete
                   </a>
                </div>
             </div>
@@ -92,14 +92,14 @@
                   
                   <div class="mb-3">
                      <label class="row d-flex">
-                                       <span class="col">
-                                           <span class="fw-bold me-3">Activate</span>
-                                       </span>
+                        <span class="col">
+                           <span class="fw-bold me-3">Activate</span>
+                        </span>
                         <span class="col-auto">
-                                           <label class="form-check form-switch">
-                                               <input v-model="form.activated" class="form-check-input" type="checkbox">
-                                           </label>
-                                       </span>
+                           <label class="form-check form-switch">
+                              <input v-model="form.activated" class="form-check-input" type="checkbox">
+                           </label>
+                        </span>
                         <span class="form-check-description">When enabled, the category will be used during students' admission process.</span>
                      </label>
                      <div v-if="form.errors.activated" class="text-danger">{{ form.errors.activated }}</div>
@@ -159,15 +159,15 @@
                   
                   <div class="mb-3">
                      <label class="row d-flex">
-                                       <span class="col">
-                                           <span class="fw-bold me-3">Activate</span>
-                                       </span>
+                        <span class="col">
+                           <span class="fw-bold me-3">Activate</span>
+                        </span>
                         <span class="col-auto">
-                                           <label class="form-check form-switch">
-                                               <input v-model="editForm.activated" class="form-check-input"
-                                                      type="checkbox">
-                                           </label>
-                                       </span>
+                           <label class="form-check form-switch">
+                              <input v-model="editForm.activated" class="form-check-input"
+                                     type="checkbox">
+                           </label>
+                        </span>
                         <span class="form-check-description">When enabled, the category will be used during students' admission process.</span>
                      </label>
                      <div v-if="editForm.errors.activated" class="text-danger">{{ editForm.errors.activated }}</div>

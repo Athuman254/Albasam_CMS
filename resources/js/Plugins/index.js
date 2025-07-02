@@ -1,6 +1,6 @@
-import './main.js'
 import './menu.js'
 import './helpers.js'
+import './main.js'
 import './config.js'
 import './filter.js'
 import './datePickerPlugin.js'

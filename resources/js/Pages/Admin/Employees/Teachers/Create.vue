@@ -321,7 +321,7 @@
                                           <button type="button" v-if="index > 0"
                                                   class="btn btn-sm btn-icon btn-danger ms-auto"
                                                   @click="removeEmergencyContact(index)">
-                                             <i class="bx bx-trash"></i>
+                                             <i class="icon-base bx bx-trash"></i>
                                           </button>
                                        </div>
                                     </div>
@@ -375,7 +375,7 @@
                                  </div>
                                  <div class="col-md-12 mb-8">
                                     <button type="button" class="btn rounded-pill btn-light" @click="addEmergencyContact">
-                                       <i class="bx bx-plus-circle me-3"></i>
+                                       <i class="icon-base bx bx-plus-circle me-3"></i>
                                        Add Emergency Contact
                                     </button>
                                  </div>
@@ -456,7 +456,7 @@
                                           <button type="button" v-if="index > 0"
                                                   class="btn btn-sm btn-icon btn-danger ms-auto"
                                                   @click="removeQualification(index)">
-                                             <i class="bx bx-trash"></i>
+                                             <i class="icon-base bx bx-trash"></i>
                                           </button>
                                        </div>
                                     </div>
@@ -517,7 +517,7 @@
                                  </div>
                                  <div class="col-md-12 mb-8">
                                     <button type="button" class="btn rounded-pill btn-light" @click="addQualification">
-                                       <i class="bx bx-plus-circle me-3"></i>
+                                       <i class="icon-base bx bx-plus-circle me-3"></i>
                                        Add Qualification
                                     </button>
                                  </div>
@@ -537,7 +537,7 @@
                                           <button type="button" v-if="index > 0"
                                                   class="btn btn-sm btn-icon btn-danger ms-auto"
                                                   @click="removeWorkHistory(index)">
-                                             <i class="bx bx-trash"></i>
+                                             <i class="icon-base bx bx-trash"></i>
                                           </button>
                                        </div>
                                     </div>
@@ -593,7 +593,7 @@
                                  <div class="col-md-12">
                                     <div class="mx-auto">
                                        <button type="button" class="btn rounded-pill btn-light" @click="addWorkHistory">
-                                          <i class="bx bx-plus-circle me-3"></i>
+                                          <i class="icon-base bx bx-plus-circle me-3"></i>
                                           Add History
                                        </button>
                                     </div>

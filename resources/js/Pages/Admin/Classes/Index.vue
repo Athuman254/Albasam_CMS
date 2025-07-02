@@ -68,14 +68,14 @@
                   <template v-slot:actions="props">
                      <div class="dropdown">
                         <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                           <i class="bx bx-dots-vertical"></i>
+                           <i class="icon-base bx bx-dots-vertical"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                            <Link class="dropdown-item" :href="'/admin/ranks/' + props.rowData.hashid">
-                              <i class="bx bx-detail me-2"></i> Details
+                              <i class="icon-base bx bx-detail me-2"></i> Details
                            </Link>
                            <a class="dropdown-item" href="#" @click="editRank(props.rowData)">
-                              <i class="bx bx-edit-alt me-2"></i>Edit
+                              <i class="icon-base bx bx-edit-alt me-2"></i>Edit
                            </a>
    <!--                        <a class="dropdown-item text-danger" href="#">-->
    <!--                           <i class="bx bx-trash me-2"></i>Delete-->
@@ -275,7 +275,7 @@
                            <div class="mb-3">
                               <label class="row d-flex">
                                  <span class="col">
-                                    <span class="fw-bold me-3">Activate Account</span>
+                                    <span class="fw-bold me-3">Activate</span>
                                  </span>
                                  <span class="col-auto">
                                     <label class="form-check form-switch">

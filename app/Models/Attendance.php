@@ -2,28 +2,39 @@
 
 namespace App\Models;
 
+use App\Traits\HasHashid;
+use App\Traits\HashidRouting;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Attendance extends Model
 {
-    /** @use HasFactory<\Database\Factories\AttendanceFactory> */
-    use HasFactory;
+    use HasHashid, HashidRouting;
     
-    protected $table = "attendance_records";
-    protected $guarded = [];
+    protected $table = 'attendance_records';
+    protected $primaryKey = 'id';
+    protected $appends = ['hashid'];
+    protected $fillable = [
+        'teacher_id', 'student_id', 'rank_id', 'date', 'status', 'remarks'
+    ];
 
-    public function student(){
+    public function student(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
         return $this->belongsTo(Student::class);
     }
-    public function teacher(){
+    
+    public function teacher(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
         return $this->belongsTo(Teacher::class);
     }
 
-    public function rank(){
+    public function rank(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
         return $this->belongsTo(Rank::class,'class_id');
     }
-    public function scopeSearch($query, $terms = ''){
+    
+    public function scopeSearch($query, $terms = ''): void
+    {
         collect($terms)->filter()->each(function ($term) use ($query) {
 
             $term = '%'.$term.'%';

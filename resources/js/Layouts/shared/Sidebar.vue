@@ -64,13 +64,13 @@
       
       <div class="menu-inner-shadow"></div>
       
-      <ul v-if="user" class="menu-inner py-1">
+      <ul v-if="user" class="menu-inner py-1 ps">
          <AdminMenu />
       </ul>
-      
-      <ul v-if="staff" class="menu-inner py-1">
+      <ul v-if="staff" class="menu-inner py-1 ps">
          <EmployeeMenu />
       </ul>
+   
    </aside>
 </template>
 
@@ -78,6 +78,7 @@
 import {Link} from "@inertiajs/vue3";
 import AdminMenu from "@layouts/shared/AdminMenu.vue";
 import EmployeeMenu from "@layouts/shared/EmployeeMenu.vue";
+import {Menu} from '@plugins/menu.js';
 
 export default {
    components: {Link, AdminMenu, EmployeeMenu},
@@ -93,17 +94,19 @@ export default {
       },
    },
    mounted() {
-      this.initializeMenu();
+      this.$nextTick(() => {
+         this.initializeMenu();
+      });
    },
    methods: {
       initializeMenu() {
          const layoutMenuEl = document.querySelector('#layout-menu');
+         
          if (layoutMenuEl) {
-            new window.Menu(layoutMenuEl, {
+            new Menu(layoutMenuEl, {
                orientation: 'vertical',
                closeChildren: false,
-            });
-            // console.log('Menu initialized:', layoutMenuEl);
+            }, window.PerfectScrollbar);
          } else {
             console.warn('Menu element not found. Initialization skipped.');
          }

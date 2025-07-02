@@ -11,13 +11,13 @@
                   <div class="card-action">
                      <button type="button" class="btn btn-primary d-none d-sm-inline-block"
                              @click="showCreateSubjectModal">
-                        <i class="bx bx-plus-circle me-2"></i>
+                        <i class="icon-base bx bx-plus-circle me-2"></i>
                         Add Subject
                      </button>
                      
                      <button type="button" class="btn btn-primary btn-icon d-sm-none"
                              @click="showCreateSubjectModal">
-                        <i class="bx bx-plus"></i>
+                        <i class="icon-base bx bx-plus"></i>
                      </button>
                   </div>
                </div>
@@ -31,49 +31,49 @@
          ref="subjectsTable"
       >
          <template #groups="props">
-                     <span v-if="props.rowData.group === 1" class="badge bg-label-warning">
-                        Language
-                     </span>
+            <span v-if="props.rowData.group === 1" class="badge bg-label-warning">
+               Language
+            </span>
             <span v-else-if="props.rowData.group === 2" class="badge bg-label-primary">
-                        Science
-                     </span>
+               Science
+            </span>
             <span v-else-if="props.rowData.group === 3" class="badge bg-label-info">
-                        Applied Science
-                     </span>
+               Applied Science
+            </span>
             <span v-else-if="props.rowData.group === 4" class="badge bg-label-success">
-                        Humanities
-                     </span>
+               Humanities
+            </span>
             <span v-else-if="props.rowData.group === 5" class="badge bg-label-dark">
-                        Creative Arts
-                     </span>
+               Creative Arts
+            </span>
             <span v-else class="badge bg-secondary">
-                        Unknown
-                     </span>
+               Unknown
+            </span>
          </template>
          
          <template #status="props">
-                     <span v-if="props.rowData.activated" class="badge bg-success">
-                        Active
-                     </span>
+            <span v-if="props.rowData.activated" class="badge bg-success">
+               Active
+            </span>
             <span v-else-if="!props.rowData.activated" class="badge bg-danger">
-                        Deactivated
-                     </span>
+               Deactivated
+            </span>
             <span v-else class="badge bg-secondary">
-                        Unknown
-                     </span>
+               Unknown
+            </span>
          </template>
          
          <template #actions="props">
             <div class="dropdown">
                <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                  <i class="bx bx-dots-vertical"></i>
+                  <i class="icon-base bx bx-dots-vertical"></i>
                </button>
                <div class="dropdown-menu dropdown-menu-end">
                   <a class="dropdown-item" href="#" @click="editSubject(props.rowData)">
-                     <i class="bx bx-edit-alt me-2"></i>Edit
+                     <i class="icon-base bx bx-edit-alt me-2"></i>Edit
                   </a>
                   <!--                                <a class="dropdown-item text-danger" href="#">-->
-                  <!--                                    <i class="bx bx-trash me-2"></i>Delete-->
+                  <!--                                    <i class="icon-base bx bx-trash me-2"></i>Delete-->
                   <!--                                </a>-->
                </div>
             </div>

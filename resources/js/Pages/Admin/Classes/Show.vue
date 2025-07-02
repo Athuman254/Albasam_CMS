@@ -10,7 +10,7 @@
                   <Link :href="route('admin.dashboard')">Home</Link>
                </li>
                <li class="breadcrumb-item">
-                  <Link href="/admin/ranks">Classes</Link>
+                  <Link :href="route('admin.ranks.index')">Classes</Link>
                </li>
                <li class="breadcrumb-item text-primary">
                   Details
@@ -23,7 +23,7 @@
                <div class="card-widget-separator-wrapper">
                   <div class="card-body card-widget-separator border-bottom">
                      <div class="row gy-3 gy-sm-1">
-                        <div class="col-sm-6 col-lg-3">
+                        <div class="col-sm-6 col-lg-2">
                            <div class="d-flex justify-content-between align-items-center card-widget-1 border-end pb-4 pb-sm-0">
                               <div>
                                  <h4 class="mb-0">{{ rank.name }}</h4>
@@ -65,7 +65,7 @@
                            </div>
                            <hr class="d-none d-sm-block d-lg-none me-6">
                         </div>
-                        <div class="col-sm-6 col-lg-3">
+                        <div class="col-sm-6 col-lg-4">
                            <div class="d-flex justify-content-between align-items-center pb-4 pb-sm-0">
                               <div>
                                  <h4 v-if="rank.teacher" class="mb-0">{{ rank.teacher?.first_name + ' ' + rank.teacher?.last_name }}</h4>
@@ -107,11 +107,11 @@
                   <template v-slot:actions="props">
                      <div class="dropdown">
                         <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                           <i class="bx bx-dots-vertical"></i>
+                           <i class="icon-base bx bx-dots-vertical"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                            <a class="dropdown-item" href="#">
-                              <i class="bx bx-detail me-2"></i> Details
+                              <i class="icon-base bx bx-detail me-2"></i> Details
                            </a>
                         </div>
                      </div>

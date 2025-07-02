@@ -353,7 +353,7 @@
                                     <div>
                                        <button type="button" v-if="index > 0" class="btn btn-sm btn-danger ms-auto"
                                                @click="removeGuardian(index)">
-                                          <i class="bx bx-trash"></i>
+                                          <i class="icon-base bx bx-trash"></i>
                                        </button>
                                     </div>
                                  </div>
@@ -444,7 +444,7 @@
                               <div class="row">
                                  <div class="col-md-12 mt-3">
                                     <button type="button" class="btn rounded-pill btn-light w-100" @click="addGuardian">
-                                       <i class="bx bx-plus-circle me-3"></i>
+                                       <i class="icon-base bx bx-plus-circle me-3"></i>
                                        Add Guardian
                                     </button>
                                  </div>
@@ -510,7 +510,7 @@
                                           <button type="button" v-if="index > 0"
                                                   class="btn btn-sm btn-icon btn-danger ms-auto"
                                                   @click="removeSibling(index)">
-                                             <i class="bx bx-trash"></i>
+                                             <i class="icon-base bx bx-trash"></i>
                                           </button>
                                        </div>
                                     </div>
@@ -572,7 +572,7 @@
                                  </div>
                                  <div class="col-md-12 mb-8">
                                     <button type="button" class="btn rounded-pill btn-light" @click="addSibling">
-                                       <i class="bx bx-plus-circle me-3"></i>
+                                       <i class="icon-base bx bx-plus-circle me-3"></i>
                                        Add Sibling
                                     </button>
                                  </div>

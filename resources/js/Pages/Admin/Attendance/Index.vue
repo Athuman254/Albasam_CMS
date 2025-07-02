@@ -1,19 +1,30 @@
 <template>
-   <Head title="Attendance"/>
+   <Head title="Record Attendance" />
    
    <DefaultLayout>
       <div class="row">
+         <h3 class="mb-0">Attendance Form</h3>
+         <nav class="mb-3">
+            <ol class="breadcrumb">
+               <li class="breadcrumb-item">
+                  <Link :href="route('admin.dashboard')">Home</Link>
+               </li>
+               <li class="breadcrumb-item text-primary">
+                  Attendance
+               </li>
+            </ol>
+         </nav>
+         
          <div class="col-xxl-12">
-            <h3>Record Attendance</h3>
-            
             <div class="card">
                <div class="card-header flex-column flex-md-row">
                   <div class="row row-gap-1">
                      <div class="col-md-3 col-6">
-                        <label for="">Class</label>
+                        <label for="classId" class="form-label-md mb-1">Class</label>
                         <v-select
+                           id="classId"
                            v-model="filterParams.filter.rank_id"
-                           :options="classes"
+                           :options="ranks"
                            variant="outlined"
                            label="name"
                            :reduce="option => option.id"
@@ -28,45 +39,64 @@
                         </v-select>
                      </div>
                      <div class="col-md-3 col-6">
-                        <label for="">Date</label>
+                        <label for="date" class="form-label-md mb-1">Date</label>
                         <date-picker
+                           id="date"
                            form-class="shadow-sm"
                            :value="filterParams.filter.date"
                            :max-date="new Date()"
                            @on-change="function(dateObj, dateStr) {
                              filterParams.filter.date = dateStr
+                             form.date = dateStr
                            }"
                         ></date-picker>
                      </div>
                   </div>
                </div>
-               
                <div class="table-responsive text-nowrap">
                   <table class="table">
                      <thead style="background-color: rgb(34, 48, 62, 0.06);">
                      <tr class="text-nowrap">
-                        <th>Adm no</th>
-                        <th>Student Name</th>
-                        <th>Status</th>
-                        <th>Remarks</th>
+                        <th style="width:15%;">Adm no</th>
+                        <th style="width:25%;">Student Name</th>
+                        <th style="width:25%;">Status</th>
+                        <th style="width:35%;">Remarks</th>
                      </tr>
                      </thead>
                      <tbody class="table-border-bottom-0">
-                     <tr v-for="student in students" :key="student.id">
-                        <th scope="row">{{ student.id }}</th>
-                        <td>{{ student.first_name }} {{ student.last_name }}</td>
-                        <td>
-                           <v-select v-model="student.status" :options="statusOptions" variant="outlined" :class="getStatusColor(student.status)" density="comfortable"/>
+                     <tr v-for="student in students" :key="student.id" :class="getStatusColor(form.attendances[student.id].status)">
+                        <td style="width:15%;">
+                           {{ student.admission_number }}
                         </td>
-                        <td>
-                           <textarea v-model="student.remarks" class="form-control" name="" id="" rows="2"></textarea>
+                        <td style="width:25%;">
+                           {{ student.first_name }} {{ student.last_name }}
+                        </td>
+                        <td style="width:25%;">
+                           <v-select
+                              v-model="form.attendances[student.id].status"
+                              :options="statuses"
+                              variant="outlined"
+                              :class="getStatusColor(form.attendances[student.id].status)"
+                              label="name"
+                              :reduce="option => option.value"
+                              density="comfortable"
+                           >
+                           </v-select>
+                        </td>
+                        <td style="width:35%;">
+                           <input v-model="form.attendances[student.id].remarks"
+                                  class="form-control"
+                                  placeholder="Remarks (optional)"
+                           />
                         </td>
                      </tr>
                      </tbody>
                   </table>
                </div>
                <div class="justify-content-end d-flex p-3">
-                  <button @click="submitAttendance" class="btn btn-primary">
+                  <button class="btn btn-primary"
+                         @click.prevent="submitAttendance"
+                         :disabled="form.processing || !students.length || !form.date || !form.rank_id">
                      Submit
                   </button>
                </div>
@@ -74,152 +104,156 @@
          </div>
       </div>
    </DefaultLayout>
+   
 </template>
 
 <script>
-import _debounce from 'lodash/debounce.js';
-import axios from 'axios';
-import DefaultLayout from '@layouts/DefaultLayout.vue';
-import {VueTable} from '@components/global/DataTable.vue';
+import DefaultLayout from "@layouts/DefaultLayout.vue";
 import {Head, Link, useForm} from "@inertiajs/vue3";
-import {Modal} from 'bootstrap';
-import {Inertia} from '@inertiajs/inertia';
-import {ref} from 'vue';
-import DatePicker from "@components/global/_baseDatePicker.vue";
+import axios from "axios";
 
 export default {
-   component: {DefaultLayout, Head, Link, DatePicker},
-   
+   components: {DefaultLayout, Head, Link},
    data() {
       return {
-         attendanceRecords: [],
-         students: [],
-         form: useForm({
-            name: '',
-            division_id: '',
-            stream_id: '',
-            teacher_id: '',
-         }),
-         classes: [],
-         statusOptions: ['Present', 'Absent', 'Late', 'Excused'],
          filterParams: {
             filter: {
-               rank_id: '',
+               rank_id: null,
+               date: null,
             }
          },
-         // form: new useForm({
-         //     date: new Date().toISOString().slice(0, 10),
-         // })
-      };
-   },
-   
-   created() {
-      this.fetchStudents()
-      this.fetchClasses()
-   },
-   watch: {
-      'filterParams.filter.classfilter': function (query) {
-         this.fetchStudents();
-         
+         form: useForm({
+            rank_id: null,
+            date: null,
+            attendances: {},
+         }),
+         ranks: [],
+         students: [],
+         statuses: [
+            {value: 'Present', name: 'Present'},
+            {value: 'Absent', name: 'Absent'},
+            {value: 'Late', name: 'Late'},
+            {value: 'Excused', name: 'Excused'},
+         ],
       }
    },
+   watch: {
+      'filterParams.filter.rank_id': function (newValue) {
+         this.form.rank_id = newValue
+         this.students = [];
+         if(newValue) {
+            this.fetchStudents(newValue)
+            this.fetchExistingAttendance()
+         }
+      },
+      'filterParams.filter.date': function (newValue) {
+         if(newValue) {
+            this.form.date = newValue
+            this.fetchExistingAttendance()
+         }
+      }
+   },
+   mounted() {
+      this.fetchRanks();
+   },
    methods: {
-      buildUrl(rawUrl, params) {
-         const baseUrl = rawUrl.startsWith("http")
-            ? rawUrl
-            : `${window.location.origin}/${rawUrl}`;
-         
-         const url = new URL(baseUrl);
-         const appendNestedParams = (prefix, obj) => {
-            for (const [key, value] of Object.entries(obj)) {
-               if (typeof value === 'object' && value !== null) {
-                  appendNestedParams(`${prefix}[${key}]`, value);
-               } else {
-                  url.searchParams.append(`${prefix}[${key}]`, value);
+      fetchRanks() {
+         axios.get('/datatable/ranks', {
+            params: {
+               filter: {
+                  activated: true,
                }
             }
-         };
-         for (const [key, value] of Object.entries(params)) {
-            if (typeof value === 'object' && value !== null) {
-               appendNestedParams(key, value);
-            } else {
-               url.searchParams.append(key, value);
-            }
-         }
-         return url.toString();
+         })
+         .then(({ data }) => {
+            this.ranks = data.data;
+         }).catch((error) => {
+         console.error(error)
+         this.$toast.error('An error occurred when fetching the classes.')
+         })
       },
-      fetchStudents() {
-         let url = this.buildUrl('datatable/students', this.filterParams);
-         console.log(url)
-         axios.get(url)
-            .then(({data}) => {
-               // this.students = data.data;
-               this.students = data.data.map((student) => ({
-                  ...student, status: 'Present', remarks: ''
-               }))
-               this.attendanceRecords = this.students.reduce((acc, student) => ({
-                  ...acc,
-                  [student.id]: {status: 'Present', remarks: ''}
-               }), {})
-            }).catch((error) => {
+      fetchStudents(rankId) {
+         axios.get('/datatable/students', {
+            params: {
+               filter: {
+                  rank_id: rankId,
+               }
+            }
+         })
+         .then(({ data }) => {
+            this.students = data.data;
+
+            this.form.attendances = data.data.reduce((acc, student) => {
+               acc[student.id] = {
+                  student_id: student.id,
+                  status: 'Present',
+                  remarks: ''
+               }
+               return acc
+            }, {})
+         }).catch((error) => {
             console.error(error)
             this.$toast.error('An error occurred when fetching the students.')
          })
       },
-      fetchClasses() {
-         axios.get('/datatable/ranks', {
-            params: {
-               filter: {
-                  'activated': true,
+      fetchExistingAttendance() {
+         const { rank_id, date } = this.filterParams.filter
+         if (!rank_id || !date) return
+         
+         axios.get('/admin/attendance/fetch', {
+            params: { rank_id, date }
+         }).then(({ data }) => {
+            const existing = data.attendances.reduce((acc, a) => {
+               acc[a.student_id] = {
+                  student_id: a.student_id,
+                  status: a.status,
+                  remarks: a.remarks
                }
-            }
-         }).then(({data}) => {
-            this.classes = data.data;
-         }).catch((error) => {
-            console.error(error)
-            this.$toast.error('An error occurred when fetching the classes.')
+               return acc
+            }, {})
+            
+            Object.entries(existing).forEach(([id, values]) => {
+               if (this.form.attendances[id]) {
+                  this.form.attendances[id] = values
+               }
+            })
          })
       },
       getStatusColor(status) {
          const colors = {
-            'Present': 'bg-green-100 text-green-800',
-            'Absent': 'bg-red-100 text-red-800',
-            'Late': 'bg-yellow-100 text-yellow-800',
-            'Excused': 'bg-blue-100 text-blue-800'
+            'Present': 'table-info',
+            'Absent': 'table-danger',
+            'Late': 'table-warning',
+            'Excused': 'table-secondary'
          }
-         return colors[status] || 'bg-gray-100 text-gray-800'
+         return colors[status] || 'table-default'
       },
-      
       submitAttendance() {
-         if (this.filterParams.filter.classfilter && this.form.date) {
-            const attendanceData = Object.entries(this.students).map((student) => ({
-               teacher_id: 1,
-               id: student[1].id,
-               class_id: this.filterParams.filter.classfilter,
-               date: this.form.date,
-               status: student[1].status,
-               remarks: student[1].remarks || null,
-               
-            }));
-            axios.post('/attendance', attendanceData)
-               .then(({data}) => {
-                  this.$toast.success('Attendance added successfully');
-                  this.$inertia.visit('/attendance-record')
-                  
-               })
-               .catch((error) => {
-                  let errorMessage = error.response?.data?.message || error.message || "An error occurred";
-                  console.error(error);
-                  this.$toast.error(errorMessage);
-               });
-         } else {
-            this.$toast.error("Date and Class are required fields");
+         if (!this.form.rank_id) {
+            this.$toast.info('Select a class first', 'Info');
+            return;
+         }
+         if (!this.form.date) {
+            this.$toast.info('Select attendance date', 'Info');
+            return;
          }
          
-         
+         this.form.post(route('admin.attendances.store'), {
+            onSuccess: () => {
+               this.form.rank_id = null;
+               this.form.date = null;
+               this.form.attendances = {};
+               this.filterParams.filter.rank_id = '';
+               this.filterParams.filter.date = '';
+               
+               this.$toast.success('Attendance recorded!', 'Success');
+            },
+            onError: (error) => {
+               console.log(error);
+               this.$toast.error('Something went wrong!', 'Error');
+            },
+         });
       }
    },
 }
 </script>
-
-<style scoped></style>

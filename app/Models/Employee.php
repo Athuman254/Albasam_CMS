@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 class Employee extends Authenticatable
 {
     use Notifiable, SoftDeletes, HasHashid, HashidRouting;
-    
+
     protected string $guard = 'employee';
 
     protected $table = 'employees';
@@ -79,14 +79,14 @@ class Employee extends Authenticatable
     {
         return $this->hasMany(WorkHistory::class);
     }
-    
+
     public static function generateStaffNumber(): string
     {
         $lastEmployee = Employee::orderBy('id', 'desc')->first();
         $prefix = 'EMP-';
         $month = now()->format('m');
         $year = now()->format('y');
-        
+
         // Determine the next number
         if ($lastEmployee) {
             $lastCode = $lastEmployee->staff_number;
@@ -95,7 +95,7 @@ class Employee extends Authenticatable
         } else {
             $nextNumber = '001';
         }
-        
+
         return "{$prefix}{$nextNumber}{$month}{$year}";
     }
 

@@ -10,24 +10,18 @@ use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
-
-    public function index(){
-      $user = Auth::guard("employee")->user();
-      $user->load('employment_type');
-      $user->load('employment_status');
-      $user->load('honorific');
-      $user->load('teacher.job');
-      $user->load('marital_status');
-      $user->load('religion');
-      $user->load('gender');
-      $user->load('contacts');
-      $user->load('qualifications');
-      $user->load('histories');
-      return Inertia::render('Employee/Profile/Index', [
-          'employee' => $user,
-      ]);
+    
+    public function index()
+    {
+        $user = Auth::guard("employee")->user();
+        $user->load('employment_type', 'employment_status', 'honorific', 'teacher.job', 'marital_status',
+            'religion', 'gender', 'contacts', 'qualifications', 'histories');
+        
+        return Inertia::render('Employee/Profile/Index', [
+            'employee' => $user,
+        ]);
     }
-
+    
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -38,7 +32,7 @@ class ProfileController extends Controller
         if (!password_verify($request->currentPassword, $employee->password)) {
             return back()->withErrors(['currentPassword' => 'Current password is incorrect.']);
         }
-
+        
         $employee->password = Hash::make($request->password);
         $employee->save();
     }

@@ -30,7 +30,7 @@ class Attendance extends Model
 
     public function rank(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Rank::class,'class_id');
+        return $this->belongsTo(Rank::class,'rank_id');
     }
     
     public function scopeSearch($query, $terms = ''): void

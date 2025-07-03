@@ -159,3 +159,9 @@ export default {
    }
 }
 </script>
+
+<style scoped>
+.nav-pills .nav-item .nav-link:not(.active) {
+   border: 1px solid #e9ecef;
+}
+</style>

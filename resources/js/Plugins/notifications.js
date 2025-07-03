@@ -103,5 +103,6 @@ const toast = {
 export default {
     install(app) {
         app.config.globalProperties.$toast = toast;
+        app.provide('toast', toast);
     },
 };

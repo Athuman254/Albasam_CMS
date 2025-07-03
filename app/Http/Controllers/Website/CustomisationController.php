@@ -35,7 +35,7 @@ class CustomisationController extends Controller
 //            'secondary_color_light_rgb' => Customisation::hexToRgb($validated['secondary_color_light']),
         ]);
         
-        return to_route('customisations.index');
+        return back(303)->with('success', 'Customisation created successfully.');
     }
     
     public function update(CustomisationRequest $request, Customisation $customisation)
@@ -53,7 +53,7 @@ class CustomisationController extends Controller
 //            'secondary_color_light_rgb' => Customisation::hexToRgb($validated['secondary_color_light']),
         ]);
         
-        return to_route('customisations.index');
+        return back(303)->with('success', 'Customisation updated successfully.');
     }
     
     public function defaults(Customisation $customisation)
@@ -65,7 +65,7 @@ class CustomisationController extends Controller
 //            'secondary_color_light' => '#fff786',
         ]);
         
-        return to_route('customisations.index');
+        return back(303)->with('success', 'Customisation updated.');
     }
     
     public function setButtonStyles(Request $request, Customisation $customisation)
@@ -78,6 +78,6 @@ class CustomisationController extends Controller
             'button_style' => $request->button_style,
         ]);
         
-        return to_route('customisations.index');
+        return back(303)->with('success', 'Customisation updated.');
     }
 }

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('teacher_id')->constrained('teachers');
             $table->foreignId('student_id')->constrained('students');
-            $table->foreignId('class_id')->constrained('ranks');
+            $table->foreignId('rank_id')->constrained('ranks');
             $table->date('date');
             $table->enum('status', ['Present', 'Absent', 'Late', 'Excused']);
             $table->string('remarks')->nullable();

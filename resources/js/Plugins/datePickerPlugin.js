@@ -1,4 +1,4 @@
-import DatePicker from "@/Components/global/_baseDatePicker.vue"; // Adjust path as needed
+import DatePicker from "@/Components/global/_baseDatePicker.vue";
 
 export default {
     install(app) {

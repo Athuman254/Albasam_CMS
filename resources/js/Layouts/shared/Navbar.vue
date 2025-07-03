@@ -41,7 +41,7 @@
                               </div>
                            </div>
                         </Link>
-                        <Link v-if="staff" class="dropdown-item" href="#">
+                        <Link v-if="staff" class="dropdown-item" :href="route('employee.profile.index')">
                            <div class="d-flex">
                               <div class="flex-shrink-0 me-3">
                                  <div class="avatar-wrapper">

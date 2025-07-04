@@ -149,6 +149,7 @@ return new class extends Migration
             $table->string('tax_identification_pin')->nullable();
             $table->longText('mission')->nullable();
             $table->longText('vision')->nullable();
+            $table->longText('motto')->nullable();
             $table->string('x_profile')->nullable();
             $table->string('fb_profile')->nullable();
             $table->string('ig_profile')->nullable();

@@ -24,7 +24,7 @@ class CustomisationRequest extends FormRequest
         return [
             'primary_color' => ['required', 'string'],
 //            'primary_color_light' => ['required', 'string'],
-//            'secondary_color' => ['required', 'string'],
+            'secondary_color' => ['required', 'string'],
 //            'secondary_color_light' => ['required', 'string'],
         ];
     }

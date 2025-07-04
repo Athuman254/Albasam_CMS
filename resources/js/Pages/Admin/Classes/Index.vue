@@ -21,7 +21,7 @@
                   <div class="row row-gap-1">
                      <div class="col-md-3 col-9">
                         <input type="search" id="search" class="form-control bg-muted-lt rounded-2" placeholder="Search..."
-                               @input="applyFilter" v-model="appendParams.filter.name">
+                               @input="applyFilter" v-model="appendParams.filter.search">
                      </div>
                      <div class="col-md-6 col-3 ms-lg-auto">
                         <div class="flex-wrap text-end">
@@ -355,7 +355,7 @@ export default {
          ],
          appendParams: {
             filter: {
-               name: '',
+               search: '',
             }
          },
          form: useForm({

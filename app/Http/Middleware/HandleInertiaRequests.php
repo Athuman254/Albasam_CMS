@@ -75,6 +75,7 @@ class HandleInertiaRequests extends Middleware
                         'name' => $employee->first_name . ' ' . $employee->last_name,
                         'email' => $employee->email,
                         'phone' => $employee->primary_phone,
+                        'teacher' => $employee->teacher ?? null,
                     ]
                     : null;
             }

@@ -66,6 +66,16 @@ class AppServiceProvider extends ServiceProvider
                 View::share('pages', $pages);
             }
         }
+        if (Schema::hasTable('teachers')) {
+            $teachers = \App\Models\Teacher::orderByDesc('created_at')->get() ?? null;
+            $teachers->load('user', 'employee');
+            
+            if ($teachers) {
+                View::share([
+                    'teachers' => $teachers,
+                ]);
+            }
+        }
         if (Schema::hasTable('blogs')) {
             $blogs = \App\Models\Website\Blog::orderByDesc('created_at')->get() ?? null;
             $blogs->load('user', 'category', 'media');

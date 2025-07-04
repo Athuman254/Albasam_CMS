@@ -11,7 +11,7 @@ class EmployeeCredentialRequest extends FormRequest
     {
         return [
             'has_system_access' => ['required', 'boolean'],
-            'password' => ['required', 'min:8'],
+            'password' => ['nullable', 'min:8'],
         ];
     }
     

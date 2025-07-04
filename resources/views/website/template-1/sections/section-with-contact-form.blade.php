@@ -19,7 +19,10 @@
                   </div>
                   <div class="address-box-des">
                      <h4>Send Email</h4>
-                     <p>{{ $institution->email }}</p>
+                     <p>
+                        {{ $institution->email }} <br>
+                        {{ $institution->email }}
+                     </p>
                   </div>
                </div>
                <!-- end single address box -->
@@ -29,7 +32,10 @@
                   </div>
                   <div class="address-box-des">
                      <h4>Phone</h4>
-                     <p>{{ $institution->phone }}</p>
+                     <p>
+                        {{ $institution->phone }} <br>
+                        {{ $institution->phone }}
+                     </p>
                   </div>
                </div>
             </div>

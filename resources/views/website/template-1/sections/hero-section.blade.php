@@ -19,7 +19,6 @@
                            @foreach($section->cta_buttons as $button)
                               <a href="{{ url($button->page->slug ?? '#') }}" class="{{ $button->cta_button_type . ' mb-lg-0 mb-md-0 mb-2' }}">
                                  {{ $button->cta_button_text }}
-                                 <i class="icofont-long-arrow-right"></i>
                               </a>
                            @endforeach
                         </div>

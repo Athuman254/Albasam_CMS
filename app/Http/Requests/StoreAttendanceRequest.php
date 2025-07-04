@@ -23,6 +23,7 @@ class StoreAttendanceRequest extends FormRequest
     {
         return [
             'rank_id' => ['required', 'exists:ranks,id'],
+            'teacher_id' => ['required', 'exists:teachers,id'],
             'date' => ['required', 'date'],
             'attendances' => ['required', 'array'],
             'attendances.*.student_id' => ['required', 'exists:students,id'],

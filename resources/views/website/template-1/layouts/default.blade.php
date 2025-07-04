@@ -20,12 +20,14 @@
       <link rel="stylesheet" href="{{ asset('/website/css/animate.css') }}">
       <link rel="stylesheet" href="{{ asset('/website/css/venobox.min.css')}}" />
       <link rel="stylesheet" href="{{ asset('/website/css/responsive.css') }}">
+      <link rel="stylesheet" href="{{ asset('/website/css/custom.css') }}">
 
       <style>
          :root {
             font-family: 'Dosis', 'Roboto', sans-serif !important;
             font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
             --ecbz-primary: {{ $customisation->primary_color ?? '#25615a' }};
+            --ecbz-secondary: {{ $customisation->secondary_color ?? '#333' }};
          }
          body {
             font-family: 'Dosis', 'Roboto', sans-serif !important;

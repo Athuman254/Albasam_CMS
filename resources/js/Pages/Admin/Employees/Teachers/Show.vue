@@ -100,7 +100,9 @@
                            <p>The employee has access to the system! <br>
                               Click the button below to revoke access
                            </p>
-                           <button type="button" class="btn btn-outline-danger">Suspend</button>
+                           <button type="button" class="btn btn-outline-danger" @click.prevent="revokeSystemAccess">
+                              Suspend
+                           </button>
                         </div>
                      </div>
                   </div>
@@ -334,20 +336,10 @@
                </form>
             </div>
             <div class="modal-footer">
-               <button
-                  type="button"
-                  class="btn btn-secondary me-2"
-                  data-bs-dismiss="modal"
-                  @click="credentialsFormCleanUp"
-               >
+               <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" @click="credentialsFormCleanUp">
                   Close
                </button>
-               <button
-                  type="button"
-                  class="btn btn-primary"
-                  @click.prevent="storeCredentials"
-                  :disabled="form.processing"
-               >
+               <button type="button" class="btn btn-primary" @click.prevent="storeCredentials" :disabled="form.processing">
                   Submit
                </button>
             </div>
@@ -371,8 +363,8 @@ export default {
    data() {
       return {
          form: useForm({
-            has_system_access: true,
-            password: '',
+            has_system_access: null,
+            password: null,
          }),
          emergencyContacts: [],
          qualificationDetails: [],
@@ -457,6 +449,7 @@ export default {
          this.openAccordion = this.openAccordion === section ? null : section;
       },
       showCreateCredentialsModal() {
+         this.form.has_system_access = this.employee.has_system_access;
          const modalElement = this.$refs.createCredentialsModal;
          const modalInstance = Modal.getOrCreateInstance(modalElement);
          modalInstance.show();
@@ -474,6 +467,22 @@ export default {
             onError: (errors) => {
                this.$toast.error('An error occurred. Please try again', 'Error')
             },
+         });
+      },
+      revokeSystemAccess() {
+         this.$toast.question('Revoke system access for ' + this.teacher.first_name + ' ?', 'Caution!').then(() => {
+            this.$inertia.patch(route('admin.employees.revoke-system-access', this.employee.hashid), {
+               onSuccess: () => {
+                  this.$inertia.reload();
+                  setTimeout(() => {
+                     this.$toast.success('System access revoked', 'Success');
+                  }, 400);
+               },
+               onError: (error) => {
+                  console.log(error);
+                  this.$toast.error('An error occurred. Please try again', 'Error');
+               },
+            })
          });
       },
       credentialsFormCleanUp() {

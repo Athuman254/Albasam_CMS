@@ -71,7 +71,7 @@
    <li v-if="canAny(['access-bulk-sms', 'access-sms-outbox'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/sms') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='menu-icon tf-icons bx bx-message-dots'></i>
-         <div class="text-truncate" data-i18n="Account Settings">Sms Messages</div>
+         <div class="text-truncate">Sms Messages</div>
       </a>
       <ul class="menu-sub">
          <li v-if="can('access-bulk-sms')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/sms/compose') }">
@@ -88,10 +88,11 @@
          </li>
       </ul>
    </li>
+   
    <li v-if="canAny(['access-attendance-workspace', 'access-attendance-report'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='bx bx-calendar-check menu-icon tf-icons'></i>
-         <div class="text-truncate" data-i18n="Account Settings">Attendance</div>
+         <div class="text-truncate">Attendance</div>
       </a>
       <ul class="menu-sub">
          <li v-if="can('access-attendance-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/attendances') }">
@@ -114,9 +115,9 @@
    
    <li v-if="can('access-institution-workspace')"  :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/institutions') }">
       <Link :href="route('admin.institutions.index')" class="menu-link">
-               <span>
-                  <i class="menu-icon tf-icons bx bxs-school"></i>
-               </span>
+         <span>
+            <i class="menu-icon tf-icons bx bxs-school"></i>
+         </span>
          Institution Details
       </Link>
    </li>
@@ -124,27 +125,27 @@
    <li v-if="can('access-users-workspace')"
        :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/users') }">
       <Link :href="route('admin.users.index')" class="menu-link">
-               <span>
-                  <i class="menu-icon tf-icons bx bx-user"></i>
-               </span>
+         <span>
+            <i class="menu-icon tf-icons bx bx-user"></i>
+         </span>
          System users
       </Link>
    </li>
    
    <li v-if="can('access-roles-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/roles') }">
       <Link :href="route('admin.roles.index')" class="menu-link">
-               <span>
-                  <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
-               </span>
+         <span>
+            <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
+         </span>
          System Roles
       </Link>
    </li>
    
    <li v-if="can('access-divisions-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings') }">
       <Link :href="route('admin.settings.index')" class="menu-link">
-               <span>
-                  <i class="menu-icon tf-icons bx bx-cog"></i>
-               </span>
+         <span>
+            <i class="menu-icon tf-icons bx bx-cog"></i>
+         </span>
          System Settings
       </Link>
    </li>
@@ -155,41 +156,41 @@
    </li>
    <li v-if="can('access-pages-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/customisations') }">
       <Link :href="route('admin.customisations.index')" class="menu-link">
-               <span>
-                  <i class="menu-icon tf-icons bx bx-palette"></i>
-               </span>
+         <span>
+            <i class="menu-icon tf-icons bx bx-palette"></i>
+         </span>
          Customisation
       </Link>
    </li>
    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/components') }">
       <Link class="menu-link" :href="route('admin.components.index')">
-               <span>
-                  <i class='menu-icon tf-icons bx bx-package'></i>
-               </span>
+         <span>
+            <i class='menu-icon tf-icons bx bx-package'></i>
+         </span>
          Components
       </Link>
    </li>
    <li v-if="can('access-pages-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/pages') }">
       <Link :href="route('admin.pages.index')" class="menu-link">
-               <span>
-                  <i class="menu-icon tf-icons bx bx-folder-open"></i>
-               </span>
+         <span>
+            <i class="menu-icon tf-icons bx bx-folder-open"></i>
+         </span>
          Pages
       </Link>
    </li>
    <li v-if="can('access-pages-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/menus') }">
       <Link :href="route('admin.menus.index')" class="menu-link">
-               <span>
-                  <i class="menu-icon tf-icons bx bx-food-menu"></i>
-               </span>
+         <span>
+            <i class="menu-icon tf-icons bx bx-food-menu"></i>
+         </span>
          Menu Items
       </Link>
    </li>
    <li v-if="can('access-pages-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/website/seo-metas') }">
       <Link :href="route('admin.seo-metas.index')" class="menu-link">
-               <span>
-                  <i class="menu-icon tf-icons bx bxs-dashboard"></i>
-               </span>
+         <span>
+            <i class="menu-icon tf-icons bx bxs-dashboard"></i>
+         </span>
          SEO Settings
       </Link>
    </li>

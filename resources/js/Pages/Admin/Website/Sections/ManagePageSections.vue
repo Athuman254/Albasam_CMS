@@ -544,17 +544,19 @@ export default {
             {value: 'section-without-image', name: 'Section Without Image'},
             {value: 'section-with-component', name: 'Section With Component'},
             {value: 'section-with-blogs', name: 'Section With Blogs'},
+            {value: 'section-with-teachers', name: 'Section With Teachers'},
             {value: 'section-with-contact-form', name: 'Section With Contact Form'},
             {value: 'section-with-map', name: 'Section With Map'},
          ],
          componentTypes: [
             {value: 'blogs', name: 'Blogs'},
             {value: 'careers', name: 'Vacancies'},
+            {value: 'teachers', name: 'Teacher'},
          ],
          ctaButtonTypes: [
             {value: 'primary-btn', name: 'Primary Button'},
-            // {value: 'secondary-btn', name: 'Secondary Button'},
-            // {value: 'default-btn', name: 'Default Button'},
+            {value: 'secondary-btn', name: 'Secondary Button'},
+            {value: 'default-btn', name: 'Default Button'},
          ],
       }
    },

@@ -6,6 +6,7 @@ use App\Traits\HasHashid;
 use App\Traits\HashidRouting;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Teacher extends Model
@@ -14,7 +15,7 @@ class Teacher extends Model
 
     protected $table = 'teachers';
     protected $primaryKey = 'id';
-    protected $appends = ['hashid'];
+    protected $appends = ['hashid', 'is_class_teacher'];
     protected $fillable = [
         'user_id', 'employee_id', 'first_name', 'middle_name', 'last_name',
         'honorific_id', 'job_title_id', 'specialization_area_id',
@@ -44,6 +45,21 @@ class Teacher extends Model
     public function job(): BelongsTo
     {
         return $this->belongsTo(JobTitle::class, 'job_title_id', 'id');
+    }
+    
+    public function rank(): HasOne
+    {
+        return $this->hasOne(Rank::class, 'teacher_id', 'id');
+    }
+    
+    public function getIsClassTeacherAttribute(): bool
+    {
+        return $this->rank()->exists();
+    }
+    
+    public function scopeIsAClassTeacher($query)
+    {
+        return $query->whereHas('rank');
     }
     
     public function scopeSearch($query, string $terms = null)

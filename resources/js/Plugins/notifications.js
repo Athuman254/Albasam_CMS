@@ -1,7 +1,7 @@
 import iziToast from 'izitoast/dist/js/iziToast.min'
 
 let position = 'topRight';
-let displayMode = 'replace';
+let displayMode = 2;
 let timeout = 9000;
 let layout = 2;
 

@@ -1,4 +1,4 @@
-<section id="servicelist" class="section-padding">
+<section class="section-padding">
    <div class="auto-container">
       <div class="row">
          @if($section->title)
@@ -27,9 +27,7 @@
          </div>
          @endif
          <div class="col-12 mb-3">
-            <div class="row">
-               @includeIf('website.template-1.' . $section->component_type, ['section' => $section, 'customisation' => $customisation])
-            </div>
+            @includeIf('website.template-1.' . $section->component_type, ['section' => $section, 'customisation' => $customisation])
          </div>
       </div>
    </div>

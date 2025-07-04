@@ -20,7 +20,7 @@ class Institution extends Model implements HasMedia
     protected $appends = ['hashid'];
     protected $fillable = [
         'name', 'code', 'email', 'phone', 'country', 'state', 'city', 'physical_address', 'postal_address', 'tax_identification_pin',
-        'mission', 'vision', 'logo_size', 'x_profile', 'fb_profile', 'ig_profile', 'youtube_profile', 'tiktok_profile',
+        'mission', 'vision', 'motto', 'logo_size', 'x_profile', 'fb_profile', 'ig_profile', 'youtube_profile', 'tiktok_profile',
     ];
 
     public function registerMediaCollections(): void

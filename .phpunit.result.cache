@@ -1,1 +1,0 @@
-{"version":1,"defects":{"Tests\\Feature\\ProfileTest::test_profile_page_is_displayed":8,"Tests\\Feature\\ExampleTest::test_the_application_returns_a_successful_response":7},"times":{"Tests\\Feature\\ProfileTest::test_profile_page_is_displayed":0.021,"Tests\\Feature\\ExampleTest::test_the_application_returns_a_successful_response":0.053}}

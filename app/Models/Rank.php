@@ -37,9 +37,22 @@ class Rank extends Model
         return $this->belongsToMany(Subject::class, 'rank_subjects', 'rank_id', 'subject_id');
     }
     
-    
     public function scopeActivated($query): void
     {
         $query->where('activated', '=', true);
+    }
+    
+    public function scopeSearch($query, string $terms = null)
+    {
+        collect(explode(' ', $terms))->filter()->each(function ($term) use ($query) {
+            $term = '%'.$term.'%';
+            
+            $query->where('name', 'like', $term)
+                ->orWhereHas('division', function($q) use ($term) {
+                    $q->where('name', 'like', $term);
+                })->orWhereHas('stream', function($q) use ($term) {
+                    $q->where('name', 'like', $term);
+                });
+        });
     }
 }

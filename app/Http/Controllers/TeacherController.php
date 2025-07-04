@@ -300,27 +300,6 @@ class TeacherController extends Controller
         }
     }
 
-    public function systemAccess(EmployeeCredentialRequest $request, Employee $employee): \Illuminate\Http\RedirectResponse
-    {
-        $validated = $request->validated();
-        
-        $employee->update([
-            'has_system_access' => $validated['has_system_access'],
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        return back(303)->with('success', 'Credentials captured.');
-    }
-
-    public function revokeSystemAccess(Employee $employee)
-    {
-        $employee->update([
-            'has_system_access' => false,
-        ]);
-        
-        return back(303)->with('success', 'Access Revoked');
-    }
-
 //    /**
 //     * @param $qualifications
 //     * @param Employee $employee

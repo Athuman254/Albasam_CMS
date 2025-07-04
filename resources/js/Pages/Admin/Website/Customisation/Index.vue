@@ -37,7 +37,7 @@
                   <div class="card mb-3">
                      <div class="card-header py-3">
                         <h5 class="card-title mb-0">
-                           <i class="icon-base bx bxs-brush bx-md"></i>
+                           <i class="icon-30px bx bxs-brush"></i>
                            Colors
                         </h5>
                      </div>
@@ -50,6 +50,13 @@
                                  <label class="form-label mb-3">Primary Color <span class="small text-muted text-wrap">(default color)</span></label>
                                  <input v-model="form.primary_color" type="color" class="form-control form-control-color">
                                  <!--                           <chrome v-model="form.primary_color" />-->
+                              </div>
+                           </div>
+                           <div class="col-12">
+                              <div class="mb-3 ">
+                                 <label class="form-label mb-3">Secondary Color <span class="small text-muted text-wrap">(default color)</span></label>
+                                 <input v-model="form.secondary_color" type="color" class="form-control form-control-color">
+                                 <!--                           <chrome v-model="form.secondary_color" />-->
                               </div>
                            </div>
                            <div class="col-12 mt-3 mb-2">
@@ -85,7 +92,7 @@ export default {
             id: '',
             primary_color: '',
             // primary_color_light: '',
-            // secondary_color: '',
+            secondary_color: '',
             // secondary_color_light: '',
          }),
          // buttonForm: useForm({
@@ -98,7 +105,7 @@ export default {
          defaultCustomisation: {
             primary_color: '#25615a',
             // primary_color_light: '#a1b6ff',
-            // secondary_color: '#fff200',
+            secondary_color: '#333',
             // secondary_color_light: '#f7ffc1',
          },
          activeTab: 'colors',
@@ -121,7 +128,7 @@ export default {
          this.form.id = this.currentCustomisation.hashid;
          this.form.primary_color = this.currentCustomisation.primary_color;
          // this.form.primary_color_light = this.currentCustomisation.primary_color_light;
-         // this.form.secondary_color = this.currentCustomisation.secondary_color;
+         this.form.secondary_color = this.currentCustomisation.secondary_color;
          // this.form.secondary_color_light = this.currentCustomisation.secondary_color_light;
          // this.buttonForm.button_style = this.currentCustomisation.button_style;
       },
@@ -163,16 +170,16 @@ export default {
          const d = this.defaultCustomisation;
          const c = this.currentCustomisation;
          return (
-            c?.primary_color !== d.primary_color
+            c?.primary_color !== d.primary_color ||
             // c?.primary_color_light !== d.primary_color_light ||
-            // c?.secondary_color !== d.secondary_color ||
+            c?.secondary_color !== d.secondary_color
             // c?.secondary_color_light !== d.secondary_color_light
          );
       },
       setDefaultCustomisation() {
          this.form.primary_color = this.defaultCustomisation.primary_color;
          // this.form.primary_color_light = this.defaultCustomisation.primary_color_light;
-         // this.form.secondary_color = this.defaultCustomisation.secondary_color;
+         this.form.secondary_color = this.defaultCustomisation.secondary_color;
          // this.form.secondary_color_light = this.defaultCustomisation.secondary_color_light;
       },
       // updateButtonStyles() {

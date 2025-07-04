@@ -18,9 +18,11 @@ class RankController extends Controller
         $classes = QueryBuilder::for(
             Rank::with(['division', 'stream', 'teacher.honorific'])->orderBy('name')
         )->allowedFilters([
-            AllowedFilter::exact('id'),
             AllowedFilter::exact('activated'),
+            AllowedFilter::exact('division_id'),
+            AllowedFilter::exact('stream_id'),
             AllowedFilter::partial('name'),
+            AllowedFilter::scope('search', 'Search'),
         ])->jsonPaginate();
 
         return Resource::collection($classes);

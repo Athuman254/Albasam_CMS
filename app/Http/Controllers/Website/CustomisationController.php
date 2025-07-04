@@ -47,8 +47,8 @@ class CustomisationController extends Controller
             'primary_color_rgb' => Customisation::hexToRgb($validated['primary_color']),
 //            'primary_color_light' => $validated['primary_color_light'],
 //            'primary_color_light_rgb' => Customisation::hexToRgb($validated['primary_color_light']),
-//            'secondary_color' => $validated['secondary_color'],
-//            'secondary_color_rgb' => Customisation::hexToRgb($validated['secondary_color']),
+            'secondary_color' => $validated['secondary_color'],
+            'secondary_color_rgb' => Customisation::hexToRgb($validated['secondary_color']),
 //            'secondary_color_light' => $validated['secondary_color_light'],
 //            'secondary_color_light_rgb' => Customisation::hexToRgb($validated['secondary_color_light']),
         ]);
@@ -59,13 +59,13 @@ class CustomisationController extends Controller
     public function defaults(Customisation $customisation)
     {
         $customisation->update([
-            'primary_color' => '#25615a',
+            'primary_color' => '#f8964f',
 //            'primary_color_light' => '#e1eefd',
-//            'secondary_color' => '#ffd90d',
+            'secondary_color' => '#333',
 //            'secondary_color_light' => '#fff786',
         ]);
         
-        return back(303)->with('success', 'Customisation updated.');
+        return back(303)->with('success', 'Customisation updated successfully.');
     }
     
     public function setButtonStyles(Request $request, Customisation $customisation)
@@ -78,6 +78,6 @@ class CustomisationController extends Controller
             'button_style' => $request->button_style,
         ]);
         
-        return back(303)->with('success', 'Customisation updated.');
+        return back(303)->with('success', 'Customisation updated successfully.');
     }
 }

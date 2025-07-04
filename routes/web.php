@@ -146,8 +146,8 @@ Route::middleware('auth')->group(function () {
                 Route::post('/fourth-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'fourthStep'])->name('teacher.registration.fourth.step');
             });
             
-            Route::post('/system-access/{employee}', [\App\Http\Controllers\TeacherController::class, 'systemAccess'])->name('employees.system-access');
-            Route::patch('/system-access/{employee}', [\App\Http\Controllers\TeacherController::class, 'revokeSystemAccess'])->name('employees.revoke-system-access');
+            Route::post('/system-access/{employee}', [\App\Http\Controllers\EmployeeController::class, 'systemAccess'])->name('employees.system-access');
+            Route::patch('/system-access/{employee}', [\App\Http\Controllers\EmployeeController::class, 'revokeSystemAccess'])->name('employees.revoke-system-access');
             
             Route::get('/teachers', [\App\Http\Controllers\TeacherController::class, 'index'])->name('teachers.index');
             Route::get('/teachers/create', [\App\Http\Controllers\TeacherController::class, 'create'])->name('teachers.create');

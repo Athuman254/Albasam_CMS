@@ -525,6 +525,7 @@
 import DefaultLayout from "@layouts/DefaultLayout.vue";
 import {Head, Link, useForm} from "@inertiajs/vue3";
 import {Inertia} from "@inertiajs/inertia";
+import {Modal} from "bootstrap";
 
 export default {
    components: {DefaultLayout, Head, Link},

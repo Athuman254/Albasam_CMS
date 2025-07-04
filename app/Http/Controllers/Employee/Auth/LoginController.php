@@ -23,21 +23,23 @@ class LoginController extends Controller
             'password' => 'required|string',
         ]);
         
-        $employee = Employee::where('has_system_access', true)
-            ->where(function ($q) use ($request) {
-                $q->where('staff_number', $request->identifier)
-                    ->orWhere('email', $request->identifier)
-                    ->orWhere('primary_phone', $request->identifier);
-            })->first();
+        $message = null;
+        
+        $employee = Employee::where(function ($q) use ($request) {
+            $q->where('staff_number', $request->identifier)
+                ->orWhere('email', $request->identifier)
+                ->orWhere('primary_phone', $request->identifier);
+        })->first();
         
         if (!$employee) {
             return back()->withErrors(['identifier' => 'No matching credentials found'])->onlyInput('identifier');
         }
+        if (!$employee->has_system_access) {
+            $message = 'Your access to the system has been revoked! Contact your admin for access!' ?? null;
+            return back()->withErrors(['identifier' => $message])->onlyInput('password');
+        }
         if (!Hash::check($request->password, $employee->password)) {
             return back()->withErrors(['identifier' => 'Incorrect password'])->onlyInput('password');
-        }
-        if (!$employee && !Hash::check($request->password, $employee->password)) {
-            return back()->withErrors(['identifier' => 'Invalid credentials'])->onlyInput('identifier');
         }
         
         Auth::guard('employee')->login($employee);

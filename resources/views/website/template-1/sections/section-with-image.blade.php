@@ -1,9 +1,11 @@
-<section id="pabout" class="about-wel-padding">
+<section class="section-padding">
    <div class="auto-container">
       <div class="row">
-         <div class="col-lg-6 col-md-6 col-sm-12 col-12 mb-lg-0 mb-lg-0 mb-5">
-            <img class="img-fluid" src="{{ $section->media[0]->original_url ?? asset('dummy-image.jpg') }}" alt="">
-         </div>
+         @if($section->section_image_first)
+            <div class="col-lg-6 col-md-6 col-sm-12 col-12 mb-lg-0 mb-lg-0 mb-5">
+               <img class="img-fluid" src="{{ $section->media[0]->original_url ?? asset('dummy-image.jpg') }}" alt="" width="436" height="390">
+            </div>
+         @endif
          <!-- end col -->
          <div class="col-lg-6 col-md-6 col-sm-12 col-12">
             <div class="welcome-section-title">
@@ -13,26 +15,32 @@
                   {!! $section->details !!}
                </div>
             </div>
-            <div class="welcome-des wow fadeInUp" style="visibility: visible; animation-name: fadeInUp;">
-               <div class="col-lg-8 col-md-7 col-12 pl-0 mt-4">
-                  <div class="row">
-                     <div class="col-lg-6 mb-md-3 mb-3">
-                        @if($section->has_cta_buttons && $section->cta_buttons->isNotEmpty())
-                           <div class="home-single-slide-button mt-4">
-                              @foreach($section->cta_buttons as $button)
-                                 <a href="{{ url($button->page->slug ?? '#') }}" class="{{ $button->cta_button_type . ' mb-lg-0 mb-md-0 mb-2' }}">
+            @if($section->has_cta_buttons && $section->cta_buttons->isNotEmpty())
+               <div class="welcome-des wow fadeInUp" style="visibility: visible; animation-name: fadeInUp;">
+                  <div class="col-lg-12 col-md-12 col-12 pl-0 mt-4">
+                     <div class="row">
+                        @foreach($section->cta_buttons as $button)
+                           <div class="col-lg-6 col-md-6 col-sm-4 col-12 mb-md-3 mb-1">
+                              <div class="welcome-btn my-lg-4 my-2">
+                                 <a href="{{ url($button->page->slug ?? '#') }}" class="{{ $button->cta_button_type }} w-100 text-center">
                                     {{ $button->cta_button_text }}
-                                    <i class="icofont-long-arrow-right"></i>
                                  </a>
-                              @endforeach
+                              </div>
                            </div>
-                        @endif
+                        @endforeach
                      </div>
                   </div>
                </div>
-            </div>
+            @endif
          </div>
          <!-- end col -->
+         @if(!$section->section_image_first)
+            <div class="col-lg-6 col-md-6 col-sm-12 col-12 mb-lg-0 mb-lg-0 mb-5">
+               <div class="float-lg-right float-md-none">
+                  <img class="img-fluid" src="{{ $section->media[0]->original_url ?? asset('dummy-image.jpg') }}" alt="" width="400" height="400">
+               </div>
+            </div>
+         @endif
       </div>
    </div>
 </section>

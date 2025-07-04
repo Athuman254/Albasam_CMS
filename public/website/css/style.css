@@ -1,36 +1,4 @@
 /*
-Author       : Tech Trek.
-Template Name: Nekaton - Responsive School Template
-Version      : 1.0
-*/
-
-/*=============================================================
-    CSS INDEX
-    =============================
-    01. START GENERAL STYLE
-    02. START HEADER STYLE
-    03. START SLIDER STYLE
-    04. START ABOUT STYLE
-    05. START FEATURES STYLE
-    06. START COUNTER STYLE
-    07. START TEAM STYLE
-    08. START TESTIMONIAL & FAQ STYLE
-    09. START GALLERY STYLE
-    10. START BLOG STYLE
-    11. START NEWSLETTER STYLE
-    12. START FOOTER STYLE
-    13. START ABOUT PAGE STYLE
-    14. START SERVICE PAGE STYLE
-    15. START SINGLE SERVICE PAGE STYLE
-    16. START FAQ PAGE STYLE
-    17. START 404 PAGE STYLE
-    18. START BLOG PAGE STYLE
-    19. START SINGLE BLOG PAGE STYLE
-    20. START CONTACT PAGE STYLE
-  =============================================================*/
-
-
-/*
 * ----------------------------------------------------------------------------------------
 * 01. START GENERAL STYLE
 * ----------------------------------------------------------------------------------------
@@ -38,6 +6,8 @@ Version      : 1.0
 :root {
    font-family: 'Dosis', 'Roboto', sans-serif;
    --ecbz-primary: #25615a;
+   --ecbz-secondary: #333;
+   --ecbz-white: #fff;
 }
 
 body {
@@ -61,7 +31,7 @@ h3,
 h4,
 h5,
 h6 {
-   color: #333;
+   color: var(--ecbz-secondary);
    font-family: 'Dosis', 'Roboto', sans-serif;
    font-weight: 700;
 }
@@ -414,7 +384,7 @@ fieldset {
 }
 
 #topcontrol:hover {
-   background: #333;
+   background: var(--ecbz-secondary);
    -webkit-transform: rotate(0);
    transform: rotate(0);
 }
@@ -487,10 +457,10 @@ fieldset {
    background-color: var(--ecbz-primary);
 }
 .bg-theme p{
-    color: #cac8c8;
+   color: #cac8c8;
 }
 .bg-theme h1, .bg-theme h2, .bg-theme h3, .bg-theme h4, .bg-theme h5, .bg-theme h6{
- color: #000;
+   color: #000;
 }
 .theme-color {
    color: var(--ecbz-primary);
@@ -611,7 +581,7 @@ fieldset {
    bottom: 0;
    left: 0;
    right: 0;
-   background: #333;
+   background: var(--ecbz-secondary);
    -webkit-transform: scaleX(0);
    transform: scaleX(0);
    -webkit-transform-origin: 50%;
@@ -688,7 +658,7 @@ fieldset {
 a.header-search {
    color: #fff;
    font-size: 20px;
-   background: #333;
+   background: var(--ecbz-secondary);
    display: inline-block;
    height: 74px;
    width: 74px;
@@ -788,7 +758,7 @@ a.header-search {
    height: 5px;
    bottom: 0;
    left: 0;
-   background-color: #333;
+   background-color: var(--ecbz-secondary);
 }
 
 .mainmenu-area ul.navbar-nav li a {
@@ -812,7 +782,7 @@ a.header-search {
    left: 0;
    right: 0;
    bottom: 0;
-   background: #333;
+   background: var(--ecbz-secondary);
    -webkit-transform: scaleY(0);
    transform: scaleY(0);
    -webkit-transform-origin: 50% 100%;
@@ -899,7 +869,7 @@ a.header-search {
    bottom: 0;
    left: 0;
    right: 0;
-   background: #333;
+   background: var(--ecbz-secondary);
    -webkit-transform: scaleX(0);
    transform: scaleX(0);
    -webkit-transform-origin: 50%;
@@ -1141,7 +1111,7 @@ a.header-search {
 }
 
 .slide-btn-one {
-   color: #333;
+   color: var(--ecbz-secondary);
    background: transparent;
    border: 2px solid #fff;
 }
@@ -1173,7 +1143,7 @@ a.header-search {
 .slide-btn-two:hover,
 .slide-btn-two:focus,
 .slide-btn-two:active {
-   color: #333;
+   color: var(--ecbz-secondary);
    border-color: #fff;
 }
 
@@ -1181,7 +1151,7 @@ a.header-search {
 /*owl controls css*/
 
 .home-slides.owl-carousel .owl-nav button {
-   color: #333;
+   color: var(--ecbz-secondary);
    font-size: 30px;
    background: #fff !important;
    height: 70px;
@@ -1378,7 +1348,7 @@ a.header-search {
 }
 
 .about-us-into-btn-icon {
-   color: #333;
+   color: var(--ecbz-secondary);
    background-color: #eee;
    padding: 8px 20px;
 }
@@ -1816,7 +1786,7 @@ a.header-search {
    position: absolute;
    bottom: 0;
    width: 100%;
-   padding: 20px 0px;
+   padding: 20px 0;
    display: inline-block;
    vertical-align: middle;
    -webkit-transform: translateZ(0);
@@ -3217,59 +3187,6 @@ a.header-search {
    width: 70px;
    margin: 15px auto 0;
    display: block;
-}
-
-.primary-btn {
-   color: #fff;
-   font-size: 14px;
-   letter-spacing: 1px;
-   text-transform: uppercase;
-   padding: 10px 20px;
-   display: inline-block;
-   vertical-align: middle;
-   -webkit-transform: perspective(1px) translateZ(0);
-   transform: perspective(1px) translateZ(0);
-   position: relative;
-   background: var(--ecbz-primary);
-   -webkit-transition-property: color;
-   transition-property: color;
-   -webkit-transition-duration: 0.3s;
-   transition-duration: 0.3s;
-}
-
-.primary-btn:before {
-   content: "";
-   position: absolute;
-   z-index: -1;
-   top: 0;
-   bottom: 0;
-   left: 0;
-   right: 0;
-   background: #333;
-   -webkit-transform: scaleY(0);
-   transform: scaleY(0);
-   -webkit-transform-origin: 50%;
-   transform-origin: 50%;
-   -webkit-transition-property: transform;
-   transition-property: transform;
-   -webkit-transition-duration: 0.3s;
-   transition-duration: 0.3s;
-   -webkit-transition-timing-function: ease-out;
-   transition-timing-function: ease-out;
-}
-
-.primary-btn:hover:before,
-.primary-btn:focus:before,
-.primary-btn:active:before {
-   -webkit-transform: scaleY(1);
-   transform: scaleY(1);
-}
-
-.primary-btn:hover,
-.primary-btn:focus,
-.primary-btn:active {
-   color: #fff;
-   border-color: #333;
 }
 
 .welcome-video {
@@ -5508,7 +5425,7 @@ a.header-search {
 }
 
 .clients-slides.owl-carousel .owl-dot span {
-   background: #333;
+   background: var(--ecbz-secondary);
 }
 
 .clients-slides.owl-carousel .owl-dot.active:hover span,

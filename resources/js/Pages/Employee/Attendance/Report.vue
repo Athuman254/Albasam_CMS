@@ -60,18 +60,18 @@
                         {{ props.rowData.status }}
                      </div>
                   </template>
-                  <template v-slot:actions="props">
-                     <div class="dropdown">
-                        <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                           <i class="icon-base bx bx-dots-vertical"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end">
-                           <a class="dropdown-item" href="#" @click="viewRecord(props.rowData)">
-                              <i class='icon-base bx bx-minus-back'></i> view
-                           </a>
-                        </div>
-                     </div>
-                  </template>
+<!--                  <template v-slot:actions="props">-->
+<!--                     <div class="dropdown">-->
+<!--                        <button class="btn align-text-top py-1" data-bs-toggle="dropdown">-->
+<!--                           <i class="icon-base bx bx-dots-vertical"></i>-->
+<!--                        </button>-->
+<!--                        <div class="dropdown-menu dropdown-menu-end">-->
+<!--                           <a class="dropdown-item" href="#" @click="viewRecord(props.rowData)">-->
+<!--                              <i class='icon-base bx bx-minus-back'></i> view-->
+<!--                           </a>-->
+<!--                        </div>-->
+<!--                     </div>-->
+<!--                  </template>-->
                </VueTable>
             </div>
          </div>
@@ -118,8 +118,8 @@ export default {
                title: 'CLASS TEACHER',
             },
             {
-               name: 'date',
-               title: 'DATE',
+               name: 'remarks',
+               title: 'REMARKS',
             },
             {
                name: '__slot:actions',

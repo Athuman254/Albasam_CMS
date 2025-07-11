@@ -40,7 +40,7 @@
                                  </v-select>
                               </div>
                               <div class="col-md-2 col-2">
-                                 <button type="button" class="btn btn-sm btn-outline-primary" @click.prevent="fetchLessons()">
+                                 <button type="button" class="btn btn-primary px-3" @click.prevent="fetchLessons()">
                                     <i class="icon-base bx bx-filter-alt"></i>
                                  </button>
                               </div>

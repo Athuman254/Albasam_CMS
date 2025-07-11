@@ -12,6 +12,9 @@ Route::prefix('employee')->name('employee.')->group(function () {
     });
 
     Route::middleware('auth:employee')->group(function () {
+        Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        
         /********************************
          * DATATABLE ROUTES
          *******************************/
@@ -35,11 +38,9 @@ Route::prefix('employee')->name('employee.')->group(function () {
             Route::get('/work-histories', [\App\Http\Controllers\WorkHistoryController::class, 'dataTable'])->name('work-histories');
         });
         
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('profile',[\App\Http\Controllers\Employee\ProfileController::class, 'index'])->name('profile.index');
         Route::post('password/update', [\App\Http\Controllers\Employee\ProfileController::class, 'updatePassword'])
             ->name('password.update');
-        Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
         
         Route::resource('/attendances', \App\Http\Controllers\Employee\AttendanceController::class)->names('attendances');
         Route::get('/reports/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'report'])->name('reports.attendance');

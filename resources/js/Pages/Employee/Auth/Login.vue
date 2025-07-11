@@ -27,7 +27,7 @@
          </ul>
       </div>
       
-      <h5 class="text-center">Staff Portal</h5>
+<!--      <h5 class="text-center">Staff Portal</h5>-->
       
       <div class="card px-sm-6 px-0">
          <div class="card-body">

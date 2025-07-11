@@ -38,7 +38,7 @@
    <li v-if="canAny(['access-employee-workspace', 'access-teacher-workspace'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/employees') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='bx bxs-user-badge menu-icon tf-icons'></i>
-         <div class="text-truncate" data-i18n="Account Settings">Employee Management</div>
+         <div class="text-truncate">Employee Management</div>
       </a>
       <ul v-if="can('access-teacher-workspace')"  class="menu-sub">
          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/employees/teachers') }">

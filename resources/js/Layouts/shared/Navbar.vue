@@ -26,7 +26,7 @@
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
                      <li>
-                        <Link v-if="user" class="dropdown-item" :href="route('profile.edit')">
+                        <Link v-if="user" class="dropdown-item" :href="route('admin.profile.edit')">
                            <div class="d-flex">
                               <div class="flex-shrink-0 me-3">
                                  <div class="avatar-wrapper">

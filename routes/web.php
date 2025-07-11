@@ -74,13 +74,6 @@ Route::middleware('auth')->group(function () {
     });
     
     /********************************
-     * USER PROFILE ROUTES
-     *******************************/
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
-    /**********************************************************************
      *  ADMIN ROUTES
      *******************************/
     Route::group([
@@ -89,6 +82,13 @@ Route::middleware('auth')->group(function () {
     ], function () {
         
         Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+        
+        /********************************
+         * USER PROFILE ROUTES
+         *******************************/
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
         
         Route::resource('/attendances', \App\Http\Controllers\AttendanceController::class)->names('attendances');
         Route::get('/reports/attendance', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('reports.attendance');

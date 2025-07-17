@@ -77,6 +77,8 @@ return new class extends Migration
             $table->string('url')->nullable();
             $table->boolean('has_children')->default(false);
             $table->foreignId('parent_id')->nullable()->constrained('menus');
+            $table->string('child_type')->nullable();
+            $table->string('component')->nullable();
             $table->tinyInteger('order')->default(0);
             $table->timestamps();
         });

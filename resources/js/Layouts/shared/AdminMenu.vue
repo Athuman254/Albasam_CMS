@@ -75,7 +75,7 @@
       </a>
       <ul class="menu-sub">
          <li v-if="can('access-bulk-sms')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/sms/compose') }">
-            <Link :href="route('admin.sms.send')" class="menu-link">
+            <Link :href="route('admin.sms.compose')" class="menu-link">
                <div class="text-truncate">Compose</div>
             </Link>
          </li>
@@ -95,11 +95,11 @@
          <div class="text-truncate">Attendance</div>
       </a>
       <ul class="menu-sub">
-         <li v-if="can('access-attendance-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/attendances') }">
-            <Link :href="route('admin.attendances.index')" class="menu-link">
-               <div class="text-truncate">Mark Attendance</div>
-            </Link>
-         </li>
+<!--         <li v-if="can('access-attendance-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/attendances') }">-->
+<!--            <Link :href="route('admin.attendances.index')" class="menu-link">-->
+<!--               <div class="text-truncate">Mark Attendance</div>-->
+<!--            </Link>-->
+<!--         </li>-->
          <li v-if="can('access-attendance-report')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
             <Link :href="route('admin.reports.attendance')" class="menu-link">
                <div class="text-truncate">Attendance Report</div>

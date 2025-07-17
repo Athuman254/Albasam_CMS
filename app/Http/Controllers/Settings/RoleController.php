@@ -44,7 +44,7 @@ class RoleController extends Controller
 
         $role->syncPermissions($permissionIds);
 
-        return to_route('roles.index')->with('success', 'Role created.');
+        return back(303)->with('success', 'Role created.');
     }
 
     public function update(RoleRequest $request, Role $role)
@@ -63,6 +63,6 @@ class RoleController extends Controller
 
         $role->syncPermissions($permissionIds);
 
-        return to_route('roles.index')->with('success', 'Role created.');
+        return back(303)->with('success', 'Role created.');
     }
 }

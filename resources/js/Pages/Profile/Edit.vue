@@ -1,10 +1,9 @@
 <script>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head, Link } from '@inertiajs/vue3';
+import DefaultLayout from "@layouts/DefaultLayout.vue";
 import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import DefaultLayout from "@layouts/DefaultLayout.vue";
 
 export default {
    components: {DefaultLayout, Head, Link, UpdateProfileInformationForm, UpdatePasswordForm, DeleteUserForm},

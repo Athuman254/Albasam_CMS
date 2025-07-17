@@ -166,7 +166,7 @@ Route::middleware('auth')->group(function () {
         Route::group([
             'prefix' => 'sms'
         ], function () {
-            Route::get('compose', [\App\Http\Controllers\SmsController::class, 'create']);
+            Route::get('compose', [\App\Http\Controllers\SmsController::class, 'create'])->name('sms.compose');
             Route::post('send', [\App\Http\Controllers\SmsController::class, 'store'])->name('sms.send');
             Route::get('outbox', [\App\Http\Controllers\SmsController::class, 'index'])->name('sms.outbox');
         });

@@ -50,7 +50,7 @@ class CareerController extends Controller
             'active' => $validated['active'],
         ]);
         
-        return back(303);
+        return back(303)->with('success', 'Vacancy created.');
     }
     
     public function show($career)
@@ -89,7 +89,7 @@ class CareerController extends Controller
             'active' => $validated['active'],
         ]);
         
-        return back(303);
+        return back(303)->with('success', 'Vacancy updated successfully.');
     }
     
     public function destroy($careerId)
@@ -97,6 +97,6 @@ class CareerController extends Controller
         $career = Career::findOrFail($careerId);
         $career->delete();
         
-        return redirect()->route('admin.components.index');
+        return back(303)->with('success', 'Vacancy deleted successfully.');
     }
 }

@@ -1,6 +1,6 @@
 <template>
    <Head title="Classes"/>
-   
+
    <DefaultLayout>
       <div class="row">
          <h3 class="mb-0">Registered Class</h3>
@@ -14,7 +14,7 @@
                </li>
             </ol>
          </nav>
-         
+
          <div class="col-xl-12">
             <div class="card">
                <div class="card-header flex-column flex-md-row">
@@ -38,7 +38,7 @@
                      </div>
                   </div>
                </div>
-               
+
                <VueTable
                   api-url="datatable/ranks"
                   :fields="fields"
@@ -48,11 +48,11 @@
                   <template #name="props">
                      <span class="me-1">{{ props.rowData.name }}</span> {{ props.rowData.stream?.name }}
                   </template>
-                  
+
                   <template #teacher="props">
                      {{ props.rowData.teacher?.honorific?.name }} {{ props.rowData.teacher?.first_name }} {{ props.rowData.teacher?.last_name }}
                   </template>
-                  
+
                   <template #status="props">
                      <span v-if="props.rowData.activated" class="badge bg-success">
                         Active
@@ -64,7 +64,7 @@
                         Unknown
                      </span>
                   </template>
-                  
+
                   <template v-slot:actions="props">
                      <div class="dropdown">
                         <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
@@ -85,7 +85,7 @@
                   </template>
                </VueTable>
             </div>
-            
+
             <!-- Create Modal -->
             <div
                class="modal fade"
@@ -115,7 +115,7 @@
                               <input id="name" type="text" v-model="form.name" class="form-control">
                               <div v-if="form.errors.name" class="text-danger">{{ form.errors.name }}</div>
                            </div>
-                           
+
                            <div class="mb-3">
                               <label for="divisionId" class="form-label">Division</label>
                               <v-select
@@ -127,7 +127,7 @@
                               ></v-select>
                               <div v-if="form.errors.division_id" class="text-danger">{{ form.errors.division_id }}</div>
                            </div>
-                           
+
                            <div class="mb-3">
                               <label for="streamId" class="form-label">Stream</label>
                               <v-select
@@ -139,7 +139,7 @@
                               ></v-select>
                               <div v-if="form.errors.stream_id" class="text-danger">{{ form.errors.stream_id }}</div>
                            </div>
-                           
+
                            <div class="mb-3">
                               <label for="teacherId" class="form-label">Class Teacher</label>
                               <v-select
@@ -158,7 +158,7 @@
                               </v-select>
                               <div v-if="form.errors.teacher_id" class="text-danger">{{ form.errors.teacher_id }}</div>
                            </div>
-                           
+
                            <div class="mb-3">
                               <label class="row d-flex">
                                  <span class="col">
@@ -193,7 +193,7 @@
                   </div>
                </div>
             </div>
-            
+
             <!-- Edit Modal -->
             <div
                class="modal fade"
@@ -237,7 +237,7 @@
                                  {{ editForm.errors.division_id }}
                               </div>
                            </div>
-                           
+
                            <div class="mb-3">
                               <label for="streamId" class="form-label">Stream</label>
                               <v-select
@@ -251,7 +251,7 @@
                                  {{ editForm.errors.stream_id }}
                               </div>
                            </div>
-                           
+
                            <div class="mb-3">
                               <label for="teacherId" class="form-label">Class Teacher</label>
                               <v-select
@@ -271,7 +271,7 @@
                                  {{ editForm.errors.teacher_id }}
                               </div>
                            </div>
-                           
+
                            <div class="mb-3">
                               <label class="row d-flex">
                                  <span class="col">

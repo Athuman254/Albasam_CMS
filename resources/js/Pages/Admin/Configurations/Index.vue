@@ -1,6 +1,6 @@
 <template>
    <Head title="System Settings"/>
-   
+
    <DefaultLayout>
       <div class="row">
          <h3 class="mb-0">System Settings</h3>
@@ -14,7 +14,7 @@
                </li>
             </ol>
          </nav>
-         
+
          <div class="col-12">
             <div class="mb-3">
                <ul class="nav nav-pills mb-5" role="tablist">
@@ -83,8 +83,13 @@
                         Blog Categories
                      </button>
                   </li>
+                    <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'allowance' }" @click="activeTab = 'allowance'">
+                        Allowance
+                     </button>
+                  </li>
                </ul>
-               
+
                <div v-if="activeTab === 'divisions'">
                   <divisions></divisions>
                </div>
@@ -124,6 +129,9 @@
                <div v-if="activeTab === 'blog-categories'">
                   <blog-categories></blog-categories>
                </div>
+                <div v-if="activeTab === 'allowance'">
+                  <allowance></allowance>
+               </div>
             </div>
          </div>
       </div>
@@ -146,12 +154,13 @@ import SalaryScales from "./SalaryScale.vue";
 import SalaryGrades from "./SalaryGrade.vue";
 import QualificationTypes from "./QualificationTypes.vue";
 import BlogCategories from "./BlogCategories.vue";
+import Allowance from './Allowance.vue'
 
 export default {
    components: {
       DefaultLayout, Head, Link, Divisions, Streams, Subjects, Religions,
       Relationships, Honorifics, JobTitles, EmploymentTypes, EmploymentStatuses,
-      SalaryScales, SalaryGrades, QualificationTypes, BlogCategories},
+      SalaryScales, SalaryGrades, QualificationTypes, BlogCategories, Allowance},
    data() {
       return {
          activeTab: 'divisions'

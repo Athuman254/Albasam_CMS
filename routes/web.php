@@ -15,7 +15,7 @@ Route::get('/dashboard', function () {
  *  SYSTEM ROUTES
  *******************************/
 Route::middleware('auth')->group(function () {
-    
+
     /********************************
      * DATATABLE ROUTES
      *******************************/
@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function () {
         'as' => 'datatable.'
     ], function () {
         Route::get('/student-admissions', [\App\Http\Controllers\StudentAdmissionController::class, 'dataTable']);
-        
+
         Route::get('/students', [\App\Http\Controllers\StudentController::class, 'dataTable']);
         Route::get('/attendance', [\App\Http\Controllers\AttendanceController::class, 'dataTable']);
         Route::get('/guardians', [\App\Http\Controllers\GuardianController::class, 'dataTable']);
@@ -54,14 +54,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/qualification-types', [\App\Http\Controllers\Settings\QualificationTypeController::class, 'dataTable']);
         Route::get('/salary-grades', [\App\Http\Controllers\Settings\SalaryGradeController::class, 'dataTable']);
         Route::get('/salary-scales', [\App\Http\Controllers\Settings\SalaryScaleController::class, 'dataTable']);
-        
+         Route::get('/settings/allowances', [\App\Http\Controllers\Settings\AllowanceController::class, 'dataTable']);
+
         // EMPLOYEES' DATATABLE ROUTES
         Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'dataTable']);
         Route::get('/teachers', [\App\Http\Controllers\TeacherController::class, 'dataTable']);
         Route::get('/emergency-contacts', [\App\Http\Controllers\EmergencyContactController::class, 'dataTable']);
         Route::get('/employee-qualifications', [\App\Http\Controllers\QualificationController::class, 'dataTable']);
         Route::get('/work-histories', [\App\Http\Controllers\WorkHistoryController::class, 'dataTable']);
-        
+
         // WEBSITE MANAGEMENT DATATABLES
         Route::get('/website/customisations', [\App\Http\Controllers\Website\CustomisationController::class, 'dataTable'])->name('website.customisations');
         Route::get('/website/blogs', [\App\Http\Controllers\Website\BlogController::class, 'dataTable'])->name('website.blogs');
@@ -71,8 +72,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/website/page-sections', [\App\Http\Controllers\Website\SectionController::class, 'dataTable'])->name('website.sections');
         Route::get('/website/page-sub-sections', [\App\Http\Controllers\Website\SubSectionController::class, 'dataTable']);
         Route::get('/website/seo-metas', [\App\Http\Controllers\Website\SeoMetaController::class, 'dataTable']);
+
+
     });
-    
+
     /********************************
      *  ADMIN ROUTES
      *******************************/
@@ -80,20 +83,20 @@ Route::middleware('auth')->group(function () {
         'prefix' => 'admin',
         'as' => 'admin.'
     ], function () {
-        
+
         Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
-        
+
         /********************************
          * USER PROFILE ROUTES
          *******************************/
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-        
+
         Route::resource('/attendances', \App\Http\Controllers\AttendanceController::class)->names('attendances');
         Route::get('/reports/attendance', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('reports.attendance');
         Route::get('/attendance/fetch', [\App\Http\Controllers\AttendanceController::class, 'fetchForDate']);
-        
+
         /********************************
          * FORM WIZARD ROUTES
          *******************************/
@@ -114,17 +117,17 @@ Route::middleware('auth')->group(function () {
             Route::post('/{student_admission}/third-step', [\App\Http\Controllers\StudentAdmissionController::class, 'thirdStep'])->name('admissions.edit.third.step');
             //    Route::post('student-admissions/fourth-step', [\App\Http\Controllers\StudentAdmissionController::class, 'fourthStep'])->name('admissions.fourth.step');
         });
-        
+
         Route::post('/users/{user}/permissions', [\App\Http\Controllers\UserController::class, 'updatePermission']);
         Route::post('/medias/institution', [\App\Http\Controllers\InstitutionController::class, 'uploadMedia'])->name('institution.media-upload');
         Route::delete('/medias/{institution}/logo', [\App\Http\Controllers\MediaController::class, 'deleteLogo'])->name('medias.delete.logo');
         Route::delete('/medias/{institutions}/favicon', [\App\Http\Controllers\MediaController::class, 'deleteFavicon'])->name('medias.delete.favicon');
-        
+
         Route::get('/time-table', [\App\Http\Controllers\TimetableController::class, 'index'])->name('timetable.index');
         Route::post('/lessons', [\App\Http\Controllers\LessonController::class, 'store']);
         Route::patch('/lessons/{lesson}', [\App\Http\Controllers\LessonController::class, 'update']);
         Route::delete('/lessons/{lesson}', [\App\Http\Controllers\LessonController::class, 'destroy']);
-        
+
         /********************************
          * EMPLOYEE MANAGEMENT ROUTES
          *******************************/
@@ -145,10 +148,10 @@ Route::middleware('auth')->group(function () {
                 Route::post('/third-step/{employee}', [\App\Http\Controllers\FormWizard\TeacherController::class, 'thirdStep'])->name('teacher.registration.edit.third.step');
                 Route::post('/fourth-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'fourthStep'])->name('teacher.registration.fourth.step');
             });
-            
+
             Route::post('/system-access/{employee}', [\App\Http\Controllers\EmployeeController::class, 'systemAccess'])->name('employees.system-access');
             Route::patch('/system-access/{employee}', [\App\Http\Controllers\EmployeeController::class, 'revokeSystemAccess'])->name('employees.revoke-system-access');
-            
+
             Route::get('/teachers', [\App\Http\Controllers\TeacherController::class, 'index'])->name('teachers.index');
             Route::get('/teachers/create', [\App\Http\Controllers\TeacherController::class, 'create'])->name('teachers.create');
             Route::post('/teachers', [\App\Http\Controllers\TeacherController::class, 'store'])->name('teachers.store');
@@ -159,7 +162,7 @@ Route::middleware('auth')->group(function () {
             Route::resource('/work-histories', \App\Http\Controllers\WorkHistoryController::class)->names('work.histories');
             Route::resource('/emergency-contacts', \App\Http\Controllers\EmergencyContactController::class)->names('emergency.contacts');
         });
-        
+
         /********************************
          * SMS MANAGEMENT ROUTES
          *******************************/
@@ -170,7 +173,17 @@ Route::middleware('auth')->group(function () {
             Route::post('send', [\App\Http\Controllers\SmsController::class, 'store'])->name('sms.send');
             Route::get('outbox', [\App\Http\Controllers\SmsController::class, 'index'])->name('sms.outbox');
         });
-        
+
+         /********************************
+         * PAYROLL
+         *******************************/
+        Route::group([
+         'prefix'=> 'payroll'
+        ], function () {
+         // Route::get('adjustments', [\App\Http\Controller
+         Route::get('adjustment',[\App\Http\Controllers\Payroll\EmployeePayrollController::class,'payrollAdjustment'])->name('adjustment.index');
+        });
+
         /********************************
          * SYSTEM SETTINGS ROUTES
          *******************************/
@@ -197,15 +210,17 @@ Route::middleware('auth')->group(function () {
             Route::resource('/qualification-types', \App\Http\Controllers\Settings\QualificationTypeController::class)->names('qualification-types')->only('store', 'update', 'destroy');
             Route::resource('/salary-grades', \App\Http\Controllers\Settings\SalaryGradeController::class)->names('salary-grades')->only('store', 'update', 'destroy');
             Route::resource('/salary-scales', \App\Http\Controllers\Settings\SalaryScaleController::class)->names('salary-scales')->only('store', 'update', 'destroy');
+
+            Route::resource('allowances',\App\Http\Controllers\Settings\AllowanceController::class)->names('settings.allowances')->only('store', 'update', 'destroy');
         });
-        
+
         Route::resource('/employees', \App\Http\Controllers\EmployeeController::class)->names('employees');
         Route::resource('/institutions', \App\Http\Controllers\InstitutionController::class)->names('institutions');
         Route::resource('/users', \App\Http\Controllers\UserController::class)->names('users');
         Route::resource('/roles', \App\Http\Controllers\Settings\RoleController::class)->names('roles');
         Route::resource('/ranks', \App\Http\Controllers\Settings\RankController::class)->names('ranks');
         //        Route::resource('/permissions', \App\Http\Controllers\PermissionController::class)->names('permissions');
-        
+
         /********************************
          * WEBSITE MANAGEMENT ROUTES
          *******************************/
@@ -219,7 +234,7 @@ Route::middleware('auth')->group(function () {
                 Route::resource('/blogs', \App\Http\Controllers\Website\BlogController::class)->names('components.blogs')->only('store', 'update', 'destroy');
                 Route::resource('/careers', \App\Http\Controllers\Website\CareerController::class)->names('components.careers')->only('store', 'update', 'destroy');
             });
-            
+
             Route::get('/pages', [\App\Http\Controllers\Website\PageController::class, 'index'])->name('pages.index');
             Route::post('/pages', [\App\Http\Controllers\Website\PageController::class, 'store'])->name('pages.store');
             Route::patch('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'update'])->name('pages.update');
@@ -231,12 +246,12 @@ Route::middleware('auth')->group(function () {
             Route::delete('/sections/{section}', [\App\Http\Controllers\Website\SectionController::class, 'destroy'])->name('pages.sections.delete');
             Route::post('/medias/section', [MediaController::class, 'uploadSectionMedia'])->name('pages.sections.media');
             Route::delete('/medias/{section}', [MediaController::class, 'deleteSectionMedia'])->name('pages.sections.delete-media');
-            
+
             Route::post('/sitemap/generate', function() {
                 Artisan::call('app:generate-sitemap');
                 return back()->with('success', 'Sitemap generated successfully.');
             })->name('sitemap.generate');
-            
+
             Route::resource('/menus', \App\Http\Controllers\Website\MenuController::class)->names('menus');
             Route::resource('/customisations', \App\Http\Controllers\Website\CustomisationController::class)->names('customisations');
             Route::resource('/sections-cta-buttons', \App\Http\Controllers\Website\SectionCtaButtonController::class)->names('cta-buttons')->only('store', 'update', 'destroy');

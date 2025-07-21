@@ -7,7 +7,7 @@
          Dashboard
       </Link>
    </li>
-   
+
    <li class="menu-item">
       <a class="menu-link" href="/" target="_blank" rel="noopener noreferrer">
          <span>
@@ -16,7 +16,7 @@
          View Website
       </a>
    </li>
-   
+
    <li v-if="can('access-admissions-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/student-admissions')}">
       <Link :href="route('admin.admissions.index')" class="menu-link">
          <span>
@@ -25,7 +25,7 @@
          Admissions
       </Link>
    </li>
-   
+
    <li v-if="can('access-class-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/ranks')}">
       <Link :href="route('admin.ranks.index')" class="menu-link">
          <span>
@@ -34,7 +34,7 @@
          Classes
       </Link>
    </li>
-   
+
    <li v-if="canAny(['access-employee-workspace', 'access-teacher-workspace'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/employees') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='bx bxs-user-badge menu-icon tf-icons'></i>
@@ -48,7 +48,7 @@
          </li>
       </ul>
    </li>
-   
+
    <li v-if="can('access-calendar')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/calendar')}">
       <Link href="#" class="menu-link">
          <span>
@@ -58,7 +58,7 @@
          <span class="badge bg-label-success ms-4 text-end">Coming Soon</span>
       </Link>
    </li>
-   
+
    <li v-if="can('access-time-table')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/time-table')}">
       <Link :href="route('admin.timetable.index')" class="menu-link">
          <span>
@@ -67,7 +67,7 @@
          Time-Table
       </Link>
    </li>
-   
+
    <li v-if="canAny(['access-bulk-sms', 'access-sms-outbox'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/sms') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='menu-icon tf-icons bx bx-message-dots'></i>
@@ -88,7 +88,7 @@
          </li>
       </ul>
    </li>
-   
+
    <li v-if="canAny(['access-attendance-workspace', 'access-attendance-report'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='bx bx-calendar-check menu-icon tf-icons'></i>
@@ -107,12 +107,12 @@
          </li>
       </ul>
    </li>
-   
+
    <li v-if="canAny(['access-institution-workspace', 'access-users-workspace', 'access-roles-workspace', 'access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"
        class="menu-header small text-uppercase">
       <span class="menu-header-text">Configurations</span>
    </li>
-   
+
    <li v-if="can('access-institution-workspace')"  :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/institutions') }">
       <Link :href="route('admin.institutions.index')" class="menu-link">
          <span>
@@ -121,7 +121,7 @@
          Institution Details
       </Link>
    </li>
-   
+
    <li v-if="can('access-users-workspace')"
        :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/users') }">
       <Link :href="route('admin.users.index')" class="menu-link">
@@ -131,7 +131,7 @@
          System users
       </Link>
    </li>
-   
+
    <li v-if="can('access-roles-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/roles') }">
       <Link :href="route('admin.roles.index')" class="menu-link">
          <span>
@@ -140,7 +140,7 @@
          System Roles
       </Link>
    </li>
-   
+
    <li v-if="can('access-divisions-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/settings') }">
       <Link :href="route('admin.settings.index')" class="menu-link">
          <span>
@@ -149,7 +149,33 @@
          System Settings
       </Link>
    </li>
-   
+
+    <li v-if="canAny(['access-institution-workspace', 'access-users-workspace', 'access-roles-workspace', 'access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"
+       class="menu-header small text-uppercase">
+      <span class="menu-header-text">Human Resource</span>
+   </li>
+
+
+    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
+      <a href="#" class="menu-link menu-toggle">
+         <i class='bx bx-calendar-check menu-icon tf-icons'></i>
+         <div class="text-truncate">Payroll</div>
+      </a>
+      <ul class="menu-sub">
+<!--         <li v-if="can('access-attendance-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/attendances') }">-->
+<!--            <Link :href="route('admin.attendances.index')" class="menu-link">-->
+<!--               <div class="text-truncate">Mark Attendance</div>-->
+<!--            </Link>-->
+<!--         </li>-->
+         <li v-if="can('access-attendance-report')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
+            <Link :href="route('admin.adjustment.index')" class="menu-link">
+               <div class="text-truncate">Payroll Adjustments</div>
+            </Link>
+         </li>
+      </ul>
+   </li>
+
+
    <li v-if="canAny(['access-pages-workspace'])"
        class="menu-header small text-uppercase">
       <span class="menu-header-text">Website Management</span>

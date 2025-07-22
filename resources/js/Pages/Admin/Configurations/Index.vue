@@ -85,7 +85,12 @@
                   </li>
                     <li class="nav-item me-1" role="presentation">
                      <button type="button" class="nav-link" :class="{ active: activeTab === 'allowance' }" @click="activeTab = 'allowance'">
-                        Allowance
+                        Allowances
+                     </button>
+                  </li>
+                   <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'deductions' }" @click="activeTab = 'deductions'">
+                        Deductions
                      </button>
                   </li>
                </ul>
@@ -132,6 +137,9 @@
                 <div v-if="activeTab === 'allowance'">
                   <allowance></allowance>
                </div>
+               <div v-if="activeTab === 'deductions'">
+                  <deduction></deduction>
+               </div>
             </div>
          </div>
       </div>
@@ -155,12 +163,13 @@ import SalaryGrades from "./SalaryGrade.vue";
 import QualificationTypes from "./QualificationTypes.vue";
 import BlogCategories from "./BlogCategories.vue";
 import Allowance from './Allowance.vue'
+import Deduction from './Deduction.vue'
 
 export default {
    components: {
       DefaultLayout, Head, Link, Divisions, Streams, Subjects, Religions,
       Relationships, Honorifics, JobTitles, EmploymentTypes, EmploymentStatuses,
-      SalaryScales, SalaryGrades, QualificationTypes, BlogCategories, Allowance},
+      SalaryScales, SalaryGrades, QualificationTypes, BlogCategories, Allowance, Deduction},
    data() {
       return {
          activeTab: 'divisions'

@@ -73,7 +73,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/website/page-sub-sections', [\App\Http\Controllers\Website\SubSectionController::class, 'dataTable']);
         Route::get('/website/seo-metas', [\App\Http\Controllers\Website\SeoMetaController::class, 'dataTable']);
 
-
+      // payroll routes
+      Route::get('allowance/adjustments', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'allowanceAdjustmentDataTable']);
     });
 
     /********************************
@@ -182,6 +183,9 @@ Route::middleware('auth')->group(function () {
         ], function () {
          // Route::get('adjustments', [\App\Http\Controller
          Route::get('adjustment',[\App\Http\Controllers\Payroll\EmployeePayrollController::class,'payrollAdjustment'])->name('adjustment.index');
+
+         Route::post("allowance/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeAllowanceAdjustment'])->name("allowance.adjustment");
+         Route::patch('allowance/adjustments/{payrollAllowance}',[\App\Http\Controllers\Payroll\EmployeePayrollController::class,'updateAllowanceAdjustment'])->name('allowance.adjustment.update');
         });
 
         /********************************

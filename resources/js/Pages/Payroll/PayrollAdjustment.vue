@@ -32,7 +32,7 @@
                </ul>
 
                <div v-if="activeTab === 'allowance'">
-                  <PayrollAdjustmentAllowance/>
+                  <PayrollAdjustmentAllowance :employees="employees" :allowances="allowances"/>
                </div>
                <div v-if="activeTab === 'deductions'">
                  'deductions'
@@ -53,7 +53,7 @@ import {Inertia} from '@inertiajs/inertia';
 import {Modal} from 'bootstrap';
 import _debounce from 'lodash/debounce';
 import { ref  } from 'vue'
-
+const props = defineProps(['employees','allowances'])
 const activeTab = ref('allowance')
 
 

@@ -17,9 +17,10 @@ return new class extends Migration
             $table->foreignId('allowance_id')->constrained('allowances');
             $table->integer('amount');
             $table->string('reason');
-            $table->boolean('is_included');
+            $table->boolean('is_included')->default(false);
             $table->string('month');
             $table->integer('year');
+            $table->date('date');
             $table->timestamps();
             $table->softDeletes();
             $table->foreign('employee_id')->references('id')->on('employees');

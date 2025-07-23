@@ -76,6 +76,8 @@ Route::middleware('auth')->group(function () {
 
       // payroll routes
       Route::get('allowance/adjustments', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'allowanceAdjustmentDataTable']);
+      Route::get('deduction/adjustments', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'deductionAdjustmentDataTable']);
+
     });
 
     /********************************
@@ -185,6 +187,8 @@ Route::middleware('auth')->group(function () {
          // Route::get('adjustments', [\App\Http\Controller
          Route::get('adjustment',[\App\Http\Controllers\Payroll\EmployeePayrollController::class,'payrollAdjustment'])->name('adjustment.index');
 
+         Route::post("dedution/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeDeductionAdjustment'])->name("deduction.adjustment");
+         Route::patch('deduction/adjustments/{payrollDeduction}',[\App\Http\Controllers\Payroll\EmployeePayrollController::class,'updateDeductionAdjustment'])->name('deduction.adjustment.update');
          Route::post("allowance/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeAllowanceAdjustment'])->name("allowance.adjustment");
          Route::patch('allowance/adjustments/{payrollAllowance}',[\App\Http\Controllers\Payroll\EmployeePayrollController::class,'updateAllowanceAdjustment'])->name('allowance.adjustment.update');
         });

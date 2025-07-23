@@ -88,8 +88,7 @@
          </li>
       </ul>
    </li>
-
-   <li v-if="canAny(['access-attendance-workspace', 'access-attendance-report'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
+ <li v-if="canAny(['access-attendance-workspace', 'access-attendance-report'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='bx bx-calendar-check menu-icon tf-icons'></i>
          <div class="text-truncate">Attendance</div>
@@ -107,6 +106,37 @@
          </li>
       </ul>
    </li>
+   <li v-if="canAny(['access-institution-workspace', 'access-users-workspace', 'access-roles-workspace', 'access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"
+       class="menu-header small text-uppercase">
+      <span class="menu-header-text">Human Resource</span>
+   </li>
+
+
+    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
+      <a href="#" class="menu-link menu-toggle">
+         <i class='bx  bx-wallet menu-icon tf-icons'></i>
+         <div class="text-truncate">Payroll</div>
+      </a>
+      <ul class="menu-sub">
+          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
+            <Link :href="route('admin.adjustment.index')" class="menu-link">
+               <div class="text-truncate">Employees</div>
+            </Link>
+         </li>
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
+            <Link :href="route('admin.adjustment.index')" class="menu-link">
+               <div class="text-truncate">Payroll Adjustments</div>
+            </Link>
+         </li>
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
+            <Link :href="route('admin.adjustment.index')" class="menu-link">
+               <div class="text-truncate">Run</div>
+            </Link>
+         </li>
+      </ul>
+   </li>
+
+
 
    <li v-if="canAny(['access-institution-workspace', 'access-users-workspace', 'access-roles-workspace', 'access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"
        class="menu-header small text-uppercase">
@@ -150,30 +180,7 @@
       </Link>
    </li>
 
-    <li v-if="canAny(['access-institution-workspace', 'access-users-workspace', 'access-roles-workspace', 'access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"
-       class="menu-header small text-uppercase">
-      <span class="menu-header-text">Human Resource</span>
-   </li>
 
-
-    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
-      <a href="#" class="menu-link menu-toggle">
-         <i class='bx bx-calendar-check menu-icon tf-icons'></i>
-         <div class="text-truncate">Payroll</div>
-      </a>
-      <ul class="menu-sub">
-<!--         <li v-if="can('access-attendance-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/attendances') }">-->
-<!--            <Link :href="route('admin.attendances.index')" class="menu-link">-->
-<!--               <div class="text-truncate">Mark Attendance</div>-->
-<!--            </Link>-->
-<!--         </li>-->
-         <li v-if="can('access-attendance-report')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
-            <Link :href="route('admin.adjustment.index')" class="menu-link">
-               <div class="text-truncate">Payroll Adjustments</div>
-            </Link>
-         </li>
-      </ul>
-   </li>
 
 
    <li v-if="canAny(['access-pages-workspace'])"

@@ -35,7 +35,7 @@
                   <PayrollAdjustmentAllowance :employees="employees" :allowances="allowances"/>
                </div>
                <div v-if="activeTab === 'deductions'">
-                 'deductions'
+                  <PayrollAdjustmentDeduction :employees="employees" :deductions="deductions"/>
                </div>
             </div>
          </div>
@@ -47,13 +47,14 @@
 <script setup>
 import DefaultLayout from "@layouts/DefaultLayout.vue";
 import PayrollAdjustmentAllowance from "./PayrollAdjustmentAllowance.vue";
+import PayrollAdjustmentDeduction from "./PayrollAdjustmentDeduction.vue";
 import {Head, Link, useForm} from "@inertiajs/vue3";
 import axios from 'axios';
 import {Inertia} from '@inertiajs/inertia';
 import {Modal} from 'bootstrap';
 import _debounce from 'lodash/debounce';
 import { ref  } from 'vue'
-const props = defineProps(['employees','allowances'])
+const props = defineProps(['employees','allowances','deductions'])
 const activeTab = ref('allowance')
 
 

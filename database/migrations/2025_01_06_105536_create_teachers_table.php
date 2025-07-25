@@ -35,6 +35,7 @@ return new class extends Migration
             $table->string('identification_number')->nullable();
             $table->string('tax_identification_pin')->nullable();
             $table->boolean('has_system_access')->default(false);
+            $table->boolean('in_payroll')->default(false);
             $table->string('password')->nullable();
             $table->timestamps();
             $table->softDeletes();

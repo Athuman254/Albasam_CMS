@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Payroll;
 
-use App\Http\Controllers\Controller;
+use Inertia\Inertia;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class PayrollController extends Controller
 {
-    //
+    public function run(){
+      return Inertia::render("Payroll/PayrollRun");
+    }
 }

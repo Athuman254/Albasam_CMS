@@ -15,6 +15,10 @@ Route::get('/dashboard', function () {
  *  SYSTEM ROUTES
  *******************************/
 Route::middleware('auth')->group(function () {
+   /****
+    * EMPLOYEES
+    */
+     Route::get('/employees-payroll',[\App\Http\Controllers\Payroll\EmployeePayrollController::class,'getEmployees']);
 
     /********************************
      * DATATABLE ROUTES
@@ -186,7 +190,7 @@ Route::middleware('auth')->group(function () {
         ], function () {
          // Route::get('adjustments', [\App\Http\Controller
          Route::get('adjustment',[\App\Http\Controllers\Payroll\EmployeePayrollController::class,'payrollAdjustment'])->name('adjustment.index');
-
+         Route::get('run',[\App\Http\Controllers\Payroll\PayrollController::class,'run'])->name('payroll.run');
          Route::post("dedution/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeDeductionAdjustment'])->name("deduction.adjustment");
          Route::patch('deduction/adjustments/{payrollDeduction}',[\App\Http\Controllers\Payroll\EmployeePayrollController::class,'updateDeductionAdjustment'])->name('deduction.adjustment.update');
          Route::post("allowance/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeAllowanceAdjustment'])->name("allowance.adjustment");

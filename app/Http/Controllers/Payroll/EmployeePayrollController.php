@@ -16,6 +16,10 @@ use Spatie\QueryBuilder\AllowedFilter;
 
 class EmployeePayrollController extends Controller
 {
+   public function getEmployees(Request $request){
+      $employees = Employee::with(['employment_type'])->where('in_payroll', true)->get();
+      return Resource::collection($employees);
+   }
 
    public function allowanceAdjustmentDataTable()
    {

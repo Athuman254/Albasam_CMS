@@ -112,24 +112,19 @@
    </li>
 
 
-    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
+    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/payroll/run') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='bx  bx-wallet menu-icon tf-icons'></i>
          <div class="text-truncate">Payroll</div>
       </a>
       <ul class="menu-sub">
-          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
-            <Link :href="route('admin.adjustment.index')" class="menu-link">
-               <div class="text-truncate">Employees</div>
-            </Link>
-         </li>
          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
             <Link :href="route('admin.adjustment.index')" class="menu-link">
                <div class="text-truncate">Payroll Adjustments</div>
             </Link>
          </li>
-         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
-            <Link :href="route('admin.adjustment.index')" class="menu-link">
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/payroll/run') }">
+            <Link :href="route('admin.payroll.run')" class="menu-link">
                <div class="text-truncate">Run</div>
             </Link>
          </li>

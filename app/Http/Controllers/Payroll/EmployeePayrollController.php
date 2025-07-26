@@ -2,21 +2,35 @@
 
 namespace App\Http\Controllers\Payroll;
 
-use App\Models\PayrollDeduction;
 use Inertia\Inertia;
 use App\Models\Employee;
 use App\Models\Allowance;
 use App\Models\Deduction;
 use Illuminate\Http\Request;
+use App\Models\EmployeeIncome;
 use App\Http\Resources\Resource;
 use App\Models\PayrollAllowance;
+use App\Models\PayrollDeduction;
 use App\Http\Controllers\Controller;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class EmployeePayrollController extends Controller
 {
-   public function getEmployees(Request $request){
+   public function employeeIncomeDataTable()
+   {
+      $employeeincomes =  QueryBuilder::for(
+         EmployeeIncome::with(['employee', 'income'])->orderBy('id', 'desc')
+      )->allowedFilters([
+         AllowedFilter::scope('search'),
+         AllowedFilter::exact('employee_id'),
+         AllowedFilter::partial('rank_id'),
+      ])->jsonPaginate();
+
+      return Resource::collection($employeeincomes);
+   }
+   public function getEmployees(Request $request)
+   {
       $employees = Employee::with(['employment_type'])->where('in_payroll', true)->get();
       return Resource::collection($employees);
    }
@@ -163,5 +177,39 @@ class EmployeePayrollController extends Controller
          "date" =>  $request->date
       ]);
       return back(303)->with('success', 'Payroll Adjustment Deduction  has been created.');
+   }
+
+   public function storeEmployeeIncome(Request $request)
+   {
+      $request->validate([
+         'employee_id' => 'required',
+         'income_id' => 'required',
+         'amount' => 'required',
+      ]);
+      EmployeeIncome::create([
+         'employee_id' => $request->employee_id,
+         'income_id' => $request->income_id,
+         'amount' => $request->amount * 100,
+      ]);
+      return back(303)->with('success', 'Employee Income has been created.');
+   }
+
+   public function updateEmployeeIncome(Request $request, EmployeeIncome $employeeIncome){
+       $request->validate([
+         'employee_id' => 'required',
+         'income_id' => 'required',
+         'amount' => 'required',
+      ]);
+      $employeeIncome->update([
+         'employee_id' => $request->employee_id,
+         'income_id'=> $request->income_id,
+         'amount'=> $request->amount * 100,
+      ]);
+      return back(303)->with('success', 'Employee Income has been update.');
+   }
+
+   public function deleteEmployeeIncome(EmployeeIncome $employeeIncome){
+      $employeeIncome->delete();
+      return back(303)->with('success', 'Employee Income has been deleted.');
    }
 }

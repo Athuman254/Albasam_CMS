@@ -1,6 +1,7 @@
 <template>
-   <Head title="Teacher Details Page"/>
-   
+
+   <Head title="Teacher Details Page" />
+
    <DefaultLayout>
       <div class="row">
          <h3 class="mb-0">Registered Teachers</h3>
@@ -17,7 +18,7 @@
                </li>
             </ol>
          </nav>
-         
+
          <div class="col-xl-4 col-md-6 order-1 order-md-1">
             <div class="card mb-6">
                <div class="card-body">
@@ -42,10 +43,10 @@
                      <li class="d-flex align-items-center">
                         <i class="icon-base bx bx-category-alt"></i>
                         <span class="fw-bold mx-2">Marital Status :</span>
-                        <span>{{ employee.marital_status?.name ?? '-'}}</span>
+                        <span>{{ employee.marital_status?.name ?? '-' }}</span>
                      </li>
                   </ul>
-                  
+
                   <small class="card-text text-uppercase text-light small">CONTACT</small>
                   <ul class="list-unstyled my-3 py-1">
                      <li class="d-flex align-items-center mb-4">
@@ -89,7 +90,8 @@
                         <p>The employee has no system access! <br>
                            Click the button below to give access.
                         </p>
-                        <button type="button" class="btn btn-sm btn-outline-primary" @click.prevent="showCreateCredentialsModal">
+                        <button type="button" class="btn btn-sm btn-outline-primary"
+                           @click.prevent="showCreateCredentialsModal">
                            Give Access
                         </button>
                      </div>
@@ -109,179 +111,227 @@
                </div>
             </div>
          </div>
-         
+
          <div class="col-xl-8 col-md-6 order-3 order-md-2">
             <div class="accordion">
                <!-- Employee Data Accordion -->
                <div class="card accordion-item">
                   <h2 class="accordion-header border-bottom">
-                     <button
-                        type="button"
-                        class="accordion-button"
-                        :class="{ collapsed: openAccordion !== 'employee' }"
+                     <button type="button" class="accordion-button" :class="{ collapsed: openAccordion !== 'employee' }"
                         @click="toggleAccordion('employee')">
                         Employee Details
                      </button>
                   </h2>
                   <div class="accordion-collapse" :class="{ show: openAccordion === 'employee' }">
-                     <div class="accordion-body px-0 py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
+                     <div
+                        class="accordion-body px-0 py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
                         <table class="table table-sm table-borderless text-nowrap small">
                            <tbody>
-                           <tr>
-                              <td class="w-50">Employee Number</td>
-                              <td class="fw-medium text-heading">{{ employee.staff_number ?? '-' }}</td>
-                           </tr>
-                           <tr>
-                              <td>Passport/ID Number</td>
-                              <td class="fw-medium text-heading">{{ employee.identification_number ?? '-'}}</td>
-                           </tr>
-                           <tr>
-                              <td>Tax Identification Number (KRA)</td>
-                              <td class="fw-medium text-heading">{{ employee.tax_identification_pin ?? '-' }}</td>
-                           </tr>
-                           <tr>
-                              <td>TSC Number</td>
-                              <td class="fw-medium text-heading">{{ teacher.tsc_number ?? '-'}}</td>
-                           </tr>
-                           <tr>
-                              <td>Specialization</td>
-                              <td class="fw-medium text-heading">{{ teacher.specialization?.name ?? '-'}}</td>
-                           </tr>
+                              <tr>
+                                 <td class="w-50">Employee Number</td>
+                                 <td class="fw-medium text-heading">{{ employee.staff_number ?? '-' }}</td>
+                              </tr>
+                              <tr>
+                                 <td>Passport/ID Number</td>
+                                 <td class="fw-medium text-heading">{{ employee.identification_number ?? '-' }}</td>
+                              </tr>
+                              <tr>
+                                 <td>Tax Identification Number (KRA)</td>
+                                 <td class="fw-medium text-heading">{{ employee.tax_identification_pin ?? '-' }}</td>
+                              </tr>
+                              <tr>
+                                 <td>TSC Number</td>
+                                 <td class="fw-medium text-heading">{{ teacher.tsc_number ?? '-' }}</td>
+                              </tr>
+                              <tr>
+                                 <td>Specialization</td>
+                                 <td class="fw-medium text-heading">{{ teacher.specialization?.name ?? '-' }}</td>
+                              </tr>
                            </tbody>
                         </table>
                         <table class="table table-sm table-borderless text-nowrap small">
                            <tbody>
-                           <tr>
-                              <td class="w-50">Date of hire</td>
-                              <td class="fw-medium text-heading">{{ employee.date_of_hire ?? '-' }}</td>
-                           </tr>
-                           <tr>
-                              <td>Employment Type</td>
-                              <td class="fw-medium text-heading">{{ employee.employment_type?.name ?? '-'}}</td>
-                           </tr>
-                           <tr>
-                              <td>Employment Status</td>
-                              <td class="fw-medium text-heading">{{ employee.employment_status?.name ?? '-' }}</td>
-                           </tr>
-                           <tr>
-                              <td>Job Title</td>
-                              <td class="fw-medium text-heading">{{ teacher.job?.title ?? '-'}}</td>
-                           </tr>
-                           <tr>
-                              <td>Year of experience</td>
-                              <td class="fw-medium text-heading">{{ teacher.years_of_experience + ' yrs' ?? '-'}}</td>
-                           </tr>
+                              <tr>
+                                 <td class="w-50">Date of hire</td>
+                                 <td class="fw-medium text-heading">{{ employee.date_of_hire ?? '-' }}</td>
+                              </tr>
+                              <tr>
+                                 <td>Employment Type</td>
+                                 <td class="fw-medium text-heading">{{ employee.employment_type?.name ?? '-' }}</td>
+                              </tr>
+                              <tr>
+                                 <td>Employment Status</td>
+                                 <td class="fw-medium text-heading">{{ employee.employment_status?.name ?? '-' }}</td>
+                              </tr>
+                              <tr>
+                                 <td>Job Title</td>
+                                 <td class="fw-medium text-heading">{{ teacher.job?.title ?? '-' }}</td>
+                              </tr>
+                              <tr>
+                                 <td>Year of experience</td>
+                                 <td class="fw-medium text-heading">{{ teacher.years_of_experience + ' yrs' ?? '-' }}
+                                 </td>
+                              </tr>
                            </tbody>
                         </table>
                      </div>
                   </div>
                </div>
-               
+
                <!-- Emergency Contact Details Accordion -->
                <div class="card accordion-item">
                   <h2 class="accordion-header border-bottom">
-                     <button
-                        type="button"
-                        class="accordion-button"
-                        :class="{ collapsed: openAccordion !== 'contact' }"
+                     <button type="button" class="accordion-button" :class="{ collapsed: openAccordion !== 'contact' }"
                         @click="toggleAccordion('contact')">
                         Emergency Contact Details
                      </button>
                   </h2>
                   <div class="accordion-collapse" :class="{ show: openAccordion === 'contact' }">
-                     <div class="accordion-body py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
+                     <div
+                        class="accordion-body py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
                         <table class="table table-sm table-bordered text-nowrap" style="max-width: inherit;">
                            <thead>
-                           <tr>
-                              <th class="p-2 fw-medium text-heading" style="width: 30%;">Name</th>
-                              <th class="p-2 fw-medium text-heading" style="width: 25%;">Email</th>
-                              <th class="p-2 fw-medium text-heading" style="width: 15%;">Phone</th>
-                              <th class="p-2 fw-medium text-heading" style="width: 15%;">Relationship</th>
-<!--                              <th class="p-2 fw-medium text-heading" style="width: 10%;"></th>-->
-                           </tr>
+                              <tr>
+                                 <th class="p-2 fw-medium text-heading" style="width: 30%;">Name</th>
+                                 <th class="p-2 fw-medium text-heading" style="width: 25%;">Email</th>
+                                 <th class="p-2 fw-medium text-heading" style="width: 15%;">Phone</th>
+                                 <th class="p-2 fw-medium text-heading" style="width: 15%;">Relationship</th>
+                                 <!--                              <th class="p-2 fw-medium text-heading" style="width: 10%;"></th>-->
+                              </tr>
                            </thead>
                            <tbody>
-                           <tr v-for="(contact, index) in emergencyContacts" :key="index">
-                              <td class="p-2">{{ contact.name ?? '-' }}</td>
-                              <td class="p-2">{{ contact.email ?? '-' }}</td>
-                              <td class="p-2">{{ contact.phone ?? '-' }}</td>
-                              <td class="p-2">{{ contact.relationship?.name ?? '-' }}</td>
-<!--                              <td class="p-2"></td>-->
-                           </tr>
+                              <tr v-for="(contact, index) in emergencyContacts" :key="index">
+                                 <td class="p-2">{{ contact.name ?? '-' }}</td>
+                                 <td class="p-2">{{ contact.email ?? '-' }}</td>
+                                 <td class="p-2">{{ contact.phone ?? '-' }}</td>
+                                 <td class="p-2">{{ contact.relationship?.name ?? '-' }}</td>
+                                 <!--                              <td class="p-2"></td>-->
+                              </tr>
                            </tbody>
                         </table>
                      </div>
                   </div>
                </div>
-               
+
                <!-- Qualification Details Accordion -->
                <div class="card accordion-item">
                   <h2 class="accordion-header border-bottom">
-                     <button
-                        type="button"
-                        class="accordion-button"
+                     <button type="button" class="accordion-button"
                         :class="{ collapsed: openAccordion !== 'qualification' }"
                         @click="toggleAccordion('qualification')">
                         Qualification Details
                      </button>
                   </h2>
                   <div class="accordion-collapse" :class="{ show: openAccordion === 'qualification' }">
-                     <div class="accordion-body py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
+                     <div
+                        class="accordion-body py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
                         <table class="table table-sm table-bordered text-nowrap" style="max-width: inherit;">
                            <thead>
-                           <tr>
-                              <th class="p-2 fw-medium text-heading" style="width: 30%;">Institution</th>
-                              <th class="p-2 fw-medium text-heading" style="width: 25%;">Course</th>
-                              <th class="p-2 fw-medium text-heading" style="width: 15%;">Qualification</th>
-                              <th class="p-2 fw-medium text-heading" style="width: 15%;">Completion Year</th>
-<!--                              <th class="p-2 fw-medium text-heading" style="width: 10%;"></th>-->
-                           </tr>
+                              <tr>
+                                 <th class="p-2 fw-medium text-heading" style="width: 30%;">Institution</th>
+                                 <th class="p-2 fw-medium text-heading" style="width: 25%;">Course</th>
+                                 <th class="p-2 fw-medium text-heading" style="width: 15%;">Qualification</th>
+                                 <th class="p-2 fw-medium text-heading" style="width: 15%;">Completion Year</th>
+                                 <!--                              <th class="p-2 fw-medium text-heading" style="width: 10%;"></th>-->
+                              </tr>
                            </thead>
                            <tbody>
-                           <tr v-for="(qualification, index) in qualificationDetails" :key="index">
-                              <td class="p-2">{{ qualification.institution_name }}</td>
-                              <td class="p-2">{{ qualification.course_name }}</td>
-                              <td class="p-2">{{ qualification.qualification_type?.name }}</td>
-                              <td class="p-2">{{ qualification.year_of_completion }}</td>
-<!--                              <td class="p-2"></td>-->
-                           </tr>
+                              <tr v-for="(qualification, index) in qualificationDetails" :key="index">
+                                 <td class="p-2">{{ qualification.institution_name }}</td>
+                                 <td class="p-2">{{ qualification.course_name }}</td>
+                                 <td class="p-2">{{ qualification.qualification_type?.name }}</td>
+                                 <td class="p-2">{{ qualification.year_of_completion }}</td>
+                                 <!--                              <td class="p-2"></td>-->
+                              </tr>
                            </tbody>
                         </table>
                      </div>
                   </div>
                </div>
-               
+
                <!-- Work History Details Accordion -->
                <div class="card accordion-item">
                   <h2 class="accordion-header border-bottom">
-                     <button
-                        type="button"
-                        class="accordion-button"
-                        :class="{ collapsed: openAccordion !== 'history' }"
+                     <button type="button" class="accordion-button" :class="{ collapsed: openAccordion !== 'history' }"
                         @click="toggleAccordion('history')">
                         Work History Details
                      </button>
                   </h2>
                   <div class="accordion-collapse" :class="{ show: openAccordion === 'history' }">
-                     <div class="accordion-body py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
+                     <div
+                        class="accordion-body py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
                         <table class="table table-sm table-bordered text-nowrap" style="max-width: inherit;">
                            <thead>
-                           <tr>
-                              <th class="p-2 fw-medium text-heading" style="width: 35%;">Name</th>
-                              <th class="p-2 fw-medium text-heading" style="width: 25%;">Start Date</th>
-                              <th class="p-2 fw-medium text-heading" style="width: 25%;">End Date</th>
-<!--                              <th class="p-2 fw-medium text-heading" style="width: 10%;"></th>-->
-                           </tr>
+                              <tr>
+                                 <th class="p-2 fw-medium text-heading" style="width: 35%;">Name</th>
+                                 <th class="p-2 fw-medium text-heading" style="width: 25%;">Start Date</th>
+                                 <th class="p-2 fw-medium text-heading" style="width: 25%;">End Date</th>
+                                 <!--                              <th class="p-2 fw-medium text-heading" style="width: 10%;"></th>-->
+                              </tr>
                            </thead>
                            <tbody>
-                           <tr v-for="(history, index) in workHistories" :key="index">
-                              <td class="p-2">{{ history.institution_name ?? '-' }}</td>
-                              <td class="p-2">{{ history.start_date ?? '-' }}</td>
-                              <td class="p-2">{{ history.end_date ?? '-' }}</td>
-<!--                              <td class="p-2"></td>-->
-                           </tr>
+                              <tr v-for="(history, index) in workHistories" :key="index">
+                                 <td class="p-2">{{ history.institution_name ?? '-' }}</td>
+                                 <td class="p-2">{{ history.start_date ?? '-' }}</td>
+                                 <td class="p-2">{{ history.end_date ?? '-' }}</td>
+                                 <!--                              <td class="p-2"></td>-->
+                              </tr>
                            </tbody>
                         </table>
+                     </div>
+                  </div>
+               </div>
+               <!-- Incomes details -->
+
+               <div class="card accordion-item">
+                  <h2 class="accordion-header border-bottom">
+                     <button type="button" class="accordion-button" :class="{ collapsed: openAccordion !== 'incomes' }"
+                        @click="toggleAccordion('incomes')">
+                        Incomes
+                     </button>
+                  </h2>
+                  <div class="accordion-collapse" :class="{ show: openAccordion === 'incomes' }">
+                     <div
+                        class="accordion-body py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
+                        <div class="w-100">
+                           <div class="d-flex justify-content-end mb-2">
+                              <button @click="openEmployeeIncomeModal" class="btn btn-primary"><i class="icon-base bx bx-plus-circle me-1"></i> Add</button>
+                           </div>
+                           <table class="table table-sm table-bordered text-nowrap" style="max-width: inherit;">
+                              <thead>
+                                 <tr>
+                                    <th class="p-2 fw-medium text-heading" style="width: 35%;">Income</th>
+                                    <th class="p-2 fw-medium text-heading" style="width: 25%;">Amount</th>
+                                    <th class="p-2 fw-medium text-heading" style="width: 15%;">Actions</th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 <tr v-for="(income, index) in employeeIncomes" :key="index">
+                                    <td class="p-2">{{ income.income.name ?? '-' }}</td>
+                                    <td class="p-2 text-end">{{ formatCurrency(income.amount / 100) }}</td>
+                                    <td class="text-end">
+                                       <div class="dropdown">
+                                          <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
+                                             <i class="icon-base bx bx-dots-vertical"></i>
+                                          </button>
+                                          <div class="dropdown-menu dropdown-menu-end">
+                                             <a href="#" class="dropdown-item"
+                                                @click.prevent="openEmployeeIncomeEditModal(income)">
+                                                <i class="icon-base bx bx-edit-alt me-2"></i>Edit
+                                             </a>
+                                             <a title="Delete" href="#" class="dropdown-item text-danger"
+                                                @click.prevent="deleteEmployeeIncome(income)">
+                                                <i class="icon-base bx bx-trash me-2"></i>Del
+                                             </a>
+                                          </div>
+                                       </div>
+
+                                    </td>
+                                 </tr>
+                              </tbody>
+                           </table>
+
+                        </div>
                      </div>
                   </div>
                </div>
@@ -289,28 +339,16 @@
          </div>
       </div>
    </DefaultLayout>
-   
+
    <!-- Start Create Modal -->
-   <div
-      class="modal fade"
-      id="create-credentials-modal"
-      data-bs-backdrop="static"
-      tabindex="-1"
-      aria-labelledby="create-credentials-modal-label"
-      aria-hidden="true"
-      ref="createCredentialsModal"
-   >
+   <div class="modal fade" id="create-credentials-modal" data-bs-backdrop="static" tabindex="-1"
+      aria-labelledby="create-credentials-modal-label" aria-hidden="true" ref="createCredentialsModal">
       <div class="modal-dialog modal-body-simple">
          <div class="modal-content">
             <div class="modal-header">
                <h5 class="modal-title" id="create-credentials-modal-label">System Access</h5>
-               <button
-                  type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                  @click="credentialsFormCleanUp"
-               ></button>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                  @click="credentialsFormCleanUp"></button>
             </div>
             <div class="modal-body">
                <form id="createForm" @submit.prevent="storeCredentials">
@@ -319,7 +357,7 @@
                      <input id="password" type="password" v-model="form.password" class="form-control">
                      <div v-if="form.errors.password" class="text-danger">{{ form.errors.password }}</div>
                   </div>
-                  
+
                   <div class="mb-3">
                      <label class="row d-flex">
                         <span class="col">
@@ -336,10 +374,12 @@
                </form>
             </div>
             <div class="modal-footer">
-               <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" @click="credentialsFormCleanUp">
+               <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal"
+                  @click="credentialsFormCleanUp">
                   Close
                </button>
-               <button type="button" class="btn btn-primary" @click.prevent="storeCredentials" :disabled="form.processing">
+               <button type="button" class="btn btn-primary" @click.prevent="storeCredentials"
+                  :disabled="form.processing">
                   Submit
                </button>
             </div>
@@ -347,44 +387,139 @@
       </div>
    </div>
    <!-- End Create Modal -->
+
+   <!-- start create employee income modal-->
+   <div class="modal fade" id="create-employee-income-modal" data-bs-backdrop="static" tabindex="-1"
+      aria-labelledby="create-employee-income-modal-label" aria-hidden="true" ref="createEmployeeIncomeModal">
+      <div class="modal-dialog">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="create-employee-income-modal-label">Add Income</h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                  @click.prevent="formCleanUp"></button>
+            </div>
+            <div class="modal-body">
+               <form id="createForm" @submit.prevent="createEmployeeIncome">
+                  <div class="mb-3">
+                     <label for="income" class="form-label">Income</label>
+                     <select class="form-select" v-model="employeeIncomeForm.income_id" id="income">
+                        <option :key="income.id" :value="income.id" v-for="income in incomes">{{ income.name }}</option>
+                     </select>
+                     <div v-if="employeeIncomeForm.errors.income_id" class="text-danger">{{
+                        employeeIncomeForm.errors.income_id }}</div>
+                  </div>
+                  <div class="mb-3">
+                     <label for="amount" class="form-label">Amount</label>
+                     <input id="amount" type="text" v-model="employeeIncomeForm.amount" class="form-control">
+                     <div v-if="employeeIncomeForm.errors.amount" class="text-danger">{{
+                        employeeIncomeForm.errors.amount }}</div>
+                  </div>
+               </form>
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" @click="formCleanUp">
+                  Close
+               </button>
+               <button type="button" class="btn btn-primary" @click.prevent="createEmployeeIncome">
+                  Submit
+               </button>
+            </div>
+         </div>
+      </div>
+   </div>
+   <!-- end create employee income modal-->
+
+   <!-- start edit employee income modal-->
+   <div class="modal fade" id="edit-employee-income-modal" data-bs-backdrop="static" tabindex="-1"
+      aria-labelledby="edit-employee-income-modal-label" aria-hidden="true" ref="editEmployeeIncomeModal">
+      <div class="modal-dialog">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="edit-employee-income-modal-label">Edit Income</h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                  @click.prevent="formCleanUp"></button>
+            </div>
+            <form id="createForm" @submit.prevent="updateEmployeeIncome">
+            <div class="modal-body">
+                  <div class="mb-3">
+                     <label for="income" class="form-label">Income</label>
+                     <select class="form-select" v-model="employeeIncomeForm.income_id" id="income">
+                        <option :key="income.id" :value="income.id" v-for="income in incomes">{{ income.name }}</option>
+                     </select>
+                     <div v-if="employeeIncomeForm.errors.income_id" class="text-danger">{{
+                        employeeIncomeForm.errors.income_id }}</div>
+                  </div>
+                  <div class="mb-3">
+                     <label for="amount" class="form-label">Amount</label>
+                     <input id="amount" type="text" v-model="employeeIncomeForm.amount" class="form-control">
+                     <div v-if="employeeIncomeForm.errors.amount" class="text-danger">{{
+                        employeeIncomeForm.errors.amount }}</div>
+                  </div>
+
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" @click="formCleanUp">
+                  Close
+               </button>
+               <button class="btn btn-primary">
+                  Update
+               </button>
+            </div>
+             </form>
+         </div>
+      </div>
+   </div>
+   <!-- end edit employee income modal-->
+
 </template>
 
 <script>
 import DefaultLayout from "@layouts/DefaultLayout.vue";
-import {Head, Link, useForm} from "@inertiajs/vue3";
-import {Inertia} from "@inertiajs/inertia";
+import { Head, Link, useForm } from "@inertiajs/vue3";
+import { Inertia } from "@inertiajs/inertia";
 import axios from "axios";
-import {Modal} from "bootstrap";
+import { Modal } from "bootstrap";
+import { error } from "jquery";
 
 export default {
-   components: {DefaultLayout, Head, Link},
+   components: { DefaultLayout, Head, Link },
    props: ['teacher', 'employee'],
-   
+
    data() {
       return {
          form: useForm({
             has_system_access: null,
             password: null,
          }),
+         employeeIncomeForm: useForm({
+            id:null,
+            employee_id: this.employee.id,
+            income_id: null,
+            amount: ''
+         }),
          emergencyContacts: [],
          qualificationDetails: [],
          workHistories: [],
-         
+
          dataFetched: false,
-         openAccordion: 'employee'
+         openAccordion: 'employee',
+
+         incomes: [],
+         employeeIncomes: []
       };
    },
    beforeDestroy() {
       // Clean up the listener when the component is destroyed
       Inertia.off('navigate', this.handleNavigation);
    },
+
    mounted() {
       this.fetchAllData();
    },
    methods: {
       handleNavigation(event) {
          const targetUrl = '/admin/employees/teachers/' + this.teacher.hashid;
-         if (event.detail.page.url === targetUrl && !this.dataFetched) {
+         if (event.detail?.page.url === targetUrl && !this.dataFetched) {
             this.fetchAllData();
          }
       },
@@ -404,7 +539,7 @@ export default {
                   employee_id: this.employee.id,
                },
             },
-         }).then(({data}) => {
+         }).then(({ data }) => {
             this.emergencyContacts = data.data;
          }).catch((error) => {
             console.error(error)
@@ -421,7 +556,7 @@ export default {
                   employee_id: this.employee.id,
                },
             },
-         }).then(({data}) => {
+         }).then(({ data }) => {
             this.qualificationDetails = data.data;
          }).catch((error) => {
             console.error(error)
@@ -438,7 +573,7 @@ export default {
                   employee_id: this.employee.id,
                },
             },
-         }).then(({data}) => {
+         }).then(({ data }) => {
             this.workHistories = data.data;
          }).catch((error) => {
             console.error(error)
@@ -488,7 +623,93 @@ export default {
       credentialsFormCleanUp() {
          this.form.reset()
       },
-   }
+      openEmployeeIncomeModal() {
+         Modal.getOrCreateInstance(this.$refs.createEmployeeIncomeModal).show()
+      },
+      loadIncomes() {
+         axios.get('/datatable/settings/incomes')
+            .then((res) => {
+               this.incomes = res.data.data
+            })
+            .catch((error) => {
+               console.error(error)
+            })
+      },
+      loadEmployeeIncomes() {
+         axios.get('/datatable/employee/incomes', {
+            params: {
+               filter: {
+                  employee_id: this.employee.id,
+               },
+            },
+         }).then(({ data }) => {
+            this.employeeIncomes = data.data;
+         }).catch((error) => {
+            console.error(error)
+            this.$toast.error('An error occurred while fetching the employee Incomes.')
+         });
+      },
+      createEmployeeIncome() {
+         this.employeeIncomeForm.post(route('admin.employee.income'), {
+            onSuccess: () => {
+               Modal.getOrCreateInstance(this.$refs.createEmployeeIncomeModal).hide()
+               this.$toast.success('Employee Income has been created')
+               this.loadEmployeeIncomes()
+            },
+            onError: (error) => {
+               console.log(error)
+            }
+         })
+      },
+      formatCurrency(amount) {
+         return new Intl.NumberFormat('KES').format(amount)
+      },
+      updateEmployeeIncome(){
+          this.employeeIncomeForm.patch(route('admin.employee.income.update',this.employeeIncomeForm.id), {
+            onSuccess: () => {
+               Modal.getOrCreateInstance(this.$refs.editEmployeeIncomeModal).hide()
+               this.$toast.success('Employee Income has been updated')
+               this.loadEmployeeIncomes()
+            },
+            onError: (error) => {
+               console.log(error)
+            }
+         })
+      },
+      openEmployeeIncomeEditModal(income) {
+         this.employeeIncomeForm.id = income.hashid
+         this.employeeIncomeForm.income_id = income.income_id
+         this.employeeIncomeForm.amount = income.amount / 100
+         Modal.getOrCreateInstance(this.$refs.editEmployeeIncomeModal).show()
+      },
+      deleteEmployeeIncome(income){
+
+         this.$toast.question('Are you sure you want to delete'+ ' ?', 'Confirm!')
+         .then(() => {
+            this.employeeIncomeForm.delete(route('admin.employee.income.delete',income.hashid),{
+               onSuccess:()=>{
+               this.$toast.success('Employee Income has been Deleted')
+               this.loadEmployeeIncomes()
+               },
+               onError: ()=>{
+                  this.$toast.success('Error Occured,Failed to Delete')
+               }
+            })
+         })
+      }
+   },
+   watch: {
+      openAccordion(tab) {
+         switch (tab) {
+            case 'incomes':
+               this.loadIncomes()
+               this.loadEmployeeIncomes()
+               break
+            case 'deductions':
+               console.log('d')
+         }
+      }
+   },
 }
 </script>
 
@@ -496,6 +717,7 @@ export default {
 .accordion-collapse {
    display: none;
 }
+
 .accordion-collapse.show {
    display: block;
 }

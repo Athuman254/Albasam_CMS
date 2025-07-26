@@ -11,15 +11,15 @@ return new class extends Migration
     */
    public function up(): void
    {
-      Schema::create('employee_incomes', function (Blueprint $table) {
+      Schema::create('employee_deductions', function (Blueprint $table) {
          $table->id();
          $table->unsignedBigInteger('employee_id');
-         $table->unsignedBigInteger('income_id');
+         $table->unsignedBigInteger('deduction_id');
          $table->integer('amount');
          $table->boolean('freeze')->default(false);
 
          $table->foreign('employee_id')->references('id')->on('employees');
-         $table->foreign('income_id')->references('id')->on('incomes');
+         $table->foreign('deduction_id')->references('id')->on('deductions');
          $table->timestamps();
       });
    }
@@ -29,6 +29,6 @@ return new class extends Migration
     */
    public function down(): void
    {
-      Schema::dropIfExists('employee_incomes');
+      Schema::dropIfExists('employee_deductions');
    }
 };

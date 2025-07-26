@@ -12,6 +12,7 @@ use App\Http\Resources\Resource;
 use App\Models\PayrollAllowance;
 use App\Models\PayrollDeduction;
 use App\Http\Controllers\Controller;
+use App\Models\EmployeeDeduction;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
@@ -28,6 +29,19 @@ class EmployeePayrollController extends Controller
       ])->jsonPaginate();
 
       return Resource::collection($employeeincomes);
+   }
+
+      public function employeeDeductionDataTable()
+   {
+      $employeeDeductions =  QueryBuilder::for(
+         EmployeeDeduction::with(['employee', 'deduction'])->orderBy('id', 'desc')
+      )->allowedFilters([
+         AllowedFilter::scope('search'),
+         AllowedFilter::exact('employee_id'),
+         AllowedFilter::partial('rank_id'),
+      ])->jsonPaginate();
+
+      return Resource::collection($employeeDeductions);
    }
    public function getEmployees(Request $request)
    {
@@ -194,22 +208,62 @@ class EmployeePayrollController extends Controller
       return back(303)->with('success', 'Employee Income has been created.');
    }
 
-   public function updateEmployeeIncome(Request $request, EmployeeIncome $employeeIncome){
-       $request->validate([
+   public function updateEmployeeIncome(Request $request, EmployeeIncome $employeeIncome)
+   {
+      $request->validate([
          'employee_id' => 'required',
          'income_id' => 'required',
          'amount' => 'required',
       ]);
       $employeeIncome->update([
          'employee_id' => $request->employee_id,
-         'income_id'=> $request->income_id,
-         'amount'=> $request->amount * 100,
+         'income_id' => $request->income_id,
+         'amount' => $request->amount * 100,
       ]);
       return back(303)->with('success', 'Employee Income has been update.');
    }
 
-   public function deleteEmployeeIncome(EmployeeIncome $employeeIncome){
+   public function deleteEmployeeIncome(EmployeeIncome $employeeIncome)
+   {
       $employeeIncome->delete();
       return back(303)->with('success', 'Employee Income has been deleted.');
    }
+   public function storeEmployeeDeduction(Request $request)
+   {
+
+      $request->validate([
+         'employee_id' => 'required',
+         'deduction_id' => 'required',
+         'amount' => 'required',
+      ]);
+      EmployeeDeduction::create([
+         'employee_id' => $request->employee_id,
+         'deduction_id' => $request->deduction_id,
+         'amount' => $request->amount * 100,
+      ]);
+      return back(303)->with('success', 'Employee Deduction has been created.');
+   }
+public function updateEmployeeDeduction(Request $request, EmployeeDeduction $employeeDeduction)
+   {
+      $request->validate([
+         'employee_id' => 'required',
+         'deduction_id' => 'required',
+         'amount' => 'required',
+      ]);
+      $employeeDeduction->update(
+[
+         'employee_id' => $request->employee_id,
+         'deduction_id' => $request->deduction_id,
+         'amount' => $request->amount * 100,
+      ]
+);
+      return back(303)->with('success', 'Employee Deduction has been updated.');
+   }
+
+      public function deleteEmployeeDedection(EmployeeDeduction $employeeDeduction)
+   {
+      $employeeDeduction->delete();
+      return back(303)->with('success', 'Employee deduction has been deleted.');
+   }
+
 }

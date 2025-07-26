@@ -295,7 +295,8 @@
                         class="accordion-body py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
                         <div class="w-100">
                            <div class="d-flex justify-content-end mb-2">
-                              <button @click="openEmployeeIncomeModal" class="btn btn-primary"><i class="icon-base bx bx-plus-circle me-1"></i> Add</button>
+                              <button @click="openEmployeeIncomeModal" class="btn btn-primary"><i
+                                    class="icon-base bx bx-plus-circle me-1"></i> Add</button>
                            </div>
                            <table class="table table-sm table-bordered text-nowrap" style="max-width: inherit;">
                               <thead>
@@ -335,6 +336,63 @@
                      </div>
                   </div>
                </div>
+
+               <!-- Deduction details -->
+
+               <div class="card accordion-item">
+                  <h2 class="accordion-header border-bottom">
+                     <button type="button" class="accordion-button"
+                        :class="{ collapsed: openAccordion !== 'deductions' }" @click="toggleAccordion('deductions')">
+                        Deductions
+                     </button>
+                  </h2>
+                  <div class="accordion-collapse" :class="{ show: openAccordion === 'deductions' }">
+                     <div
+                        class="accordion-body py-4 d-flex align-items-baseline flex-wrap flex-xl-nowrap flex-sm-nowrap flex-md-wrap">
+                        <div class="w-100">
+                           <div class="d-flex justify-content-end mb-2">
+                              <button @click="openEmployeeDeductionModal" class="btn btn-primary"><i
+                                    class="icon-base bx bx-plus-circle me-1"></i> Add</button>
+                           </div>
+                           <table class="table table-sm table-bordered text-nowrap" style="max-width: inherit;">
+                              <thead>
+                                 <tr>
+                                    <th class="p-2 fw-medium text-heading" style="width: 35%;">Deduction</th>
+                                    <th class="p-2 fw-medium text-heading" style="width: 25%;">Amount</th>
+                                    <th class="p-2 fw-medium text-heading" style="width: 15%;">Actions</th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 <tr v-for="(deduction, index) in employeeDeductions" :key="index">
+                                    <td class="p-2">{{ deduction.deduction.name ?? '-' }}</td>
+                                    <td class="p-2 text-end">{{ formatCurrency(deduction.amount / 100) }}</td>
+                                    <td class="text-end">
+                                       <div class="dropdown">
+                                          <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
+                                             <i class="icon-base bx bx-dots-vertical"></i>
+                                          </button>
+                                          <div class="dropdown-menu dropdown-menu-end">
+                                             <a href="#" class="dropdown-item"
+                                                @click.prevent="openEmployeeDeductionEditModal(deduction)">
+                                                <i class="icon-base bx bx-edit-alt me-2"></i>Edit
+                                             </a>
+                                             <a title="Delete" href="#" class="dropdown-item text-danger"
+                                                @click.prevent="deleteEmployeeDeduction(deduction)">
+                                                <i class="icon-base bx bx-trash me-2"></i>Del
+                                             </a>
+                                          </div>
+                                       </div>
+
+                                    </td>
+                                 </tr>
+                              </tbody>
+                           </table>
+
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
             </div>
          </div>
       </div>
@@ -429,6 +487,48 @@
    </div>
    <!-- end create employee income modal-->
 
+   <!-- start create employee deduction modal-->
+   <div class="modal fade" id="create-employee-dedection-modal" data-bs-backdrop="static" tabindex="-1"
+      aria-labelledby="create-employee-dedection-modal-label" aria-hidden="true" ref="createEmployeeDeductionModal">
+      <div class="modal-dialog">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="create-employee-dedection-modal-label">Add Deduction</h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                  @click.prevent="formCleanUp"></button>
+            </div>
+            <div class="modal-body">
+               <form id="createDeductionForm" @submit.prevent="createEmployeeDeduction">
+                  <div class="mb-3">
+                     <label for="income" class="form-label">Deduction</label>
+                     <select class="form-select" v-model="employeeDeductionForm.deduction_id" id="income">
+                        <option :key="deduction.id" :value="deduction.id" v-for="deduction in deductions">{{
+                           deduction.name }}</option>
+                     </select>
+                     <div v-if="employeeDeductionForm.errors.deduction_id" class="text-danger">{{
+                        employeeDeductionForm.errors.deduction_id }}</div>
+                  </div>
+                  <div class="mb-3">
+                     <label for="amount" class="form-label">Amount</label>
+                     <input id="amount" type="text" v-model="employeeDeductionForm.amount" class="form-control">
+                     <div v-if="employeeDeductionForm.errors.amount" class="text-danger">{{
+                        employeeDeductionForm.errors.amount }}</div>
+                  </div>
+               </form>
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" @click="formCleanUp">
+                  Close
+               </button>
+               <button type="button" class="btn btn-primary" @click.prevent="createEmployeeDeduction">
+                  Submit
+               </button>
+            </div>
+         </div>
+      </div>
+   </div>
+   <!-- end create employee income modal-->
+
    <!-- start edit employee income modal-->
    <div class="modal fade" id="edit-employee-income-modal" data-bs-backdrop="static" tabindex="-1"
       aria-labelledby="edit-employee-income-modal-label" aria-hidden="true" ref="editEmployeeIncomeModal">
@@ -440,7 +540,7 @@
                   @click.prevent="formCleanUp"></button>
             </div>
             <form id="createForm" @submit.prevent="updateEmployeeIncome">
-            <div class="modal-body">
+               <div class="modal-body">
                   <div class="mb-3">
                      <label for="income" class="form-label">Income</label>
                      <select class="form-select" v-model="employeeIncomeForm.income_id" id="income">
@@ -456,21 +556,61 @@
                         employeeIncomeForm.errors.amount }}</div>
                   </div>
 
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" @click="formCleanUp">
+                     Close
+                  </button>
+                  <button class="btn btn-primary">
+                     Update
+                  </button>
+               </div>
+            </form>
+         </div>
+      </div>
+   </div>
+   <!-- end edit employee income modal-->
+   <!-- start create employee deduction modal-->
+   <div class="modal fade" id="edit-employee-deduction-modal" data-bs-backdrop="static" tabindex="-1"
+      aria-labelledby="edit-employee-deduction-modal-label" aria-hidden="true" ref="editEmployeeDeductionModal">
+      <div class="modal-dialog">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="edit-employee-deduction-modal-label">Edit Deduction</h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                  @click.prevent="formCleanUp"></button>
+            </div>
+            <div class="modal-body">
+               <form id="createDeductionForm" @submit.prevent="updateEmployeeDeduction">
+                  <div class="mb-3">
+                     <label for="income" class="form-label">Deduction</label>
+                     <select class="form-select" v-model="employeeDeductionForm.deduction_id" id="income">
+                        <option :key="deduction.id" :value="deduction.id" v-for="deduction in deductions">{{
+                           deduction.name }}</option>
+                     </select>
+                     <div v-if="employeeDeductionForm.errors.deduction_id" class="text-danger">{{
+                        employeeDeductionForm.errors.deduction_id }}</div>
+                  </div>
+                  <div class="mb-3">
+                     <label for="amount" class="form-label">Amount</label>
+                     <input id="amount" type="text" v-model="employeeDeductionForm.amount" class="form-control">
+                     <div v-if="employeeDeductionForm.errors.amount" class="text-danger">{{
+                        employeeDeductionForm.errors.amount }}</div>
+                  </div>
+               </form>
             </div>
             <div class="modal-footer">
                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" @click="formCleanUp">
                   Close
                </button>
-               <button class="btn btn-primary">
-                  Update
+               <button type="button" class="btn btn-primary" @click.prevent="updateEmployeeDeduction">
+                  update
                </button>
             </div>
-             </form>
          </div>
       </div>
    </div>
-   <!-- end edit employee income modal-->
-
+   <!-- end create employee income modal-->
 </template>
 
 <script>
@@ -492,9 +632,15 @@ export default {
             password: null,
          }),
          employeeIncomeForm: useForm({
-            id:null,
+            id: null,
             employee_id: this.employee.id,
             income_id: null,
+            amount: ''
+         }),
+         employeeDeductionForm: useForm({
+            id: null,
+            employee_id: this.employee.id,
+            deduction_id: null,
             amount: ''
          }),
          emergencyContacts: [],
@@ -505,7 +651,9 @@ export default {
          openAccordion: 'employee',
 
          incomes: [],
-         employeeIncomes: []
+         employeeIncomes: [],
+         deductions: [],
+         employeeDeductions: []
       };
    },
    beforeDestroy() {
@@ -626,10 +774,22 @@ export default {
       openEmployeeIncomeModal() {
          Modal.getOrCreateInstance(this.$refs.createEmployeeIncomeModal).show()
       },
+      openEmployeeDeductionModal() {
+         Modal.getOrCreateInstance(this.$refs.createEmployeeDeductionModal).show()
+      },
       loadIncomes() {
          axios.get('/datatable/settings/incomes')
             .then((res) => {
                this.incomes = res.data.data
+            })
+            .catch((error) => {
+               console.error(error)
+            })
+      },
+      loadDeductions() {
+         axios.get('/datatable/settings/deductions')
+            .then((res) => {
+               this.deductions = res.data.data
             })
             .catch((error) => {
                console.error(error)
@@ -649,12 +809,27 @@ export default {
             this.$toast.error('An error occurred while fetching the employee Incomes.')
          });
       },
+      loadEmployeeDeductions() {
+         axios.get('/datatable/employee/deductions', {
+            params: {
+               filter: {
+                  employee_id: this.employee.id,
+               },
+            },
+         }).then(({ data }) => {
+            this.employeeDeductions = data.data;
+         }).catch((error) => {
+            console.error(error)
+            this.$toast.error('An error occurred while fetching the employee deductions.')
+         });
+      },
       createEmployeeIncome() {
          this.employeeIncomeForm.post(route('admin.employee.income'), {
             onSuccess: () => {
                Modal.getOrCreateInstance(this.$refs.createEmployeeIncomeModal).hide()
                this.$toast.success('Employee Income has been created')
                this.loadEmployeeIncomes()
+               this.employeeIncomeForm.reset()
             },
             onError: (error) => {
                console.log(error)
@@ -664,8 +839,8 @@ export default {
       formatCurrency(amount) {
          return new Intl.NumberFormat('KES').format(amount)
       },
-      updateEmployeeIncome(){
-          this.employeeIncomeForm.patch(route('admin.employee.income.update',this.employeeIncomeForm.id), {
+      updateEmployeeIncome() {
+         this.employeeIncomeForm.patch(route('admin.employee.income.update', this.employeeIncomeForm.id), {
             onSuccess: () => {
                Modal.getOrCreateInstance(this.$refs.editEmployeeIncomeModal).hide()
                this.$toast.success('Employee Income has been updated')
@@ -682,21 +857,69 @@ export default {
          this.employeeIncomeForm.amount = income.amount / 100
          Modal.getOrCreateInstance(this.$refs.editEmployeeIncomeModal).show()
       },
-      deleteEmployeeIncome(income){
+      openEmployeeDeductionEditModal(deduction) {
+         this.employeeDeductionForm.id = deduction.hashid
+         this.employeeDeductionForm.amount = deduction.amount / 100
+         this.employeeDeductionForm.deduction_id = deduction.deduction_id
+         Modal.getOrCreateInstance(this.$refs.editEmployeeDeductionModal).show()
+      },
+      deleteEmployeeIncome(income) {
 
-         this.$toast.question('Are you sure you want to delete'+ ' ?', 'Confirm!')
-         .then(() => {
-            this.employeeIncomeForm.delete(route('admin.employee.income.delete',income.hashid),{
-               onSuccess:()=>{
-               this.$toast.success('Employee Income has been Deleted')
-               this.loadEmployeeIncomes()
-               },
-               onError: ()=>{
-                  this.$toast.success('Error Occured,Failed to Delete')
-               }
+         this.$toast.question('Are you sure you want to delete' + ' ?', 'Confirm!')
+            .then(() => {
+               this.employeeIncomeForm.delete(route('admin.employee.income.delete', income.hashid), {
+                  onSuccess: () => {
+                     this.$toast.success('Employee Income has been Deleted')
+                     this.loadEmployeeIncomes()
+                  },
+                  onError: () => {
+                     this.$toast.success('Error Occured,Failed to Delete')
+                  }
+               })
             })
+      },
+
+      createEmployeeDeduction() {
+         this.employeeDeductionForm.post(route('admin.employee.deduction'), {
+            onSuccess: () => {
+               Modal.getOrCreateInstance(this.$refs.createEmployeeDeductionModal).hide()
+               this.$toast.success('Employee Deduction has been created')
+               this.loadEmployeeDeductions()
+               this.employeeDeductionForm.reset()
+            },
+            onError: (error) => {
+               this.$toast.error('Error Occured')
+            }
          })
-      }
+      },
+      updateEmployeeDeduction() {
+         this.employeeDeductionForm.patch(route('admin.employee.deductions.update', this.employeeDeductionForm.id), {
+            onSuccess: () => {
+               Modal.getOrCreateInstance(this.$refs.editEmployeeDeductionModal).hide()
+               this.$toast.success('Employee Deduction has been updated')
+               this.loadEmployeeDeductions()
+            },
+            onError: (error) => {
+               this.$toast.error('Something went wrong')
+               console.log(error)
+            }
+         })
+      },
+      deleteEmployeeDeduction(deduction) {
+
+         this.$toast.question('Are you sure you want to delete' + ' ?', 'Confirm!')
+            .then(() => {
+               this.employeeDeductionForm.delete(route('admin.employee.deductions.delete', deduction.hashid), {
+                  onSuccess: () => {
+                     this.$toast.success('Employee Deduction has been Deleted')
+                     this.loadEmployeeDeductions()
+                  },
+                  onError: () => {
+                     this.$toast.success('Error Occured,Failed to Delete')
+                  }
+               })
+            })
+      },
    },
    watch: {
       openAccordion(tab) {
@@ -706,7 +929,11 @@ export default {
                this.loadEmployeeIncomes()
                break
             case 'deductions':
-               console.log('d')
+               this.loadDeductions()
+               this.loadEmployeeDeductions()
+               break
+            default:
+               break
          }
       }
    },

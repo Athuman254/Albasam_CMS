@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/salary-scales', [\App\Http\Controllers\Settings\SalaryScaleController::class, 'dataTable']);
          Route::get('/settings/allowances', [\App\Http\Controllers\Settings\AllowanceController::class, 'dataTable']);
           Route::get('/settings/deductions', [\App\Http\Controllers\Settings\DeductionController::class, 'dataTable']);
+           Route::get('/settings/incomes', [\App\Http\Controllers\Settings\IncomeController::class, 'dataTable']);
 
         // EMPLOYEES' DATATABLE ROUTES
         Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'dataTable']);
@@ -226,6 +227,7 @@ Route::middleware('auth')->group(function () {
 
             Route::resource('allowances',\App\Http\Controllers\Settings\AllowanceController::class)->names('settings.allowances')->only('store', 'update', 'destroy');
             Route::resource('deductions', \App\Http\Controllers\Settings\DeductionController::class)->names('settings.deductions')->only('store', 'update', 'destroy');
+            Route::resource('income',\App\Http\Controllers\Settings\IncomeController::class)->names('settings.income')->only('store', 'update','destroy');
         });
 
         Route::resource('/employees', \App\Http\Controllers\EmployeeController::class)->names('employees');

@@ -13,7 +13,7 @@ class AllowanceController extends Controller
 {
      public function dataTable()
     {
-        $statuses = QueryBuilder::for(
+        $allowances = QueryBuilder::for(
             Allowance::orderBy('id')
         )->allowedFilters([
             AllowedFilter::exact('id'),
@@ -21,7 +21,7 @@ class AllowanceController extends Controller
             AllowedFilter::partial('name'),
         ])->jsonPaginate();
 
-        return Resource::collection($statuses);
+        return Resource::collection($allowances);
     }
 
     public function store(Request $request){

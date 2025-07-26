@@ -93,6 +93,11 @@
                         Deductions
                      </button>
                   </li>
+                   <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'incomes' }" @click="activeTab = 'incomes'">
+                        Incomes
+                     </button>
+                  </li>
                </ul>
 
                <div v-if="activeTab === 'divisions'">
@@ -140,6 +145,10 @@
                <div v-if="activeTab === 'deductions'">
                   <deduction></deduction>
                </div>
+               <div v-if="activeTab === 'incomes'">
+                  <Income></Income>
+               </div>
+
             </div>
          </div>
       </div>
@@ -164,12 +173,13 @@ import QualificationTypes from "./QualificationTypes.vue";
 import BlogCategories from "./BlogCategories.vue";
 import Allowance from './Allowance.vue'
 import Deduction from './Deduction.vue'
+import Income from './Income.vue'
 
 export default {
    components: {
       DefaultLayout, Head, Link, Divisions, Streams, Subjects, Religions,
       Relationships, Honorifics, JobTitles, EmploymentTypes, EmploymentStatuses,
-      SalaryScales, SalaryGrades, QualificationTypes, BlogCategories, Allowance, Deduction},
+      SalaryScales, SalaryGrades, QualificationTypes, BlogCategories, Allowance, Deduction, Income},
    data() {
       return {
          activeTab: 'divisions'

@@ -36,6 +36,12 @@ return new class extends Migration
             $table->string('tax_identification_pin')->nullable();
             $table->boolean('has_system_access')->default(false);
             $table->boolean('in_payroll')->default(false);
+            $table->boolean('pays_paye')->default(false);
+            $table->boolean('pays_sha')->default(false);
+            $table->boolean('sha_no')->nullable();
+            $table->boolean('pays_nssf')->nullable();
+            $table->string('nssf_no')->nullable();
+            $table->boolean('pays_housing_levy')->default(false);
             $table->string('password')->nullable();
             $table->timestamps();
             $table->softDeletes();

@@ -45,7 +45,7 @@ class EmployeePayrollController extends Controller
    }
    public function getEmployees(Request $request)
    {
-      $employees = Employee::with(['employment_type'])->where('in_payroll', true)->get();
+      $employees = Employee::with(['employment_type','basicSalary'])->where('in_payroll', true)->get();
       return Resource::collection($employees);
    }
 

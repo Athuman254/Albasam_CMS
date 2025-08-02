@@ -96,7 +96,7 @@
                               <!-- <td>{{ payroll.department }}</td> -->
                               <td>{{ payroll.employment_type.name }}</td>
                               <td>
-                                 <span class="badge bg-success">KES {{ formatCurrency(payroll.gross_salary) }}</span>
+                                 <span class="badge bg-success">KES {{ formatCurrency((payroll.basic_salary.amount / 100)) }}</span>
                               </td>
 
                            </tr>
@@ -194,16 +194,23 @@ const colors = [
    'dc3545',
    '6f42c1'
 ]
+const form = useForm({
+   date: '',
+   employeesIds:[]
+})
 // Methods
 const openRunModal = () => {
    Modal.getOrCreateInstance(runModal.value).show()
 }
 const processPayroll = () => {
-   alert('contin')
+   form.post(route('admin.payroll.store'),{
+      onSuccess:()=>{
+
+      }
+   })
+
 }
-const form = useForm({
-   date: ''
-})
+
 const getAvater = (name) => {
    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${getBgColor()}&color=fff`
 }

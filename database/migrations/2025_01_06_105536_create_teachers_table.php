@@ -38,7 +38,7 @@ return new class extends Migration
             $table->boolean('in_payroll')->default(false);
             $table->boolean('pays_paye')->default(false);
             $table->boolean('pays_sha')->default(false);
-            $table->boolean('sha_no')->nullable();
+            $table->string('sha_no')->nullable();
             $table->boolean('pays_nssf')->nullable();
             $table->string('nssf_no')->nullable();
             $table->boolean('pays_housing_levy')->default(false);

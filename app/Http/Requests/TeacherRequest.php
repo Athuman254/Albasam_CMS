@@ -47,9 +47,16 @@ class TeacherRequest extends FormRequest
             'other_details.work_histories.*.institution_name' => ['nullable', 'string', 'max:255'],
             'other_details.work_histories.*.start_date' => ['nullable', 'date'],
             'other_details.work_histories.*.end_date' => ['nullable', 'date'],
+            'other_details.in_payroll' => ['nullable','boolean'],
+            'other_details.pays_paye' => ['nullable'],
+            'other_details.pays_sha' => ['nullable'],
+            'other_details.sha_no' => ['nullable'],
+            'other_details.pays_nssf' => ['nullable'],
+            'other_details.nssf_no' => ['nullable'],
+            'other_details.pays_housing_levy' => ['nullable']
         ];
     }
-    
+
     public function messages(): array
     {
         return [

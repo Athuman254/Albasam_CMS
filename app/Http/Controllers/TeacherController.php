@@ -48,7 +48,7 @@ class TeacherController extends Controller
     public function store(TeacherRequest $request): \Illuminate\Http\RedirectResponse
     {
         $validatedData = $request->validated();
-        
+
 //        dd($validatedData);
 
         DB::beginTransaction();
@@ -184,8 +184,7 @@ class TeacherController extends Controller
 
     public function update(Teacher $teacher, TeacherRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validated();
-
+       $validated = $request->validated();
         DB::beginTransaction();
         try {
             $employee = Employee::findOrFail($teacher->employee_id);
@@ -209,6 +208,13 @@ class TeacherController extends Controller
                 'date_of_hire' => $validated['employee_details']['date_of_hire'],
                 'employment_status_id' => $validated['employee_details']['employment_status_id'],
                 'employment_type_id' => $validated['employee_details']['employment_type_id'],
+                'in_payroll' => $validated['other_details']['in_payroll'] ?? false,
+                'pays_paye' => $validated['other_details']['pays_paye'] ?? false,
+                'pays_sha' => $validated['other_details']['pays_sha'] ?? false,
+                'sha_no' => $validated['other_details']['sha_no'] ?? '',
+                'pays_nssf' => $validated['other_details']['pays_nssf'] ?? false,
+                'nssf_no' => $validated['other_details']['nssf_no'] ?? '',
+                'pays_housing_levy' => $validated['other_details']['pays_housing_levy']
             ]);
 
             $teacher->update([

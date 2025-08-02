@@ -11,4 +11,8 @@ class PayrollController extends Controller
     public function run(){
       return Inertia::render("Payroll/PayrollRun");
     }
+
+    public function store(Request $request){
+      dd($request);
+    }
 }

@@ -414,14 +414,14 @@
                                           </span>
                                           <span class="col-auto">
                                              <label class="form-check form-switch">
-                                                <input v-model="form.in_payroll" class="form-check-input"
+                                                <input v-model="form.other_details.in_payroll" class="form-check-input"
                                                    type="checkbox">
                                              </label>
                                           </span>
                                        </label>
                                     </div>
                                  </div>
-                                 <div v-if="form.in_payroll" class="row">
+                                 <div v-if="form.other_details.in_payroll" class="row">
 
                                      <div class="col-md-4">
                                        <div class="form-group mb-3">
@@ -432,11 +432,11 @@
                                              </span>
                                              <span  class="col-auto">
                                                 <label class="form-check form-switch">
-                                                   <input v-model="form.pays_paye" class="form-check-input"
+                                                   <input v-model="form.other_details.pays_paye" class="form-check-input"
                                                       type="checkbox">
                                                 </label>
                                              </span>
-                                             <div v-if="form.pays_paye">
+                                             <div v-if="form.other_details.pays_paye">
                                              <label class="form-label" for="nssf_no">KRA PIN</label>
                                             <input v-model="form.personal_details.tax_identification_pin" class="form-control" type="text">
 
@@ -453,14 +453,14 @@
                                              </span>
                                              <span class="col-auto">
                                                 <label class="form-check form-switch">
-                                                   <input v-model="form.pays_sha" class="form-check-input"
+                                                   <input v-model="form.other_details.pays_sha" class="form-check-input"
                                                       type="checkbox">
                                                 </label>
                                              </span>
                                           </label>
-                                          <div v-if="form.pays_sha">
+                                          <div v-if="form.other_details.pays_sha">
                                              <label class="form-label" for="nssf_no">SHA no</label>
-                                            <input v-model="form.sha_no" class="form-control" type="text">
+                                            <input v-model="form.other_details.sha_no" class="form-control" type="text">
 
                                           </div>
                                        </div>
@@ -474,14 +474,14 @@
                                              </span>
                                              <span class="col-auto">
                                                 <label class="form-check form-switch">
-                                                   <input v-model="form.pays_nssf" class="form-check-input"
+                                                   <input v-model="form.other_details.pays_nssf" class="form-check-input"
                                                       type="checkbox">
                                                 </label>
                                              </span>
                                           </label>
-                                          <div v-if="form.pays_nssf">
+                                          <div v-if="form.other_details.pays_nssf">
                                              <label class="form-label" for="nssf_no">NSSF no</label>
-                                            <input v-model="form.nssf_no" class="form-control" type="text">
+                                            <input v-model="form.other_details.nssf_no" class="form-control" type="text">
 
                                           </div>
                                        </div>
@@ -495,7 +495,7 @@
                                              </span>
                                              <span class="col-auto">
                                                 <label class="form-check form-switch">
-                                                   <input v-model="form.pays_housing_levy" class="form-check-input"
+                                                   <input v-model="form.other_details.pays_housing_levy" class="form-check-input"
                                                       type="checkbox">
                                                 </label>
                                              </span>

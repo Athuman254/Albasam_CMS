@@ -202,7 +202,9 @@ const form = useForm({
 const openRunModal = () => {
    Modal.getOrCreateInstance(runModal.value).show()
 }
+
 const processPayroll = () => {
+   form.employeesIds = selectedItems.value
    form.post(route('admin.payroll.store'),{
       onSuccess:()=>{
 

@@ -111,11 +111,11 @@ class Employee extends Authenticatable
     }
 
     public function incomes(){
-      return $this->hasMany(Income::class);
+      return $this->hasMany(EmployeeIncome::class);
     }
 
     public function deductions(){
-       return $this->hasMany(Deduction::class);
+       return $this->hasMany(EmployeeDeduction::class);
     }
 
     public function basicSalary(){
@@ -123,7 +123,7 @@ class Employee extends Authenticatable
          return $q->where('name', 'like','%basic%');
       });
     }
-    public function allowances(){
-      return $this->hasMany(Allowance::class);
-    }
+   //  public function allowances(){
+   //    return $this->hasMany(Allowance::class);
+   //  }
 }

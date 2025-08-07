@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Payroll;
 
+use Throwable;
 use App\Models\Tax;
 use Inertia\Inertia;
 use App\Models\Income;
 use App\Models\Payroll;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use App\Models\PayrollDetail;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Throwable;
 
 class PayrollController extends Controller
 {
@@ -138,12 +139,12 @@ class PayrollController extends Controller
 
       $grossPay = $totalIncome;
 
-      if($employee->pays_housing_levy){
+      if ($employee->pays_housing_levy) {
          $housing_levy = $this->calculateHouseLevy(($grossPay - $AHLexempted));
          $housingLevy = $housing_levy['HousingLevy'];
       }
 
-      if($employee->pays_sha){
+      if ($employee->pays_sha) {
          $shifCon = $this->calculateSHIF($totalIncome);
          // in shillling, round off and change back to cents
          $shifCon = (round($shifCon * 0.01) * 100);
@@ -151,7 +152,7 @@ class PayrollController extends Controller
       }
 
 
-      if($employee->pays_nssf){
+      if ($employee->pays_nssf) {
          $nssf = $this->calculateNSSF($totalIncome);
          $totalPensions += $nssf['employeeContribution'];
       }
@@ -223,42 +224,41 @@ class PayrollController extends Controller
    }
 
 
-    private function netPay($deductions, $grossPay, $totalStatutory)
-    {
+   private function netPay($deductions, $grossPay, $totalStatutory)
+   {
 
-        // total allowances
-        $housing_levy = 0;
-        $totalAllowances = 0;
+      // total allowances
+      $housing_levy = 0;
+      $totalAllowances = 0;
 
-        // total pensions
+      // total pensions
       //   $totalPensions = 0;
       //   foreach ($pensions as $pension) {
       //       $totalPensions += $pension->employee_max;
       //   }
 
-        // deductions
-        $totalDeductions = 0;
-        foreach ($deductions as $deduction) {
-            $totalDeductions += $deduction->amount;
-        }
+      // deductions
+      $totalDeductions = 0;
+      foreach ($deductions as $deduction) {
+         $totalDeductions += $deduction->amount;
+      }
 
       //   foreach ($payrollDeductions as $deduction) {
       //       $totalDeductions += $deduction->amount;
       //   }
 
-        $TOTAL_DEDUCTIONS = $totalDeductions + $totalStatutory['PAYEE'] + $totalStatutory['NSSF'] + $totalStatutory['HOUSINGLEVY'] + $totalStatutory['SHA'];
+      $TOTAL_DEDUCTIONS = $totalDeductions + $totalStatutory['PAYEE'] + $totalStatutory['NSSF'] + $totalStatutory['HOUSINGLEVY'] + $totalStatutory['SHA'];
 
-        $NET_SALARY = $grossPay - $TOTAL_DEDUCTIONS;
+      $NET_SALARY = $grossPay - $TOTAL_DEDUCTIONS;
 
-        return [
-            'total_allowances'    => $totalAllowances,
-            'gross_pay'           => $grossPay,
-            'housing_levy'        => $housing_levy,
-            'total_deductions'    => $TOTAL_DEDUCTIONS,
-            'net_pay'             => $NET_SALARY,
-        ];
-
-    }
+      return [
+         'total_allowances'    => $totalAllowances,
+         'gross_pay'           => $grossPay,
+         'housing_levy'        => $housing_levy,
+         'total_deductions'    => $TOTAL_DEDUCTIONS,
+         'net_pay'             => $NET_SALARY,
+      ];
+   }
    public function store(Request $request)
    {
       $validated = $request->validate([
@@ -287,38 +287,63 @@ class PayrollController extends Controller
 
          $payee = $this->calcutatePAYE($employee, $employee->incomes ?? []);
          // dd($payee);
-         $netPay = $this->netPay( $employee->deductions ?? [],  $payee['grossPay'], $payee['totalStatutory']);
-         dd($netPay);
-         DB::beginTransaction();
-         try{
-             $payroll = Payroll::create([
-                    'month'               => $month,
-                    'user_id'             => auth()->user()->id,
-                    'employee_payroll_id' => $employee->id,
-                    'basic_pay'           => $payee['basic_pay'],
-                    'allowance'           => $payee['totalAllowance'],
-                    'pension'             => ($netPay['pension'] + $payee['employee_nssf']),
-                    'gross_pay'           => $payee['grossPay'],
-                    'tax_relief'          => $payee['tax_relief'],
-                    'paye'                => $payee['paye'],
-                    'shif'                => $payee['shifContribution'],
-                    'benefits'            => $payee['totalBenefits'],
-                    'total_deductions'    => $netPay['total_deductions'],
-                    'contributions'       => $netPay['total_contributions'],
-                    'net_pay'             => $netPay['net_pay'],
-                    'nssf'                => $payee['employee_nssf'],
-                    'employer_nssf'       => $payee['employer_nssf'],
-                    'pay_date'            => $validated['period'],
-                    'job_title'           => $employee->job_title,
-                    'year'                => $year,
-                ]);
-                dd('none');
-         }catch(Throwable $ex){
+         $netPay = $this->netPay($employee->deductions ?? [],  $payee['grossPay'], $payee['totalStatutory']);
 
+         DB::beginTransaction();
+         try {
+            $payroll = Payroll::create([
+               'month'               => $month,
+               'user_id'             => auth()->user()->id,
+               'employee_id' => $employee->id,
+               'basic_pay'           => $payee['basic_pay'],
+               'total_allowances'           => $payee['totalAllowance'],
+               'gross_salary'           => $payee['grossPay'],
+               'tax_relief'          => $payee['tax_relief'],
+               'paye'                => $payee['paye'],
+               'total_deductions'    => $netPay['total_deductions'],
+               'net_salary'             => $netPay['net_pay'],
+               'pay_date'            => $validated['date'],
+               'job_title'           => $employee->job_title,
+               'year'                => $year,
+            ]);
+
+            //  INCOMES
+            $this->payrollDetails($payroll->id, $employee, $employee->incomes, $month, Payroll::SALARY, $validated['date']);
+         } catch (Throwable $ex) {
+            dd($ex);
          }
          //    $netPay = $this->netPay($employee, $employee->pensions ?? [], $employee->contributions ?? [], $employee->reliefs ?? [], $employee->deductions ?? [], $employee->payrollDeductions ?? [], $validated['period'], $payee['payAfterAllowableDeductions'], $payee['grossPay'], $payee['totalStatutory']);
 
          // dd($employee);
+      }
+   }
+
+   private function payrollDetails($payroll_id, $employee, $details, $month, $source, $period, $employer = 0)
+   {
+      $currentDate = $period;
+      // dd($details[0]->deduction()->first()->name);
+      foreach ($details as $detail) {
+         $description = '';
+         $balance = 0;
+         $ahl_exempted = false;
+         $is_insurance = false;
+         if ($source == Payroll::SALARY) {
+            $description = $detail->income->name;
+         }
+
+         $details = PayrollDetail::create([
+            'payroll_id'         => $payroll_id,
+            'employee_id'        => $employee->id,
+            'amount'             => $detail->amount,
+            'balance'            => $balance,
+            'ahl_exempted'       => $ahl_exempted,
+            'is_insurance'       => $is_insurance,
+            'accumulated_amount' => 0,
+            'month'              => $month,
+            'employer'           => $employer,
+            'description'        => $description,
+            'source'             => $source,
+         ]);
       }
    }
 }

@@ -128,6 +128,12 @@
                <div class="text-truncate">Run</div>
             </Link>
          </li>
+          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/payroll/run') }">
+            <Link :href="route('admin.payroll.index')" class="menu-link">
+               <div class="text-truncate">payrolls</div>
+            </Link>
+         </li>
+
       </ul>
    </li>
 

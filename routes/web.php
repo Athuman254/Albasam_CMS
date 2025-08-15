@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
       Route::get('deduction/adjustments', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'deductionAdjustmentDataTable']);
       Route::get('employee/incomes', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'employeeIncomeDataTable']);
       Route::get('employee/deductions', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'employeeDeductionDataTable']);
+      Route::get('payroll/summary',[\App\Http\Controllers\Payroll\PayrollController::class, 'datatableSummary']);
    });
 
    /********************************
@@ -194,6 +195,7 @@ Route::middleware('auth')->group(function () {
          Route::get('adjustment', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'payrollAdjustment'])->name('adjustment.index');
          Route::get('run', [\App\Http\Controllers\Payroll\PayrollController::class, 'run'])->name('payroll.run');
          Route::post('run',[\App\Http\Controllers\Payroll\PayrollController::class, 'store'])->name('payroll.store');
+         Route::get('summary',[\App\Http\Controllers\Payroll\PayrollController::class, 'index'])->name('payroll.index');
          Route::post("dedution/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeDeductionAdjustment'])->name("deduction.adjustment");
          Route::patch('deduction/adjustments/{payrollDeduction}', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'updateDeductionAdjustment'])->name('deduction.adjustment.update');
          Route::post("allowance/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeAllowanceAdjustment'])->name("allowance.adjustment");
@@ -204,6 +206,8 @@ Route::middleware('auth')->group(function () {
          Route::post("employee/deductions", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeEmployeeDeduction'])->name("employee.deduction");
          Route::patch("employee/deduction/{employeeDeduction}update", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'updateEmployeeDeduction'])->name("employee.deductions.update");
          Route::delete("employee/deduction/{employeeDeduction}delete", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'deleteEmployeeDedection'])->name("employee.deductions.delete");
+
+
       });
 
       /********************************

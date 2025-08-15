@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Payroll extends Model
 {
 
-   const DEDUCTION = 0;
-   const SALARY = 0;
+   const SALARY = 1;
+   const ALLOWANCE = 2;
+   const DEDUCTION = 3;
+   const PENSION = 4;
    const RELIEF = 0;
    protected $fillable = [
       'month',
@@ -25,4 +27,8 @@ class Payroll extends Model
       'job_title',
       'year'
    ];
+
+   public function processedBy(){
+      return /
+   }
 }

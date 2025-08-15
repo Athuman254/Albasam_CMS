@@ -10,14 +10,49 @@ use App\Models\Payroll;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 use App\Models\PayrollDetail;
+use App\Http\Resources\Resource;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class PayrollController extends Controller
 {
+
+
+    public function datatableSummary()
+    {
+        $query = Payroll::query()
+            ->select(
+                [
+                    'pay_date',
+                    'month',
+                    'year',
+                    'is_closed',
+                    'user_id',
+                    DB::raw('SUM(net_salary) as totalNetPay'),
+                ]
+            )
+            ->with(['processedBy'])
+            ->groupBy('pay_date', 'user_id', 'is_closed', 'month', 'year')
+            ->latest('pay_date');
+
+        $payrolls = QueryBuilder::for($query)
+            ->allowedFilters([
+                AllowedFilter::scope('search', 'search'),
+            ])
+            ->jsonPaginate();
+
+        return Resource::collection($payrolls);
+    }
+
    public function run()
    {
       return Inertia::render("Payroll/PayrollRun");
+   }
+
+   public function index(){
+      return Inertia::render('Payroll/Index');
    }
 
    private function calculateNSSF($grossPay)
@@ -266,7 +301,6 @@ class PayrollController extends Controller
          'employeesIds' => 'array',
       ]);
 
-      // dd($validated);
       $year = date('Y', strtotime($validated['date']));
 
       $month = date('F', strtotime($validated['date']));
@@ -286,7 +320,7 @@ class PayrollController extends Controller
          $employee->load(['incomes', 'deductions']);
 
          $payee = $this->calcutatePAYE($employee, $employee->incomes ?? []);
-         // dd($payee);
+
          $netPay = $this->netPay($employee->deductions ?? [],  $payee['grossPay'], $payee['totalStatutory']);
 
          DB::beginTransaction();
@@ -306,15 +340,51 @@ class PayrollController extends Controller
                'job_title'           => $employee->job_title,
                'year'                => $year,
             ]);
-
             //  INCOMES
             $this->payrollDetails($payroll->id, $employee, $employee->incomes, $month, Payroll::SALARY, $validated['date']);
+
+            $this->payrollDetails($payroll->id, $employee, $employee->deductions, $month, Payroll::DEDUCTION, $validated['date']);
+
+
+            if ($employee->pays_sha) {
+               $details = PayrollDetail::create([
+                  'payroll_id'  => $payroll->id,
+                  'employee_id' => $employee->id,
+                  'amount'      => $payee['shifContribution'],
+                  'month'       => $month,
+                  'description' => 'SHA CONTRIBUTION',
+                  'source'      => Payroll::DEDUCTION,
+               ]);
+            }
+            // }
+            if ($employee->pays_nssf) {
+               $details = PayrollDetail::create([
+                  'payroll_id'  => $payroll->id,
+                  'employee_id' => $employee->id,
+                  'amount'      => $payee['employee_nssf'],
+                  'employer'    => $payee['employer_nssf'],
+                  'month'       => $month,
+                  'description' => 'NSSF',
+                  'source'      => Payroll::PENSION,
+               ]);
+            }
+
+            if ($employee->pays_housing_levy) {
+               PayrollDetail::create([
+                  'payroll_id'  => $payroll->id,
+                  'employee_id' => $employee->id,
+                  'amount'      => $payee['housing_levy'],
+                  'employer'    => $payee['housing_levy'],
+                  'month'       => $month,
+                  'description' => 'Housing Levy',
+                  'source'      => Payroll::DEDUCTION,
+               ]);
+            }
+            DB::commit();
          } catch (Throwable $ex) {
             dd($ex);
          }
-         //    $netPay = $this->netPay($employee, $employee->pensions ?? [], $employee->contributions ?? [], $employee->reliefs ?? [], $employee->deductions ?? [], $employee->payrollDeductions ?? [], $validated['period'], $payee['payAfterAllowableDeductions'], $payee['grossPay'], $payee['totalStatutory']);
 
-         // dd($employee);
       }
    }
 

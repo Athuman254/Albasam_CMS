@@ -57,9 +57,9 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
 
-                           <Link class="dropdown-item" :href="route('admin.payroll-details',props.rowData.pay_date)" >
-                              <i class="icon-base bx bxs-key me-2"></i>Open
-                           </Link>
+                           <button class="dropdown-item" type="button" @click="editPermissions(props.rowData)">
+                              <i class="icon-base bx bxs-key me-2"></i>Permissions
+                           </button>
                            <a class="dropdown-item text-danger disabled" href="#">
                               <i class="icon-base bx bx-trash me-2"></i>Delete
                            </a>
@@ -89,7 +89,7 @@ const  fields = [
 
             {
                name: 'month',
-               title: 'Month',
+               title: 'Employee',
             },
             {
                name: '__slot:totalNetPay',

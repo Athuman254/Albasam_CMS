@@ -196,6 +196,7 @@ Route::middleware('auth')->group(function () {
          Route::get('run', [\App\Http\Controllers\Payroll\PayrollController::class, 'run'])->name('payroll.run');
          Route::post('run',[\App\Http\Controllers\Payroll\PayrollController::class, 'store'])->name('payroll.store');
          Route::get('summary',[\App\Http\Controllers\Payroll\PayrollController::class, 'index'])->name('payroll.index');
+         Route::get('/lists/{pay_date}',[\App\Http\Controllers\Payroll\PayrollController::class,'show'])->name('payroll-details');
          Route::post("dedution/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeDeductionAdjustment'])->name("deduction.adjustment");
          Route::patch('deduction/adjustments/{payrollDeduction}', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'updateDeductionAdjustment'])->name('deduction.adjustment.update');
          Route::post("allowance/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeAllowanceAdjustment'])->name("allowance.adjustment");

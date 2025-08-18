@@ -28,7 +28,13 @@ class Payroll extends Model
       'year'
    ];
 
-   public function processedBy(){
-      return /
+   public function processedBy()
+   {
+      return $this->belongsTo(User::class);
+   }
+
+   public function scopeShowDetails($query, $date)
+   {
+      return $query->where('pay_date', '=', $date);
    }
 }

@@ -20,38 +20,54 @@ class PayrollController extends Controller
 {
 
 
-    public function datatableSummary()
-    {
-        $query = Payroll::query()
-            ->select(
-                [
-                    'pay_date',
-                    'month',
-                    'year',
-                    'is_closed',
-                    'user_id',
-                    DB::raw('SUM(net_salary) as totalNetPay'),
-                ]
-            )
-            ->with(['processedBy'])
-            ->groupBy('pay_date', 'user_id', 'is_closed', 'month', 'year')
+   public function datatableSummary()
+   {
+      $query = Payroll::query()
+         ->select(
+            [
+               'pay_date',
+               'month',
+               'year',
+               'is_closed',
+               'user_id',
+               DB::raw('SUM(net_salary) as totalNetPay'),
+            ]
+         )
+         ->with(['processedBy'])
+         ->groupBy('pay_date', 'user_id', 'is_closed', 'month', 'year')
+         ->latest('pay_date');
+
+      $payrolls = QueryBuilder::for($query)
+         ->allowedFilters([
+            AllowedFilter::scope('search', 'search'),
+         ])
+         ->jsonPaginate();
+
+      return Resource::collection($payrolls);
+   }
+
+   public function datatable(){
+       $query = Payroll::query()
+            ->with(['processedBy', 'employee'])
             ->latest('pay_date');
 
         $payrolls = QueryBuilder::for($query)
             ->allowedFilters([
                 AllowedFilter::scope('search', 'search'),
+                AllowedFilter::scope('showDetails', 'showDetails'),
             ])
             ->jsonPaginate();
 
         return Resource::collection($payrolls);
-    }
+   }
 
    public function run()
    {
       return Inertia::render("Payroll/PayrollRun");
    }
 
-   public function index(){
+   public function index()
+   {
       return Inertia::render('Payroll/Index');
    }
 
@@ -384,7 +400,6 @@ class PayrollController extends Controller
          } catch (Throwable $ex) {
             dd($ex);
          }
-
       }
    }
 
@@ -415,5 +430,18 @@ class PayrollController extends Controller
             'source'             => $source,
          ]);
       }
+   }
+
+   /**
+    * Display the specified resource.
+    *
+    * @param  int  $id
+    * @return
+    */
+   public function show($pay_date)
+   {
+      return Inertia::render('Payroll/PayrollDetails', [
+         'date' => $pay_date
+      ]);
    }
 }

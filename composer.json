@@ -7,7 +7,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ar-php/ar-php": "^1.0",
         "artesaos/seotools": "^1.3",
+        "barryvdh/laravel-dompdf": "^3.1",
         "ezyang/htmlpurifier": "^4.18",
         "hashids/hashids": "^5.0",
         "inertiajs/inertia-laravel": "^2.0",
@@ -15,6 +17,7 @@
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "omaralalwi/gpdf": "^1.0",
         "santigarcor/laratrust": "^8.3",
         "spatie/laravel-json-api-paginate": "^1.16",
         "spatie/laravel-medialibrary": "^11.12",

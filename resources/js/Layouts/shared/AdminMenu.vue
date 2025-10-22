@@ -106,6 +106,38 @@
          </li>
       </ul>
    </li>
+
+
+    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/exams')  }">
+      <a href="#" class="menu-link menu-toggle">
+         <i class='bx  bx-wallet menu-icon tf-icons'></i>
+         <div class="text-truncate">Exams</div>
+      </a>
+      <ul class="menu-sub">
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/manage') }">
+            <Link :href="route('admin.exams.manage.index')" class="menu-link">
+               <div class="text-truncate">Manage Exam</div>
+            </Link>
+         </li>
+          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/exam-students') }">
+            <Link :href="route('admin.exams.exam-students.index')" class="menu-link">
+               <div class="text-truncate">Enroll students</div>
+            </Link>
+         </li>
+           <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/upload-results') }">
+            <Link :href="route('admin.exams.upload-results.index')" class="menu-link">
+               <div class="text-truncate">Upload Exam</div>
+            </Link>
+         </li>
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/results') }">
+            <Link :href="route('admin.exams.results.index')" class="menu-link">
+               <div class="text-truncate">Exam Results</div>
+            </Link>
+         </li>
+      </ul>
+   </li>
+
+
    <li v-if="canAny(['access-institution-workspace', 'access-users-workspace', 'access-roles-workspace', 'access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"
        class="menu-header small text-uppercase">
       <span class="menu-header-text">Human Resource</span>

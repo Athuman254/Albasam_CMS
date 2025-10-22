@@ -1,0 +1,133 @@
+I'll help you generate PDFs with Arabic Amiri font using Laravel DomPDF package. Here's a complete implementation:
+
+## 1. Installation
+
+First, install the Laravel DomPDF package:
+
+```bash
+composer require barryvdh/laravel-dompdf
+```
+
+## 2. Publish Configuration (Optional)
+
+```bash
+php artisan vendor:publish --provider="Barryvdh\DomPDF\ServiceProvider"
+```
+
+## 3. Download Amiri Font
+
+Download Amiri font files and place them in `storage/fonts/` directory:
+- Amiri-Regular.ttf
+- Amiri-Bold.ttf
+- Amiri-Italic.ttf
+- Amiri-BoldItalic.ttf
+
+## 4. Configure DomPDF
+
+Update `config/dompdf.php`:
+
+```php
+<?php
+
+return [
+    'show_warnings' => false,
+    'orientation' => 'portrait',
+    'defines' => [
+        'font_dir' => storage_path('fonts/'),
+        'font_cache' => storage_path('fonts/'),
+        'temp_dir' => storage_path('app/dompdf/temp/'),
+        'chroot' => realpath(base_path()),
+        'enable_font_subsetting' => true,
+        'pdf_backend' => 'CPDF',
+        'default_media_type' => 'screen',
+        'default_paper_size' => 'a4',
+        'default_font' => 'amiri',
+        'dpi' => 96,
+        'enable_php' => false,
+        'enable_javascript' => true,
+        'enable_remote' => true,
+        'font_height_ratio' => 1.1,
+        'enable_html5_parser' => true,
+    ],
+];
+```
+
+## 5. Create Font Loading Command
+
+Create a command to register the font:
+
+```bash
+php artisan make:command LoadAmiriFont
+```
+
+```php
+<?php
+// app/Console/Commands/LoadAmiriFont.php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Barryvdh\DomPDF\PDF;
+use Exception;
+
+class LoadAmiriFont extends Command
+{
+    protected $signature = 'pdf:load-amiri-font';
+    protected $description = 'Load Amiri font for DomPDF';
+
+    public function handle()
+    {
+        try {
+            // Generate a simple PDF to trigger font loading
+            $pdf = app('dompdf.wrapper');
+            $pdf->loadHTML('<html><body><p>Test</p></body></html>');
+            $pdf->output();
+
+            $this->info('Amiri font loaded successfully!');
+        } catch (Exception $e) {
+            $this->error('Error loading font: ' . $e->getMessage());
+        }
+    }
+}
+```
+
+## 6. Create PDF Service
+
+Create a service to handle PDF generation:
+
+```php
+<?php
+// app/Services/PdfService.php
+
+namespace App\Services;
+
+use Barryvdh\DomPDF\PDF;
+
+class PdfService
+{
+    protected $pdf;
+
+    public function __construct(PDF $pdf)
+    {
+        $this->pdf = $pdf;
+    }
+
+    public function generateArabicPdf($data, $filename = 'document.pdf')
+    {
+        $html = $this->getArabicHtmlTemplate($data);
+
+        $pdf = $this->pdf->loadHTML($html);
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->setOption('fontDir', storage_path('fonts'));
+        $pdf->setOption('fontCache', storage_path('fonts'));
+        $pdf->setOption('defaultFont', 'amiri');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+
+        return $pdf;
+    }
+
+    protected function getArabicHtmlTemplate($data)
+    {
+        return "
+        <!DOCTYPE html

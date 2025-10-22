@@ -1,6 +1,6 @@
 <template>
    <Head title="Admission Form"/>
-   
+
    <DefaultLayout>
       <div class="row">
          <div class="col-xxl-12">
@@ -18,7 +18,7 @@
                   </li>
                </ol>
             </nav>
-            
+
             <div class="card">
                <div class="card-header border-bottom">
                   <div class="form-header">
@@ -48,7 +48,7 @@
                   </div>
                   <!-- Steps End -->
                </div>
-               
+
                <div class="card-body">
                   <div class="row">
                      <div class="col-md-12">
@@ -82,7 +82,6 @@
                                        <label class="form-label-md mb-1" for="divisionId">Division <span
                                           class="text-danger ms-1">*</span></label>
                                        <v-select
-                                          disabled
                                           id="divisionId"
                                           v-model="form.registration_details.division_id"
                                           :options="divisions"
@@ -166,7 +165,6 @@
                                     <div class="form-group mb-3">
                                        <label class="form-label-md mb-1" for="genderId">Gender</label>
                                        <v-select
-                                          disabled
                                           id="genderId"
                                           v-model="form.student.gender_id"
                                           :options="genders"
@@ -341,7 +339,7 @@
                               </div>
                            </div>
                         </transition>
-                        
+
                         <transition name="fade">
                            <div v-if="currentStep === 3" class="step">
                               <div v-for="(guardian, index) in form.guardians" :key="index" class="row">
@@ -451,7 +449,7 @@
                               </div>
                            </div>
                         </transition>
-                        
+
                         <transition name="fade">
                            <div v-if="currentStep === 4" class="step">
                               <div class="row">
@@ -514,7 +512,7 @@
                                           </button>
                                        </div>
                                     </div>
-                                    
+
                                     <div class="mb-4">
                                        <div class="row gx-4 mb-4">
                                           <div class="col-md-3">
@@ -579,7 +577,7 @@
                               </div>
                            </div>
                         </transition>
-                        
+
                         <!-- Navigation Start -->
                         <div class="form-footer px-0">
                            <div class="col-md-6">
@@ -693,7 +691,7 @@ export default {
          genders: [],
          religions: [],
          relationships: [],
-         
+
          currentStep: 1,
          routes: {
             1: "/admin/student-admissions/first-step",
@@ -731,11 +729,11 @@ export default {
          }
          const divisionId = this.form.registration_details.division_id;
          // console.log("selected division:", divisionId)
-         
+
          if (!divisionId) {
             return [];
          }
-         
+
          return this.ranks.filter(rank => rank.division_id === divisionId);
       },
    },

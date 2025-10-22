@@ -55,22 +55,22 @@
                       </svg>
             </span>
          </a>
-         
+
          <a href="#" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none"
             @click.prevent="toggleSidebar">
             <i class="bx bx-chevron-left bx-sm d-flex align-items-center justify-content-center"></i>
          </a>
       </div>
-      
+
       <div class="menu-inner-shadow"></div>
-      
+
       <ul v-if="user" class="menu-inner py-1 ps">
          <AdminMenu />
       </ul>
       <ul v-if="staff" class="menu-inner py-1 ps">
          <EmployeeMenu />
       </ul>
-   
+
    </aside>
 </template>
 
@@ -101,7 +101,7 @@ export default {
    methods: {
       initializeMenu() {
          const layoutMenuEl = document.querySelector('#layout-menu');
-         
+
          if (layoutMenuEl) {
             new Menu(layoutMenuEl, {
                orientation: 'vertical',

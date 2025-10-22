@@ -154,6 +154,7 @@ class TeacherController extends Controller
 
         } catch (\Throwable $exception) {
             DB::rollBack();
+            dd($exception);
             Log::error('Error: ' . $exception->getMessage());
             report($exception);
             return redirect()->back()->withInput()->withErrors(['message' => 'Failed to save teacher details. Please try again.']);

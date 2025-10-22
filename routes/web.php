@@ -1,11 +1,14 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MediaController;
-use Illuminate\Support\Facades\Artisan;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Application;
+use App\Http\Controllers\PdfController;
+use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Exams\ExamResultController;
+use App\Http\Controllers\Settings\AcademicYearController;
 
 Route::get('/dashboard', function () {
    return redirect()->route('admin.dashboard');
@@ -14,6 +17,7 @@ Route::get('/dashboard', function () {
 /********************************
  *  SYSTEM ROUTES
  *******************************/
+  Route::get('/generate-pdf', [PdfController::class, 'generateArabicPdf']);
 Route::middleware('auth')->group(function () {
    /****
     * EMPLOYEES
@@ -85,6 +89,13 @@ Route::middleware('auth')->group(function () {
       Route::get('employee/incomes', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'employeeIncomeDataTable']);
       Route::get('employee/deductions', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'employeeDeductionDataTable']);
       Route::get('payroll/summary',[\App\Http\Controllers\Payroll\PayrollController::class, 'datatableSummary']);
+      // exam module
+      Route::get('academic-years', [\App\Http\Controllers\Settings\AcademicYearController::class, 'dataTable']);
+      Route::get('exams', [\App\Http\Controllers\Exams\ExamManageController::class, 'dataTable']);
+      Route::get('exam-subjects',[ \App\Http\Controllers\Exams\ExamManageController::class, 'examSubject']);
+       Route::get('exam-marks',[ \App\Http\Controllers\Exams\UploadExamResultController::class, 'examMarks']);
+       Route::get('enrolled-students', [\App\Http\Controllers\Exams\ExamStudentController::class, 'dataTableEnrollStudents']);
+
    });
 
    /********************************
@@ -237,7 +248,7 @@ Route::middleware('auth')->group(function () {
          Route::resource('/qualification-types', \App\Http\Controllers\Settings\QualificationTypeController::class)->names('qualification-types')->only('store', 'update', 'destroy');
          Route::resource('/salary-grades', \App\Http\Controllers\Settings\SalaryGradeController::class)->names('salary-grades')->only('store', 'update', 'destroy');
          Route::resource('/salary-scales', \App\Http\Controllers\Settings\SalaryScaleController::class)->names('salary-scales')->only('store', 'update', 'destroy');
-
+         Route::resource('academic-years', AcademicYearController::class);
          Route::resource('allowances', \App\Http\Controllers\Settings\AllowanceController::class)->names('settings.allowances')->only('store', 'update', 'destroy');
          Route::resource('deductions', \App\Http\Controllers\Settings\DeductionController::class)->names('settings.deductions')->only('store', 'update', 'destroy');
          Route::resource('income', \App\Http\Controllers\Settings\IncomeController::class)->names('settings.income')->only('store', 'update', 'destroy');
@@ -249,6 +260,25 @@ Route::middleware('auth')->group(function () {
       Route::resource('/roles', \App\Http\Controllers\Settings\RoleController::class)->names('roles');
       Route::resource('/ranks', \App\Http\Controllers\Settings\RankController::class)->names('ranks');
       //        Route::resource('/permissions', \App\Http\Controllers\PermissionController::class)->names('permissions');
+
+      /**
+       * EXAMS
+       *
+       */
+      Route::group([
+         'prefix' => 'exams',
+         'as' => 'exams.'
+      ], function(){
+         Route::resource('manage',\App\Http\Controllers\Exams\ExamManageController::class);
+         Route::resource('exam-students', \App\Http\Controllers\Exams\ExamStudentController::class);
+         Route::resource('upload-results', \App\Http\Controllers\Exams\UploadExamResultController::class);
+
+         Route::resource('results', ExamResultController::class);
+
+         Route::group(['prefix' => 'reports'],function (){
+            Route::get('/student/{student}', [ExamResultController::class, 'generateStudentReport']);
+         });
+      });
 
       /********************************
        * WEBSITE MANAGEMENT ROUTES

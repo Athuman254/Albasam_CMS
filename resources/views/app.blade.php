@@ -31,5 +31,6 @@
         <script async defer src="{{ asset('assets/js/main.js') }}"></script>
         <script async defer src="{{ asset('assets/js/perfect-scrollbar.js') }}"></script>
         <script async defer src="{{ asset('assets/js/buttons.js') }}"></script>
+    </a>
     </body>
 </html>

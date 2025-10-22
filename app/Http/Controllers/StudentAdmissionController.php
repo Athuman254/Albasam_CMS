@@ -53,8 +53,8 @@ class StudentAdmissionController extends Controller
     public function store(StudentAdmissionRequest $request)
     {
         $validated = $request->validated();
-        $defaultDivision = Division::where('name', 'like', 'High School')->first();
-        
+        $defaultDivision = Division::first();
+
 //        dd($validated);
 
         DB::beginTransaction();
@@ -86,7 +86,7 @@ class StudentAdmissionController extends Controller
                 'medical_details' => $validated['other_details']['medical_details'] ?? null,
                 'character_book' => $validated['other_details']['character_book'] ?? null,
             ]);
-            
+
 //            dd($student);
 
             if (isset($validated['guardians']) && is_array($validated['guardians'])) {
@@ -133,7 +133,7 @@ class StudentAdmissionController extends Controller
                     Sibling::insert($siblingRecords);
                 }
             }
-            
+
             DB::commit();
 //            dd('something happened');
             return to_route('admin.admissions.index');
@@ -146,13 +146,13 @@ class StudentAdmissionController extends Controller
             return to_route('admin.admissions.form');
         }
     }
-    
+
     public function show(StudentAdmission $studentAdmission)
     {
         $studentAdmission->load('division');
         $student = Student::where('student_admission_id', '=', $studentAdmission->id)->first();
         $student->load('rank.stream', 'gender', 'religion');
-        
+
         return Inertia::render('Admin/StudentAdmissions/Show', [
             'student' => $student,
             'admission' => $studentAdmission,
@@ -171,8 +171,8 @@ class StudentAdmissionController extends Controller
     public function update(StudentAdmission $studentAdmission, Request $request)
     {
         $validated = $this->otherDetailsValidation($request);
-        $defaultDivision = Division::where('name', '=', 'High School')->first();
-        
+        $defaultDivision = Division::first();
+
 //        dd($request->input());
 
         DB::beginTransaction();
@@ -327,7 +327,7 @@ class StudentAdmissionController extends Controller
             'student.previous_school.string' => 'The previous school must be a valid string.',
             'student.previous_school.max' => 'The previous school may not be greater than 255 characters.',
         ];
-        
+
         $request->validate([
             'student.first_name' => ['required', 'string', 'max:255'],
             'student.middle_name' => ['nullable', 'string', 'max:255'],

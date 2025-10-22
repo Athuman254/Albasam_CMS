@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
             $table->string('staff_number')->unique()->nullable();
-            $table->date('date_of_hire')->unique()->nullable();
+            $table->date('date_of_hire')->nullable();
             $table->boolean('use_existing_user')->default(false);
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('employment_type_id')->nullable();

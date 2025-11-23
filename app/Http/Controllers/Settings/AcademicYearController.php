@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Models\AcademicYear;
+use App\Models\Settings\AcademicYear; 
 use Illuminate\Http\Request;
 use App\Http\Resources\Resource;
 use Illuminate\Support\Facades\DB;

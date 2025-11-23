@@ -52,14 +52,30 @@ class Teacher extends Model
         return $this->hasOne(Rank::class, 'teacher_id', 'id');
     }
     
+    /**
+     * Get the employee class assignments for this teacher
+     */
+    public function classAssignments()
+    {
+        return $this->hasMany(EmployeeClass::class, 'employee_id', 'employee_id');
+    }
+
+    /**
+     * Get class teacher assignments only
+     */
+    public function classTeacherAssignments()
+    {
+        return $this->classAssignments()->where('is_class_teacher', true);
+    }
+
     public function getIsClassTeacherAttribute(): bool
     {
-        return $this->rank()->exists();
+        return $this->classTeacherAssignments()->exists();
     }
     
     public function scopeIsAClassTeacher($query)
     {
-        return $query->whereHas('rank');
+        return $query->whereHas('classTeacherAssignments');
     }
     
     public function scopeSearch($query, string $terms = null)

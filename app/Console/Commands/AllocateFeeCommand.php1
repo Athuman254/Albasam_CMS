@@ -1,0 +1,74 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use \App\Models\AutoRecordedPayment;
+use App\Models\StudentAdmission;
+use App\Models\Fee;
+
+class AllocateFeeCommand extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'app:allocate-fee-command {payment_id}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Allocates Mpesa Payment To Student Fees';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle()
+    {
+        $paymentRecord = AutoRecordedPayment::find($this->argument('payment_id'));
+
+
+        $student = StudentAdmission::find($paymentRecord->matched_admission_number);
+
+
+        $unpaidFees = Fee::where('student_id', $student->student_id)
+            ->where('balance', '>', 0) 
+            ->orderBy('academic_year', 'asc') 
+            ->orderBy('term', 'asc') 
+            ->orderBy('due_date', 'asc') 
+            ->orderBy('created_at', 'asc') 
+            ->with(['rank'])
+            ->get();
+
+            $amountPaid = $paymentRecord->amount;
+
+            foreach($unpaidFees as $fee) {
+
+                $feeBalance = $fee->balance;
+
+                $amountToAllocate = $feeBalance;
+
+                if($amountPaid < $feeBalance) {
+
+                    $amountToAllocate = $amountPaid;
+                }
+
+
+                $fee->update([
+                    'balance'  => ($feeBalance - $amountToAllocate),
+                ]);
+
+                $fee->update();
+
+                $amountPaid = $amountPaid - $amountToAllocate;
+
+                if($amountPaid <= 0) {
+                    break;
+                }
+
+            }
+    }
+}

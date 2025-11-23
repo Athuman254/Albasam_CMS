@@ -2,6 +2,11 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Webhooks\MpesaAutoRecordController;
+
+
+Route::post('/webhook/mpesa-payment', [MpesaAutoRecordController::class, 'handlePayment']);
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();

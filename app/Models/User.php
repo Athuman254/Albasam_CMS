@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\HasHashid;
 use App\Traits\HashidRouting;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laratrust\Contracts\LaratrustUser;
@@ -74,9 +75,17 @@ class User extends Authenticatable implements LaratrustUser
         return $this->belongsTo(Branch::class);
     }
     
-    public function teacher(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function teacher(): HasOne
     {
         return $this->hasOne(Teacher::class);
+    }
+
+    /**
+     * Relationship with student
+     */
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class);
     }
 
     public function scopeActivated($query): void
@@ -97,5 +106,61 @@ class User extends Authenticatable implements LaratrustUser
     public function scopeParent($query): void
     {
         $query->where('is_parent', '=', true);
+    }
+
+    /**
+     * Scope for users who are students
+     */
+    public function scopeStudent($query): void
+    {
+        $query->whereHas('student');
+    }
+
+    /**
+     * Scope for users with student role
+     */
+    public function scopeHasStudent($query): void
+    {
+        $query->whereHas('student');
+    }
+
+    /**
+     * Check if user is a student
+     */
+    public function getIsStudentAttribute(): bool
+    {
+        return $this->student()->exists();
+    }
+
+    /**
+     * Get student data if user is a student
+     */
+    public function getStudentDataAttribute()
+    {
+        return $this->student;
+    }
+
+    /**
+     * Get the student's admission number (if user is a student)
+     */
+    public function getStudentAdmissionNumberAttribute(): ?string
+    {
+        return $this->student?->admission_number;
+    }
+
+    /**
+     * Get the student's full name (if user is a student)
+     */
+    public function getStudentFullNameAttribute(): ?string
+    {
+        return $this->student?->full_name;
+    }
+
+    /**
+     * Get the student's class/rank (if user is a student)
+     */
+    public function getStudentClassAttribute(): ?string
+    {
+        return $this->student?->rank?->name;
     }
 }

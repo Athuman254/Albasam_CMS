@@ -2,18 +2,19 @@
    <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
          <!-- Sidebar -->
-         <Sidebar/>
+         <Sidebar />
+         
          <!-- Page content -->
          <div class="layout-page">
-            <Navbar/>
+            <Navbar />
             <div class="content-wrapper">
                <div class="container-xxl flex-grow-1 container-p-y">
-                  <slot/>
+                  <slot />
                </div>
-               <Footer/>
+               <Footer />
             </div>
          </div>
-         <div class="layout-overlay layout-menu-toggle"></div>
+         <div class="layout-overlay layout-menu-toggle" @click="toggleSidebar"></div>
       </div>
    </div>
 </template>
@@ -26,8 +27,20 @@ import Footer from './shared/Footer.vue';
 
 export default {
    components: {
-      Sidebar, Navbar, Footer,
+      Sidebar,
+      Navbar, 
+      Footer,
    },
+   methods: {
+      toggleSidebar() {
+         if (window.Helpers && typeof window.Helpers.toggleCollapsed === 'function') {
+            window.Helpers.toggleCollapsed();
+         }
+      }
+   },
+   mounted() {
+      console.log('DefaultLayout component mounted with sidebar');
+   }
 };
 </script>
 

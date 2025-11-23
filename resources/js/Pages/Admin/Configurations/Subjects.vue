@@ -62,6 +62,12 @@
                Unknown
             </span>
          </template>
+
+         <template #skills_count="props">
+            <span class="badge bg-primary">
+               {{ props.rowData.skills_count || 0 }} Skills
+            </span>
+         </template>
          
          <template #actions="props">
             <div class="dropdown">
@@ -72,16 +78,19 @@
                   <a class="dropdown-item" href="#" @click="editSubject(props.rowData)">
                      <i class="icon-base bx bx-edit-alt me-2"></i>Edit
                   </a>
-                  <!--                                <a class="dropdown-item text-danger" href="#">-->
-                  <!--                                    <i class="icon-base bx bx-trash me-2"></i>Delete-->
-                  <!--                                </a>-->
+                  <a class="dropdown-item" href="#" @click="manageSkills(props.rowData)">
+                     <i class="icon-base bx bx-cog me-2"></i>Manage Skills
+                  </a>
+                  <!-- <a class="dropdown-item text-danger" href="#">
+                     <i class="icon-base bx bx-trash me-2"></i>Delete
+                  </a> -->
                </div>
             </div>
          </template>
       </VueTable>
    </div>
    
-   <!-- Create Modal -->
+   <!-- Create Subject Modal -->
    <div
       class="modal fade"
       id="create-subject-modal"
@@ -139,7 +148,6 @@
                                     <input v-model="form.activated" class="form-check-input" type="checkbox">
                                  </label>
                               </span>
-                        <!--                           <span class="form-check-description">When enabled, the subject will be used during students' admission process.</span>-->
                      </label>
                      <div v-if="form.errors.activated" class="text-danger">{{ form.errors.activated }}</div>
                   </div>
@@ -166,7 +174,7 @@
       </div>
    </div>
    
-   <!-- Edit Modal -->
+   <!-- Edit Subject Modal -->
    <div
       class="modal fade"
       id="edit-subject-modal"
@@ -224,7 +232,6 @@
                                     <input v-model="editForm.activated" class="form-check-input" type="checkbox">
                                  </label>
                               </span>
-                        <!--                           <span class="form-check-description">When enabled, the subject will be used during students' admission process.</span>-->
                      </label>
                      <div v-if="editForm.errors.activated" class="text-danger">{{ editForm.errors.activated }}</div>
                   </div>
@@ -245,6 +252,266 @@
                   @click.prevent="updateSubject"
                >
                   Submit
+               </button>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <!-- Manage Skills Modal -->
+   <div
+      class="modal fade"
+      id="manage-skills-modal"
+      data-bs-backdrop="static"
+      tabindex="-1"
+      aria-labelledby="manage-skills-modal-label"
+      aria-hidden="true"
+      ref="manageSkillsModal"
+   >
+      <div class="modal-dialog modal-lg">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="manage-skills-modal-label">
+                  Manage Skills - {{ currentSubject?.name }}
+               </h5>
+               <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                  @click="skillsFormCleanUp"
+               ></button>
+            </div>
+            <div class="modal-body">
+               <!-- Add New Skill Form -->
+               <div class="card mb-4">
+                  <div class="card-header">
+                     <h6 class="card-title mb-0">Add New Skill</h6>
+                  </div>
+                  <div class="card-body">
+                     <form @submit.prevent="createSkill">
+                        <div class="row">
+                           <div class="col-md-5">
+                              <div class="mb-3">
+                                 <label for="skillName" class="form-label">Skill Name *</label>
+                                 <input 
+                                    id="skillName" 
+                                    type="text" 
+                                    v-model="skillForm.name" 
+                                    class="form-control" 
+                                    placeholder="Enter skill name"
+                                 >
+                                 <div v-if="skillForm.errors.name" class="text-danger small">{{ skillForm.errors.name }}</div>
+                              </div>
+                           </div>
+                           <div class="col-md-5">
+                              <div class="mb-3">
+                                 <label for="skillDescription" class="form-label">Description</label>
+                                 <input 
+                                    id="skillDescription" 
+                                    type="text" 
+                                    v-model="skillForm.description" 
+                                    class="form-control" 
+                                    placeholder="Enter skill description"
+                                 >
+                                 <div v-if="skillForm.errors.description" class="text-danger small">{{ skillForm.errors.description }}</div>
+                              </div>
+                           </div>
+                           <div class="col-md-2">
+                              <div class="mb-3">
+                                 <label class="form-label">Active</label>
+                                 <div class="form-check form-switch mt-2">
+                                    <input 
+                                       v-model="skillForm.is_active" 
+                                       class="form-check-input" 
+                                       type="checkbox" 
+                                       checked
+                                    >
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="text-end">
+                           <button 
+                              type="submit" 
+                              class="btn btn-primary"
+                              :disabled="skillForm.processing"
+                           >
+                              <span v-if="skillForm.processing" class="spinner-border spinner-border-sm me-2"></span>
+                              Add Skill
+                           </button>
+                        </div>
+                     </form>
+                  </div>
+               </div>
+
+               <!-- Skills List -->
+               <div class="card">
+                  <div class="card-header">
+                     <h6 class="card-title mb-0">Subject Skills ({{ skills.length }})</h6>
+                  </div>
+                  <div class="card-body">
+                     <div v-if="loadingSkills" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                           <span class="visually-hidden">Loading...</span>
+                        </div>
+                     </div>
+                     
+                     <div v-else-if="skills.length === 0" class="text-center py-4">
+                        <i class="icon-base bx bx-brain fs-1 text-muted mb-3"></i>
+                        <p class="text-muted">No skills added yet. Add your first skill above.</p>
+                     </div>
+                     
+                     <div v-else class="table-responsive">
+                        <table class="table table-hover">
+                           <thead>
+                              <tr>
+                                 <th>Name</th>
+                                 <th>Description</th>
+                                 <th>Status</th>
+                                 <th>Used in Exams</th>
+                                 <th>Actions</th>
+                              </tr>
+                           </thead>
+                           <tbody>
+                              <tr v-for="skill in skills" :key="skill.id">
+                                 <td>
+                                    <div class="d-flex align-items-center">
+                                       <i class="icon-base bx bx-brain me-2 text-primary"></i>
+                                       <strong>{{ skill.name }}</strong>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <span class="text-muted">{{ skill.description || 'No description' }}</span>
+                                 </td>
+                                 <td>
+                                    <span 
+                                       :class="skill.is_active ? 'badge bg-success' : 'badge bg-danger'"
+                                    >
+                                       {{ skill.is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                 </td>
+                                 <td>
+                                    <span class="badge bg-info">
+                                       {{ skill.exams_count || 0 }} exams
+                                    </span>
+                                 </td>
+                                 <td>
+                                    <div class="btn-group btn-group-sm">
+                                       <button 
+                                          type="button" 
+                                          class="btn btn-outline-primary"
+                                          @click="editSkill(skill)"
+                                       >
+                                          <i class="icon-base bx bx-edit"></i>
+                                       </button>
+                                       <button 
+                                          type="button" 
+                                          class="btn btn-outline-danger"
+                                          @click="deleteSkill(skill)"
+                                          :disabled="skill.exams_count > 0"
+                                       >
+                                          <i class="icon-base bx bx-trash"></i>
+                                       </button>
+                                    </div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="modal-footer">
+               <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                  @click="skillsFormCleanUp"
+               >
+                  Close
+               </button>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <!-- Edit Skill Modal -->
+   <div
+      class="modal fade"
+      id="edit-skill-modal"
+      data-bs-backdrop="static"
+      tabindex="-1"
+      aria-labelledby="edit-skill-modal-label"
+      aria-hidden="true"
+      ref="editSkillModal"
+   >
+      <div class="modal-dialog">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="edit-skill-modal-label">Edit Skill</h5>
+               <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                  @click="editSkillFormCleanUp"
+               ></button>
+            </div>
+            <div class="modal-body">
+               <form @submit.prevent="updateSkill">
+                  <div class="mb-3">
+                     <label for="editSkillName" class="form-label">Skill Name *</label>
+                     <input 
+                        id="editSkillName" 
+                        type="text" 
+                        v-model="editSkillForm.name" 
+                        class="form-control"
+                     >
+                     <div v-if="editSkillForm.errors.name" class="text-danger small">{{ editSkillForm.errors.name }}</div>
+                  </div>
+                  
+                  <div class="mb-3">
+                     <label for="editSkillDescription" class="form-label">Description</label>
+                     <textarea 
+                        id="editSkillDescription" 
+                        v-model="editSkillForm.description" 
+                        class="form-control" 
+                        rows="3"
+                     ></textarea>
+                     <div v-if="editSkillForm.errors.description" class="text-danger small">{{ editSkillForm.errors.description }}</div>
+                  </div>
+                  
+                  <div class="mb-3">
+                     <label class="form-check form-switch">
+                        <input 
+                           v-model="editSkillForm.is_active" 
+                           class="form-check-input" 
+                           type="checkbox"
+                        >
+                        <span class="form-check-label fw-bold">Active</span>
+                     </label>
+                     <div v-if="editSkillForm.errors.is_active" class="text-danger small">{{ editSkillForm.errors.is_active }}</div>
+                  </div>
+               </form>
+            </div>
+            <div class="modal-footer">
+               <button
+                  type="button"
+                  class="btn btn-secondary me-2"
+                  data-bs-dismiss="modal"
+                  @click="editSkillFormCleanUp"
+               >
+                  Cancel
+               </button>
+               <button
+                  type="button"
+                  class="btn btn-primary"
+                  @click.prevent="updateSkill"
+                  :disabled="editSkillForm.processing"
+               >
+                  <span v-if="editSkillForm.processing" class="spinner-border spinner-border-sm me-2"></span>
+                  Update Skill
                </button>
             </div>
          </div>
@@ -276,6 +543,10 @@ export default {
                title: 'GROUP',
             },
             {
+               name: '__slot:skills_count',
+               title: 'SKILLS',
+            },
+            {
                name: '__slot:status',
                title: 'STATUS',
             },
@@ -304,7 +575,17 @@ export default {
             group: '',
             activated: '',
          }),
-         
+         skillForm: useForm({
+            name: '',
+            description: '',
+            is_active: true,
+         }),
+         editSkillForm: useForm({
+            id: '',
+            name: '',
+            description: '',
+            is_active: true,
+         }),
          learningAreas: [
             {id: 1, name: 'Languages'},
             {id: 2, name: 'Sciences'},
@@ -312,7 +593,10 @@ export default {
             {id: 4, name: 'Humanities'},
             {id: 5, name: 'Creative Arts'},
             {id: 6, name: 'Technical Subject'},
-         ]
+         ],
+         currentSubject: null,
+         skills: [],
+         loadingSkills: false,
       };
    },
    methods: {
@@ -364,6 +648,92 @@ export default {
             },
          })
       },
+      // Skills Management Methods
+      manageSkills(subject) {
+         this.currentSubject = subject;
+         this.loadSkills();
+         
+         const modalElement = this.$refs.manageSkillsModal;
+         const modalInstance = Modal.getOrCreateInstance(modalElement);
+         modalInstance.show();
+      },
+      async loadSkills() {
+         this.loadingSkills = true;
+         try {
+            const response = await axios.get(route('admin.subjects.skills', this.currentSubject.hashid));
+            this.skills = response.data;
+         } catch (error) {
+            this.$toast.error('Failed to load skills', 'Error');
+            console.error('Error loading skills:', error);
+         } finally {
+            this.loadingSkills = false;
+         }
+      },
+      createSkill() {
+         this.skillForm.post(route('admin.subjects.skills.store', this.currentSubject.hashid), {
+            onSuccess: () => {
+               this.skillForm.reset();
+               this.skillForm.clearErrors();
+               this.loadSkills();
+               this.$toast.success('Skill Created Successfully', 'Success');
+            },
+            onError: (errors) => {
+               this.$toast.error('Failed to create skill', 'Error');
+            },
+         });
+      },
+      editSkill(skill) {
+         this.editSkillForm.id = skill.hashid;
+         this.editSkillForm.name = skill.name;
+         this.editSkillForm.description = skill.description;
+         this.editSkillForm.is_active = skill.is_active;
+         
+         const modalElement = this.$refs.editSkillModal;
+         const modalInstance = Modal.getOrCreateInstance(modalElement);
+         modalInstance.show();
+      },
+      updateSkill() {
+         this.editSkillForm.patch(route('admin.subjects.skills.update', {
+            subject: this.currentSubject.hashid,
+            skill: this.editSkillForm.id
+         }), {
+            onSuccess: () => {
+               this.editSkillForm.reset();
+               this.editSkillForm.clearErrors();
+               this.loadSkills();
+               const modalElement = this.$refs.editSkillModal;
+               const modalInstance = Modal.getInstance(modalElement);
+               modalInstance.hide();
+               this.$toast.success('Skill Updated Successfully', 'Success');
+            },
+            onError: (errors) => {
+               this.$toast.error('Failed to update skill', 'Error');
+            },
+         });
+      },
+      async deleteSkill(skill) {
+         if (skill.exams_count > 0) {
+            this.$toast.error('Cannot delete skill. It is being used in exams.', 'Error');
+            return;
+         }
+         
+         if (!confirm('Are you sure you want to delete this skill?')) {
+            return;
+         }
+         
+         try {
+            await axios.delete(route('admin.subjects.skills.destroy', {
+               subject: this.currentSubject.hashid,
+               skill: skill.hashid
+            }));
+            
+            this.$toast.success('Skill Deleted Successfully', 'Success');
+            this.loadSkills();
+         } catch (error) {
+            this.$toast.error('Failed to delete skill', 'Error');
+            console.error('Error deleting skill:', error);
+         }
+      },
       applyFilter: _debounce(function () {
          this.$refs.subjectsTable.reloadTable();
       }, 800),
@@ -372,6 +742,15 @@ export default {
       },
       editFormCleanUp() {
          this.editForm.reset()
+      },
+      skillsFormCleanUp() {
+         this.skillForm.reset();
+         this.editSkillForm.reset();
+         this.currentSubject = null;
+         this.skills = [];
+      },
+      editSkillFormCleanUp() {
+         this.editSkillForm.reset();
       },
    },
 }

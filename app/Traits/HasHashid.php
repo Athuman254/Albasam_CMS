@@ -30,13 +30,16 @@ trait HasHashid
      */
     public function hashidToId($hashid)
     {
+        // If it's already a numeric ID, return it
+        if (is_numeric($hashid)) {
+            return (int) $hashid;
+        }
+
         $hashids = new Hashids('kwawasco_hash', 16);
+        $decoded = $hashids->decode($hashid);
+        
+        return !empty($decoded) ? $decoded[0] : null;
 
-        return $hashids->decode($hashid)[0];
-
-        //        return (new Hashids())->decode($hashid)[0];
-
-        //        return @Hashids::decode($hashid)[0];
     }
 
     /**

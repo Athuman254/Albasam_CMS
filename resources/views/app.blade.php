@@ -8,29 +8,23 @@
         <title inertia>{{ $institution->name ?? config('app.name', 'Shariff Nassir Girls Secondary School') }}</title>
 
         <!-- Favicon -->
-        <link rel="icon" href="{{ $favicon ?? '' }}" type="image/x-icon"/>
-        <link rel="shortcut icon" href="{{ $favicon ?? '' }}" type="image/x-icon"/>
+        @if(isset($favicon) && $favicon)
+            <link rel="icon" href="{{ $favicon }}" type="image/x-icon"/>
+            <link rel="shortcut icon" href="{{ $favicon }}" type="image/x-icon"/>
+        @endif
 
         <!-- CSRF Token -->
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <!-- Page CSS -->
-        <link type="text/css" href="{{ asset('/fonts/boxicons.scss') }}" />
-
-        <!-- Helpers -->
-        <script src="{{ asset('vendor/js/helpers.js') }}"></script>
+        <!-- Fonts -->
+        <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
 
         <!-- Scripts -->
         @routes
-        @vite(['resources/scss/app.scss', 'resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
+        @vite(['resources/scss/app.scss', 'resources/js/app.js'])
+        @inertiaHead
     </head>
-    <body>
+    <body class="layout-default">
         @inertia
-
-        <script async defer src="{{ asset('vendor/js/menu.js') }}"></script>
-        <script async defer src="{{ asset('assets/js/main.js') }}"></script>
-        <script async defer src="{{ asset('assets/js/perfect-scrollbar.js') }}"></script>
-        <script async defer src="{{ asset('assets/js/buttons.js') }}"></script>
-    </a>
     </body>
 </html>

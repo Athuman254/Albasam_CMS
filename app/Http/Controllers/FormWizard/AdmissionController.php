@@ -12,12 +12,12 @@ class AdmissionController extends Controller
     public function firstStep(Request $request, StudentAdmission $studentAdmission = null)
     {
         $errorMessages = [
-            'registration_details.date' => 'Please select the registration date.',
+            // REMOVED date validation message
             'registration_details.division_id' => 'Please select a division.',
         ];
         
         $request->validate([
-            'registration_details.date' => ['required', 'date', 'max:255'],
+            // REMOVED date validation
             'registration_details.division_id' => ['required', Rule::exists('divisions', 'id')],
         ], $errorMessages);
         

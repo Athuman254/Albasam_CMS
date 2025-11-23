@@ -17,6 +17,7 @@ use App\Models\Relationship;
 use App\Models\Religion;
 use App\Models\SalaryGrade;
 use App\Models\SalaryScale;
+use App\Models\Settings\AcademicYear;
 use App\Models\Specialization;
 use App\Models\Stream;
 use App\Models\JobTitle;
@@ -75,6 +76,8 @@ class DatabaseSeeder extends Seeder
         $this->salaryScales();
         
         $this->jobTitles();
+        
+        $this->academicYears();
         
         $this->institution();
         
@@ -322,6 +325,37 @@ class DatabaseSeeder extends Seeder
         }
     }
     
+    public function academicYears(): void
+{
+    AcademicYear::truncate();
+    
+    AcademicYear::insert([
+        [
+            'name' => '2024-2025', 
+            'start_date' => '2024-09-01', 
+            'end_date' => '2025-06-30',
+            'is_active' => false, 
+            'created_at' => now(), 
+            'updated_at' => now()
+        ],
+        [
+            'name' => '2025-2026', 
+            'start_date' => '2025-09-01', 
+            'end_date' => '2026-06-30',
+            'is_active' => true, 
+            'created_at' => now(), 
+            'updated_at' => now()
+        ],
+        [
+            'name' => '2026-2027', 
+            'start_date' => '2026-09-01', 
+            'end_date' => '2027-06-30',
+            'is_active' => false, 
+            'created_at' => now(), 
+            'updated_at' => now()
+        ],
+    ]);
+}
     public function jobTitles(): void
     {
         JobTitle::truncate();
@@ -342,17 +376,17 @@ class DatabaseSeeder extends Seeder
         Institution::truncate();
         
         Institution::create([
-            'name' => 'Shariff Nassir Girls Secondary School',
+            'name' => 'Albasam Comprehensive School',
             'email' => 'info@shariffnassirgirls.co.ke',
             'phone' => '+254 776 160 927',
             'country' => 'Kenya',
             'state' => 'Mombasa',
             'city' => 'Mombasa',
-            'physical_address' => 'Kisauni Rd, Off Sheikh Abdulla Rd, Mombasa',
+            'physical_address' => null,
             'postal_address' => '86716-80100',
             'tax_identification_pin' => '',
-            'mission' => 'To empower students to become productive members of the society by providing a conducive environment that will nurture them academically, socially and emotionally.',
-            'vision' => 'To be a leading school in the provision of quality and holistic education for self-actualization.',
+            'mission' => null,
+            'vision' => null,
             'motto' => null,
 //            'x_profile' => '',
 //            'fb_profile' => '',

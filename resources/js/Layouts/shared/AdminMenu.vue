@@ -41,12 +41,55 @@
          <div class="text-truncate">Employee Management</div>
       </a>
       <ul v-if="can('access-teacher-workspace')"  class="menu-sub">
-         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/employees/teachers') }">
-            <Link :href="route('admin.teachers.index')" class="menu-link">
-               <div class="text-truncate">Teachers</div>
+    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/employees/teachers') }">
+    <Link :href="route('admin.teachers.index')" class="menu-link">
+        <div class="text-truncate">Teachers</div>
+    </Link>
+</li>
+
+         
+         <!-- Assign Classes Link in Employee Management Submenu - ALWAYS SHOW -->
+         <li :class="{ 'menu-item': true, 'active': $page.url.includes('assign-classes') }">
+            <Link :href="route('admin.employees.index')" class="menu-link">
+               <div class="text-truncate">Assign Classes</div>
+            </Link>
+         </li>
+
+         <!-- Assign Subjects Link in Employee Management Submenu - ALWAYS SHOW -->
+         <li :class="{ 'menu-item': true, 'active': $page.url.includes('assign-subjects') }">
+            <Link :href="route('admin.employees.index')" class="menu-link">
+               <div class="text-truncate">Assign Subjects</div>
             </Link>
          </li>
       </ul>
+   </li>
+
+   <!-- Contextual Assign Classes Link (Visible when viewing any employee) -->
+   <li v-if="$page.props.employee && $page.props.employee.id && can('access-teacher-workspace')" 
+       :class="{ 'menu-item': true, 'active': $page.url.includes('assign-classes') }">
+      <Link :href="route('admin.employees.assign-classes', $page.props.employee.id)" class="menu-link">
+         <span>
+            <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+         </span>
+         Assign Classes
+         <span v-if="$page.props.employee.assigned_classes_count > 0" class="badge bg-primary ms-auto">
+            {{ $page.props.employee.assigned_classes_count }}
+         </span>
+      </Link>
+   </li>
+
+   <!-- Contextual Assign Subjects Link (Visible when viewing any employee) -->
+   <li v-if="$page.props.employee && $page.props.employee.id && can('access-teacher-workspace')" 
+       :class="{ 'menu-item': true, 'active': $page.url.includes('assign-subjects') }">
+      <Link :href="route('admin.employees.assign-subjects', $page.props.employee.id)" class="menu-link">
+         <span>
+            <i class="menu-icon tf-icons bx bx-book"></i>
+         </span>
+         Assign Subjects
+         <span v-if="$page.props.employee.assigned_subjects_count > 0" class="badge bg-info ms-auto">
+            {{ $page.props.employee.assigned_subjects_count }}
+         </span>
+      </Link>
    </li>
 
    <li v-if="can('access-calendar')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/calendar')}">
@@ -88,17 +131,13 @@
          </li>
       </ul>
    </li>
- <li v-if="canAny(['access-attendance-workspace', 'access-attendance-report'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
+
+   <li v-if="canAny(['access-attendance-workspace', 'access-attendance-report'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/reports/attendance') }">
       <a href="#" class="menu-link menu-toggle">
          <i class='bx bx-calendar-check menu-icon tf-icons'></i>
          <div class="text-truncate">Attendance</div>
       </a>
       <ul class="menu-sub">
-<!--         <li v-if="can('access-attendance-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/attendances') }">-->
-<!--            <Link :href="route('admin.attendances.index')" class="menu-link">-->
-<!--               <div class="text-truncate">Mark Attendance</div>-->
-<!--            </Link>-->
-<!--         </li>-->
          <li v-if="can('access-attendance-report')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
             <Link :href="route('admin.reports.attendance')" class="menu-link">
                <div class="text-truncate">Attendance Report</div>
@@ -107,10 +146,9 @@
       </ul>
    </li>
 
-
-    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/exams')  }">
+   <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/exams')  }">
       <a href="#" class="menu-link menu-toggle">
-         <i class='bx  bx-wallet menu-icon tf-icons'></i>
+         <i class='bx bx-wallet menu-icon tf-icons'></i>
          <div class="text-truncate">Exams</div>
       </a>
       <ul class="menu-sub">
@@ -119,34 +157,92 @@
                <div class="text-truncate">Manage Exam</div>
             </Link>
          </li>
-          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/exam-students') }">
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/exam-students') }">
             <Link :href="route('admin.exams.exam-students.index')" class="menu-link">
                <div class="text-truncate">Enroll students</div>
             </Link>
          </li>
-           <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/upload-results') }">
-            <Link :href="route('admin.exams.upload-results.index')" class="menu-link">
-               <div class="text-truncate">Upload Exam</div>
+         <!-- Changed from Upload Exam to Approval Queue -->
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/approval-queue') }">
+            <Link :href="route('admin.exams.approval-queue.index')" class="menu-link">
+               <div class="text-truncate">Approval Results</div>
             </Link>
          </li>
          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/results') }">
             <Link :href="route('admin.exams.results.index')" class="menu-link">
-               <div class="text-truncate">Exam Results</div>
+               <div class="text-truncate">Exam Reports</div>
             </Link>
          </li>
       </ul>
    </li>
+   
+  <!-- FEE MANAGEMENT - CORRECTED WITH ACTUAL ROUTE NAMES -->
+<li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/fees') || $page.url.startsWith('/admin/fee-structures') }">
+  <a href="javascript:void(0)" class="menu-link menu-toggle">
+    <i class='bx bx-credit-card menu-icon tf-icons'></i>
+    <div class="text-truncate">Fee Management</div>
+  </a>
+  
 
+  <ul class="menu-sub">
+    <!-- Main Fees Page -->
+    <li :class="{ 'menu-item': true, 'active': $page.url === '/admin/fees' }">
+      <Link :href="route('admin.fees.index')" class="menu-link">
+        <div class="text-truncate">Fee Statement</div>
+      </Link>
+    </li>
+    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/fees/reports/fee-report') }">
+      <Link :href="route('admin.fees.reports.fee-report')" class="menu-link">
+        <div class="text-truncate">Fee Reports</div>
+      </Link>
+    </li>
+    <!-- Fee Structures -->
+    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/fee-structures') }">
+      <Link :href="route('admin.fee-structures.index')" class="menu-link">
+        <div class="text-truncate">Fee Structures</div>
+      </Link>
+    </li>
+    
+    <!-- Payment Verification -->
+    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/fees/payments/verify') }">
+      <Link :href="route('admin.fees.payments.verify')" class="menu-link">
+        <div class="text-truncate">Verify Payment</div>
+      </Link>
+    </li>
+    
+    <!-- Payment History
+    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/fees/payments') && !$page.url.includes('/verify') }">
+      <Link :href="route('admin.fees.payments.index')" class="menu-link">
+        <div class="text-truncate">Payment History</div>
+      </Link>
+    </li>
+     -->
+    <!-- Transfer Funds -->
+    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/fees/transfers') }">
+      <Link :href="route('admin.fees.transfers.create')" class="menu-link">
+        <div class="text-truncate">Transfer Funds</div>
+      </Link>
+    </li>
+    
+    <!-- Transfer History
+    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/fees/transfers') && $page.url.endsWith('/transfers') }">
+      <Link :href="route('admin.fees.transfers.index')" class="menu-link">
+        <div class="text-truncate">Transfer History</div>
+      </Link>
+    </li> -->
+    
+    <!-- Reports
+    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/fees/reports') }">
+      <Link :href="route('admin.fees.reports.overview')" class="menu-link">
+        <div class="text-truncate">Reports & Analysis</div>
+      </Link>
+    </li> -->
+  </ul>
+</li>
 
-   <li v-if="canAny(['access-institution-workspace', 'access-users-workspace', 'access-roles-workspace', 'access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"
-       class="menu-header small text-uppercase">
-      <span class="menu-header-text">Human Resource</span>
-   </li>
-
-
-    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/payroll/run') }">
+   <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/payroll/run') }">
       <a href="#" class="menu-link menu-toggle">
-         <i class='bx  bx-wallet menu-icon tf-icons'></i>
+         <i class='bx bx-wallet menu-icon tf-icons'></i>
          <div class="text-truncate">Payroll</div>
       </a>
       <ul class="menu-sub">
@@ -160,16 +256,13 @@
                <div class="text-truncate">Run</div>
             </Link>
          </li>
-          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/payroll/run') }">
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/payroll/run') }">
             <Link :href="route('admin.payroll.index')" class="menu-link">
                <div class="text-truncate">payrolls</div>
             </Link>
          </li>
-
       </ul>
    </li>
-
-
 
    <li v-if="canAny(['access-institution-workspace', 'access-users-workspace', 'access-roles-workspace', 'access-divisions-workspace', 'access-streams-workspace', 'access-subjects-workspace'])"
        class="menu-header small text-uppercase">
@@ -212,9 +305,6 @@
          System Settings
       </Link>
    </li>
-
-
-
 
    <li v-if="canAny(['access-pages-workspace'])"
        class="menu-header small text-uppercase">

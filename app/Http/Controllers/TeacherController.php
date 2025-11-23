@@ -37,23 +37,52 @@ class TeacherController extends Controller
 
     public function index(): \Inertia\Response
     {
-        return Inertia::render('Admin/Employees/Teachers/Index', []);
+        \Log::info('🎯 TEACHER CONTROLLER INDEX METHOD CALLED');
+        \Log::info('📁 Component path: Admin/Employees/Teachers/Index');
+        \Log::info('🌐 URL: ' . request()->fullUrl());
+        \Log::info('👤 User: ' . (auth()->user() ? auth()->user()->email : 'Not authenticated'));
+        \Log::info('🔍 IP: ' . request()->ip());
+        \Log::info('🕒 Time: ' . now());
+        
+        // Test if we can reach this point
+        try {
+            \Log::info('🔄 Attempting Inertia render...');
+            $response = Inertia::render('Admin/Employees/Teachers/Index', []);
+            \Log::info('✅ INERTIA RENDER SUCCESS - Teacher index page should load');
+            return $response;
+        } catch (\Exception $e) {
+            \Log::error('❌ INERTIA RENDER FAILED: ' . $e->getMessage());
+            \Log::error('📝 Stack trace: ' . $e->getTraceAsString());
+            throw $e;
+        }
     }
 
     public function create(): \Inertia\Response
     {
-        return Inertia::render('Admin/Employees/Teachers/Create');
+        \Log::info('🎯 TEACHER CONTROLLER CREATE METHOD CALLED');
+        \Log::info('📁 Component path: Admin/Employees/Teachers/Create');
+        
+        try {
+            $response = Inertia::render('Admin/Employees/Teachers/Create');
+            \Log::info('✅ INERTIA RENDER SUCCESS - Teacher create page should load');
+            return $response;
+        } catch (\Exception $e) {
+            \Log::error('❌ INERTIA RENDER FAILED: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function store(TeacherRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $validatedData = $request->validated();
+        \Log::info('🎯 TEACHER CONTROLLER STORE METHOD CALLED');
+        \Log::info('📝 Storing new teacher data');
 
-//        dd($validatedData);
+        $validatedData = $request->validated();
 
         DB::beginTransaction();
 
         try {
+            \Log::info('🔄 Creating employee record...');
             $employee = Employee::create([
                 'first_name' => $validatedData['personal_details']['first_name'],
                 'middle_name' => $validatedData['personal_details']['middle_name'],
@@ -70,14 +99,16 @@ class TeacherController extends Controller
                 'postal_address' => $validatedData['personal_details']['postal_address'],
                 'identification_number' => $validatedData['personal_details']['identification_number'],
                 'tax_identification_pin' => $validatedData['personal_details']['tax_identification_pin'],
-//                'staff_number' => $validatedData['employee_details']['staff_number'],
                 'staff_number' => Employee::generateStaffNumber(),
                 'date_of_hire' => $validatedData['employee_details']['date_of_hire'],
                 'employment_status_id' => $validatedData['employee_details']['employment_status_id'],
                 'employment_type_id' => $validatedData['employee_details']['employment_type_id'],
             ]);
 
-            Teacher::create([
+            \Log::info('✅ Employee created with ID: ' . $employee->id);
+
+            \Log::info('🔄 Creating teacher record...');
+            $teacher = Teacher::create([
                 'employee_id' => $employee->id,
                 'first_name' => $validatedData['personal_details']['first_name'],
                 'middle_name' => $validatedData['personal_details']['middle_name'],
@@ -89,7 +120,10 @@ class TeacherController extends Controller
                 'years_of_experience' => $validatedData['other_details']['years_of_experience'],
             ]);
 
+            \Log::info('✅ Teacher created with ID: ' . $teacher->id);
+
             if (isset($validatedData['employee_details']['emergency_contacts']) && is_array($validatedData['employee_details']['emergency_contacts'])) {
+                \Log::info('🔄 Processing emergency contacts...');
                 $emergencyContacts = collect($validatedData['employee_details']['emergency_contacts'])
                     ->filter(function ($contact) {
                         return isset($contact['relationship_id'], $contact['name']);
@@ -106,10 +140,12 @@ class TeacherController extends Controller
 
                 if(!empty($emergencyContacts)) {
                     EmergencyContact::insert($emergencyContacts);
+                    \Log::info('✅ Emergency contacts created: ' . count($emergencyContacts));
                 }
             }
 
             if (isset($validatedData['other_details']['qualifications']) && is_array($validatedData['other_details']['qualifications'])) {
+                \Log::info('🔄 Processing qualifications...');
                 $teacherQualifications = collect($validatedData['other_details']['qualifications'])
                     ->filter(function ($qualification) {
                         return isset($qualification['institution_name']);
@@ -125,12 +161,13 @@ class TeacherController extends Controller
                     })->toArray();
 
                 if (!empty($teacherQualifications)) {
-
                     Qualification::insert($teacherQualifications);
+                    \Log::info('✅ Qualifications created: ' . count($teacherQualifications));
                 }
             }
 
-            if (isset($validatedData['other_details']['work_histories']) && !empty($validated['other_details']['work_histories']) && is_array($validatedData['other_details']['work_histories'])) {
+            if (isset($validatedData['other_details']['work_histories']) && !empty($validatedData['other_details']['work_histories']) && is_array($validatedData['other_details']['work_histories'])) {
+                \Log::info('🔄 Processing work histories...');
                 $workHistories = collect($validatedData['other_details']['work_histories'])
                     ->filter(function ($history) {
                         return isset($history['institution_name']);
@@ -146,16 +183,19 @@ class TeacherController extends Controller
 
                 if(!empty($workHistories)) {
                     WorkHistory::insert($workHistories);
+                    \Log::info('✅ Work histories created: ' . count($workHistories));
                 }
             }
 
             DB::commit();
+            \Log::info('🎉 TEACHER CREATION SUCCESSFUL - Redirecting to index');
+            
             return to_route('admin.teachers.index');
 
         } catch (\Throwable $exception) {
             DB::rollBack();
-            dd($exception);
-            Log::error('Error: ' . $exception->getMessage());
+            \Log::error('❌ TEACHER CREATION FAILED: ' . $exception->getMessage());
+            \Log::error('📝 Stack trace: ' . $exception->getTraceAsString());
             report($exception);
             return redirect()->back()->withInput()->withErrors(['message' => 'Failed to save teacher details. Please try again.']);
         }
@@ -163,9 +203,14 @@ class TeacherController extends Controller
 
     public function show(Teacher $teacher): \Inertia\Response
     {
+        \Log::info('🎯 TEACHER CONTROLLER SHOW METHOD CALLED');
+        \Log::info('📁 Teacher ID: ' . $teacher->id);
+        
         $teacher->load('specialization', 'job', 'user');
         $employee = Employee::findOrFail($teacher->employee_id);
         $employee->load('employment_type', 'employment_status', 'honorific', 'marital_status', 'gender', 'religion', 'teacher', 'user');
+
+        \Log::info('🔄 Rendering teacher show page...');
 
         return Inertia::render('Admin/Employees/Teachers/Show', [
             'teacher' => $teacher,
@@ -175,7 +220,12 @@ class TeacherController extends Controller
 
     public function edit(Teacher $teacher): \Inertia\Response
     {
+        \Log::info('🎯 TEACHER CONTROLLER EDIT METHOD CALLED');
+        \Log::info('📁 Teacher ID: ' . $teacher->id);
+        
         $employee = Employee::findOrFail($teacher->employee_id);
+
+        \Log::info('🔄 Rendering teacher edit page...');
 
         return Inertia::render('Admin/Employees/Teachers/Edit', [
             'teacher' => $teacher,
@@ -185,10 +235,15 @@ class TeacherController extends Controller
 
     public function update(Teacher $teacher, TeacherRequest $request): \Illuminate\Http\RedirectResponse
     {
-       $validated = $request->validated();
+        \Log::info('🎯 TEACHER CONTROLLER UPDATE METHOD CALLED');
+        \Log::info('📁 Teacher ID: ' . $teacher->id);
+
+        $validated = $request->validated();
         DB::beginTransaction();
         try {
             $employee = Employee::findOrFail($teacher->employee_id);
+            \Log::info('🔄 Updating employee record...');
+            
             $employee->update([
                 'first_name' => $validated['personal_details']['first_name'],
                 'middle_name' => $validated['personal_details']['middle_name'],
@@ -205,7 +260,6 @@ class TeacherController extends Controller
                 'postal_address' => $validated['personal_details']['postal_address'],
                 'identification_number' => $validated['personal_details']['identification_number'],
                 'tax_identification_pin' => $validated['personal_details']['tax_identification_pin'],
-//                'staff_number' => $validated['employee_details']['staff_number'],
                 'date_of_hire' => $validated['employee_details']['date_of_hire'],
                 'employment_status_id' => $validated['employee_details']['employment_status_id'],
                 'employment_type_id' => $validated['employee_details']['employment_type_id'],
@@ -218,6 +272,7 @@ class TeacherController extends Controller
                 'pays_housing_levy' => $validated['other_details']['pays_housing_levy']
             ]);
 
+            \Log::info('🔄 Updating teacher record...');
             $teacher->update([
                 'first_name' => $validated['personal_details']['first_name'],
                 'middle_name' => $validated['personal_details']['middle_name'],
@@ -230,6 +285,7 @@ class TeacherController extends Controller
             ]);
 
             if (isset($request->employee_details['emergency_contacts']) && is_array($request->employee_details['emergency_contacts'])) {
+                \Log::info('🔄 Updating emergency contacts...');
                 $employee->contacts()->delete();
 
                 $emergencyContacts = collect($request->employee_details['emergency_contacts'])
@@ -248,10 +304,12 @@ class TeacherController extends Controller
 
                 if ($emergencyContacts) {
                     EmergencyContact::insert($emergencyContacts);
+                    \Log::info('✅ Emergency contacts updated: ' . count($emergencyContacts));
                 }
             }
 
             if (isset($validated['other_details']['qualifications']) && is_array($validated['other_details']['qualifications'])) {
+                \Log::info('🔄 Updating qualifications...');
                 $employee->qualifications()->delete();
 
                 $qualifications = collect($validated['other_details']['qualifications'])
@@ -269,13 +327,13 @@ class TeacherController extends Controller
                     })->toArray();
 
                 if (!empty($qualifications)) {
-
                     Qualification::insert($qualifications);
+                    \Log::info('✅ Qualifications updated: ' . count($qualifications));
                 }
             }
 
             if (!empty($validated['other_details']['work_histories']) && is_array($validated['other_details']['work_histories'])) {
-
+                \Log::info('🔄 Updating work histories...');
                 $employee->histories()->delete();
 
                 $workHistories = collect($validated['other_details']['work_histories'])
@@ -293,44 +351,21 @@ class TeacherController extends Controller
 
                 if(!empty($workHistories)) {
                     WorkHistory::insert($workHistories);
+                    \Log::info('✅ Work histories updated: ' . count($workHistories));
                 }
             }
 
             DB::commit();
+            \Log::info('🎉 TEACHER UPDATE SUCCESSFUL - Redirecting to index');
+            
             return to_route('admin.teachers.index');
 
         } catch (\Throwable $exception) {
             DB::rollBack();
-            Log::error('Error: ' . $exception->getMessage());
+            \Log::error('❌ TEACHER UPDATE FAILED: ' . $exception->getMessage());
+            \Log::error('📝 Stack trace: ' . $exception->getTraceAsString());
             report($exception);
             return redirect()->back()->withInput()->withErrors(['message' => 'Failed to update teacher details. Please try again.']);
         }
     }
-
-//    /**
-//     * @param $qualifications
-//     * @param Employee $employee
-//     * @return void
-//     */
-//    public function insertQualifications($qualifications, Employee $employee): void
-//    {
-//        $qualifications = collect($qualifications['other_details']['qualifications'])
-//            ->filter(function ($qualification) {
-//                return isset($qualification['institution_name']);
-//            })
-//            ->map(function ($qualification) use ($employee) {
-//                return [
-//                    'employee_id' => $employee->id,
-//                    'institution_name' => $qualification['institution_name'],
-//                    'course_name' => $qualification['course_name'],
-//                    'year_of_completion' => $qualification['year_of_completion'],
-//                    'qualification_type_id' => $qualification['qualification_type_id'],
-//                ];
-//            })->toArray();
-//
-//        if (!empty($qualifications)) {
-//
-//            Qualification::insert($qualifications);
-//        }
-//    }
 }

@@ -47,26 +47,26 @@
                   :append-params="appendParams"
                >
                   <template v-slot:date="props">
-                     {{ $filters.date_DAY_MONTH_YEAR(props.rowData.date) }}
+                     {{ props.rowData.formatted_date || 'N/A' }}
                   </template>
                   <template v-slot:student="props">
-                     {{ props.rowData.student.first_name }} {{ props.rowData.student.last_name }}
+                     {{ props.rowData.student_name || 'No Student' }}
                   </template>
                   <template v-slot:actions="props">
-                     <div class="dropdown">
-                        <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
-                           <i class="icon-base bx bx-dots-vertical"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end">
-                           <Link class="dropdown-item" :href="route('admin.admissions.show', props.rowData.hashid)">
-                              <i class="icon-base bx bx-detail me-1"></i> Details
-                           </Link>
-                           <Link :href="route('admin.admissions.edit', props.rowData.hashid)" class="dropdown-item">
-                              <i class="icon-base bx bx-edit-alt me-1"></i> Edit
-                           </Link>
-                        </div>
-                     </div>
-                  </template>
+   <div class="dropdown">
+      <button class="btn align-text-top py-1" data-bs-toggle="dropdown">
+         <i class="icon-base bx bx-dots-vertical"></i>
+      </button>
+      <div class="dropdown-menu dropdown-menu-end">
+         <Link class="dropdown-item" :href="route('admin.admissions.show', props.rowData.id)">
+            <i class="icon-base bx bx-detail me-1"></i> Details
+         </Link>
+         <Link :href="route('admin.admissions.edit', props.rowData.id)" class="dropdown-item">
+            <i class="icon-base bx bx-edit-alt me-1"></i> Edit
+         </Link>
+      </div>
+   </div>
+</template>
                </VueTable>
             </div>
          </div>
@@ -91,7 +91,7 @@ export default {
                width: '20%',
             },
             {
-               name: 'student.admission_number',
+               name: 'admission_number',
                title: 'ADMISSION NUMBER',
                width: '20%',
             },

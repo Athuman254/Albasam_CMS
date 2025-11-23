@@ -59,11 +59,14 @@
 </template>
 
 <script>
-import DefaultLayout from '@layouts/DefaultLayout.vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue'; 
 import { Head, Link } from "@inertiajs/vue3";
 
 export default {
    components: {DefaultLayout, Head, Link},
-   props: ['studentsCount', 'teachersCount', 'classesCount']
+   props: ['studentsCount', 'teachersCount', 'classesCount'],
+   mounted() {
+      console.log('Dashboard component mounted');
+   }
 };
 </script>

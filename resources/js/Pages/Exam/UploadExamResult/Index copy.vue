@@ -165,7 +165,6 @@ const submitMarks = () => {
     marks: marks.value
   })
     .then(() => {
-      window.$toast.success("Marks saved successfully!");
       clearMarks();
       Modal.getInstance(marksModal.value).hide();
     })

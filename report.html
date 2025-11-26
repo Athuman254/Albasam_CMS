@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            font-size: 14px;
+        }
+        .container {
+            border: 1px solid #000;
+            padding: 20px;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        .header-table td {
+            vertical-align: middle;
+        }
+        .header-logo {
+            width: 80px;
+        }
+        .school-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .sub-title {
+            font-size: 15px;
+        }
+        .report-title {
+            font-weight: bold;
+            margin: 10px 0;
+            text-decoration: underline;
+        }
+        .info-table {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .info-table td {
+            padding: 4px 0;
+        }
+        .marks-table, .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .marks-table th, .marks-table td, .grades-table th, .grades-table td {
+            border: 1px solid #000;
+            padding: 6px;
+        }
+        .footer-table {
+            width: 100%;
+            margin-top: 25px;
+        }
+        .footer-table td {
+            padding: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <table class="header-table">
+        <tr>
+            <td><img src="logo.png" alt="School Logo" class="header-logo"></td>
+            <td>
+                <div class="school-name">مدرسة أبي بكر الصديق الإسلامية</div>
+                <div class="sub-title">لتحفيظ القرآن والتعليم</div>
+                <div>كشف الدرجات</div>
+                <div class="report-title">REPORT FORM</div>
+            </td>
+            <td><img src="logo.png" alt="School Logo" class="header-logo"></td>
+        </tr>
+    </table>
+
+    <table class="info-table">
+        <tr>
+            <td><strong>NAME:</strong> ____________________________</td>
+            <td><strong>CLASS:</strong> ______ rowda(dot)</td>
+        </tr>
+        <tr>
+            <td><strong>PERCENTAGE(%):</strong> ___________________</td>
+            <td><strong>GRADE:</strong> __________________________</td>
+        </tr>
+        <tr>
+            <td><strong>POSITION:</strong> ___________________</td>
+            <td><strong>OUT OF:</strong> ______________________</td>
+        </tr>
+    </table>
+
+    <table class="marks-table">
+        <tr>
+            <th>SUBJECT</th>
+            <th>MARKS</th>
+            <th>OUT OF</th>
+            <th>المواد الدراسية</th>
+        </tr>
+        <tr>
+            <td>QAIDA</td>
+            <td>100</td>
+            <td>100</td>
+            <td>قواعد القراءة والكتابة</td>
+        </tr>
+        <tr>
+            <th colspan="1">TOTAL</th>
+            <th>100</th>
+            <th></th>
+            <th>المجموع</th>
+        </tr>
+    </table>
+
+    <table class="grades-table">
+        <tr>
+            <th>GRADES</th>
+            <th>MARKS</th>
+            <th>التقديرات</th>
+        </tr>
+        <tr><td>Excellent</td><td>86–100</td><td>ممتاز</td></tr>
+        <tr><td>V. good</td><td>76–85</td><td>جيد جدا</td></tr>
+        <tr><td>Good</td><td>66–75</td><td>جيد</td></tr>
+        <tr><td>Pass</td><td>50–65</td><td>مقبول</td></tr>
+        <tr><td>Fail</td><td>00–49</td><td>راسب</td></tr>
+    </table>
+
+    <table class="footer-table">
+        <tr>
+            <td><strong>Class teacher:</strong> qadija</td>
+            <td><strong>Date:</strong> 10/7/2025</td>
+        </tr>
+        <tr>
+            <td><strong>Head teacher:</strong> Adan Mahamed</td>
+            <td><strong>Date:</strong> ________________</td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,253 @@
+@import 'bootstrap';
+@import 'bootstrap-extended';
+@import '_bootstrap-extended/modal';
+@import 'components';
+@import 'colors';
+@import 'demo';
+@import 'fonts/webfonts';
+
+.modal-content-simple .modal-content {
+  padding: 2.5rem;
+}
+.modal-body-simple .modal-body{
+  padding: 2rem;
+}
+.modal-body-simple .modal-header {
+  padding: 2rem 2rem 0 2rem;
+}
+.modal-simple .btn-close, .modal-content-simple .btn-close {
+  position: absolute;
+  inset-block-start: -1.5rem;
+  inset-inline-end: -1.5rem;
+}
+.modal-body-simple .btn-close {
+  position: absolute;
+  inset-block-start: -1rem;
+  inset-inline-end: -1rem;
+}
+.modal .btn-close {
+  padding: .563rem;
+  background-color: #fff;
+  box-shadow: 0 0.0625rem 0.3175rem 0 rgba(34, 48, 62, 0.06);
+  filter: none;
+  opacity: 1;
+  transform: translate(23px, -25px);
+  border-radius: .25rem;
+  transition: all .23s ease .1s;
+}
+.btn-close {
+  background-color: $card-bg;
+  border-radius: $border-radius-sm;
+  background-image: str-replace(str-replace($btn-close-bg, '#{$btn-close-color}', $text-muted), '#', '%23');
+  opacity: 1;
+  padding: 0.563rem;
+  --bs-btn-close-hover-opacity: 0.95;
+  --bs-btn-close-focus-shadow: none;
+  --bs-btn-close-focus-opacity: 0.95;
+  --bs-btn-close-disabled-opacity: 0.25;
+  --bs-btn-close-white-filter: invert(1) grayscale(100%) brightness(200%);
+  box-sizing:content-box;
+  background-size: 0.75rem 0.6875rem;
+  transition: all 0.23s ease 0.1s;
+  width:.8em;
+  height:.8em;
+  color:var(--bs-btn-close-color);
+  border:0;
+}
+.btn-close:hover {
+  color: var(--bs-btn-close-color);
+  text-decoration: none;
+  opacity: var(--bs-btn-close-hover-opacity);
+}
+.btn-close:focus {
+  outline:0;
+  box-shadow:var(--bs-btn-close-focus-shadow);
+  opacity:var(--bs-btn-close-focus-opacity)
+}
+.btn-close:disabled,
+.btn-close.disabled {
+  pointer-events:none;
+  user-select:none;
+  opacity:var(--bs-btn-close-disabled-opacity)
+}
+.btn-close-white {
+  filter:var(--bs-btn-close-white-filter)
+}
+@media (min-width 768px) {
+  .text-md-nowrap {
+    white-space: nowrap !important;
+  }
+}
+@media (max-width: 991.98px) {
+  .modal-content-simple .modal-content {
+    padding: 1rem;
+  }
+  .modal-body-simple .modal-body{
+    padding: .5rem;
+  }
+  .modal-body-simple .modal-header {
+    padding: 1rem 1rem 0 1rem;
+  }
+  .modal-simple .btn-close, .modal-content-simple .btn-close {
+    position: absolute;
+    inset-block-start: -.5rem;
+    inset-inline-end: -.5rem;
+  }
+  .modal-body-simple .btn-close {
+    position: absolute;
+    inset-block-start: -1rem;
+    inset-inline-end: -1rem;
+  }
+}
+
+.icon-base {
+  block-size:1.25rem;
+  font-size:1.25rem;
+  inline-size:1.25rem;
+  line-height:1;
+  vertical-align:middle
+}
+.icon-6px,
+.icon-6px::before {
+  block-size:6px !important;
+  font-size:6px !important;
+  inline-size:6px !important
+}
+.icon-8px,
+.icon-8px::before {
+  block-size:8px !important;
+  font-size:8px !important;
+  inline-size:8px !important
+}
+.icon-10px,
+.icon-10px::before {
+  block-size:10px !important;
+  font-size:10px !important;
+  inline-size:10px !important
+}
+.icon-12px,
+.icon-12px::before {
+  block-size:12px !important;
+  font-size:12px !important;
+  inline-size:12px !important
+}
+.icon-14px,
+.icon-14px::before {
+  block-size:14px !important;
+  font-size:14px !important;
+  inline-size:14px !important
+}
+.icon-16px,
+.icon-16px::before {
+  block-size:16px !important;
+  font-size:16px !important;
+  inline-size:16px !important
+}
+.icon-18px,
+.icon-18px::before {
+  block-size:18px !important;
+  font-size:18px !important;
+  inline-size:18px !important
+}
+.icon-20px,
+.icon-20px::before {
+  block-size:20px !important;
+  font-size:20px !important;
+  inline-size:20px !important
+}
+.icon-22px,
+.icon-22px::before {
+  block-size:22px !important;
+  font-size:22px !important;
+  inline-size:22px !important
+}
+.icon-24px,
+.icon-24px::before {
+  block-size:24px !important;
+  font-size:24px !important;
+  inline-size:24px !important
+}
+.icon-26px,
+.icon-26px::before {
+  block-size:26px !important;
+  font-size:26px !important;
+  inline-size:26px !important
+}
+.icon-28px,
+.icon-28px::before {
+  block-size:28px !important;
+  font-size:28px !important;
+  inline-size:28px !important
+}
+.icon-30px,
+.icon-30px::before {
+  block-size:30px !important;
+  font-size:30px !important;
+  inline-size:30px !important
+}
+.icon-32px,
+.icon-32px::before {
+  block-size:32px !important;
+  font-size:32px !important;
+  inline-size:32px !important
+}
+.icon-36px,
+.icon-36px::before {
+  block-size:36px !important;
+  font-size:36px !important;
+  inline-size:36px !important
+}
+.icon-40px,
+.icon-40px::before {
+  block-size:40px !important;
+  font-size:40px !important;
+  inline-size:40px !important
+}
+.icon-42px,
+.icon-42px::before {
+  block-size:42px !important;
+  font-size:42px !important;
+  inline-size:42px !important
+}
+.icon-46px,
+.icon-46px::before {
+  block-size:46px !important;
+  font-size:46px !important;
+  inline-size:46px !important
+}
+.icon-48px,
+.icon-48px::before {
+  block-size:48px !important;
+  font-size:48px !important;
+  inline-size:48px !important
+}
+.icon-xs,
+.icon-xs::before {
+  block-size:1rem !important;
+  font-size:1rem !important;
+  inline-size:1rem !important
+}
+.icon-sm,
+.icon-sm::before {
+  block-size:1.125rem !important;
+  font-size:1.125rem !important;
+  inline-size:1.125rem !important
+}
+.icon-md,
+.icon-md::before {
+  block-size:1.375rem !important;
+  font-size:1.375rem !important;
+  inline-size:1.375rem !important
+}
+.icon-lg,
+.icon-lg::before {
+  block-size:1.5rem !important;
+  font-size:1.5rem !important;
+  inline-size:1.5rem !important
+}
+.icon-xl,
+.icon-xl::before {
+  block-size:2rem !important;
+  font-size:2rem !important;
+  inline-size:2rem !important
+}

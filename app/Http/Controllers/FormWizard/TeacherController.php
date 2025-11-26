@@ -1,0 +1,157 @@
+<?php
+
+namespace App\Http\Controllers\FormWizard;
+
+use App\Http\Controllers\Controller;
+use App\Models\Employee;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+class TeacherController extends Controller
+{
+    public function firstStep(Request $request, Employee $employee = null): \Illuminate\Http\RedirectResponse
+    {
+        $errorMessages = [
+            'personal_details.first_name.required' => 'The first name is required.',
+            'personal_details.first_name.string' => 'The first name must be a valid string.',
+            'personal_details.first_name.max' => 'The first name must not exceed 255 characters.',
+            'personal_details.middle_name.string' => 'The middle name must be a valid string.',
+            'personal_details.middle_name.max' => 'The middle name must not exceed 255 characters.',
+            'personal_details.last_name.required' => 'The last name is required.',
+            'personal_details.last_name.string' => 'The last name must be a valid string.',
+            'personal_details.last_name.max' => 'The last name must not exceed 255 characters.',
+            'personal_details.honorific_id.exists' => 'The selected honorific is invalid.',
+            'personal_details.marital_status_id.required' => 'The marital status is required.',
+            'personal_details.marital_status_id.exists' => 'The selected marital status is invalid.',
+            'personal_details.gender_id.required' => 'The gender is required.',
+            'personal_details.gender_id.exists' => 'The selected gender is invalid.',
+            'personal_details.religion_id.required' => 'The religion is required.',
+            'personal_details.religion_id.exists' => 'The selected religion is invalid.',
+            'personal_details.email.email' => 'The email must be a valid email address.',
+            'personal_details.email.max' => 'The email must not exceed 255 characters.',
+            'personal_details.primary_phone.required' => 'The primary phone number is required.',
+            'personal_details.primary_phone.string' => 'The primary phone number must be a valid string.',
+            'personal_details.primary_phone.max' => 'The primary phone number must not exceed 255 characters.',
+            'personal_details.secondary_phone.string' => 'The secondary phone number must be a valid string.',
+            'personal_details.secondary_phone.max' => 'The secondary phone number must not exceed 255 characters.',
+            'personal_details.permanent_physical_address.required' => 'The permanent physical address is required.',
+            'personal_details.permanent_physical_address.string' => 'The permanent physical address must be a valid string.',
+            'personal_details.secondary_physical_address.string' => 'The secondary physical address must be a valid string.',
+            'personal_details.postal_address.string' => 'The postal address must be a valid string.',
+            'personal_details.identification_number.required' => 'The identification number is required.',
+            'personal_details.identification_number.string' => 'The identification number must be a valid string.',
+            'personal_details.identification_number.max' => 'The identification number must not exceed 255 characters.',
+            'personal_details.tax_identification_pin.required' => 'The tax identification PIN is required.',
+            'personal_details.tax_identification_pin.string' => 'The tax identification PIN must be a valid string.',
+            'personal_details.tax_identification_pin.max' => 'The tax identification PIN must not exceed 255 characters.',
+        ];
+
+        $request->validate([
+            'personal_details.first_name' => ['required', 'string', 'max:255'],
+            'personal_details.middle_name' => ['nullable', 'string', 'max:255'],
+            'personal_details.last_name' => ['required', 'string', 'max:255'],
+            'personal_details.honorific_id' => ['nullable', Rule::exists('honorifics', 'id')],
+            'personal_details.marital_status_id' => ['required', Rule::exists('marital_statuses', 'id')],
+            'personal_details.gender_id' => ['required', Rule::exists('genders', 'id')],
+            'personal_details.religion_id' => ['required', Rule::exists('religions', 'id')],
+            'personal_details.email' => ['nullable', 'email', 'max:255'],
+            'personal_details.primary_phone' => ['required', 'string', 'max:255'],
+            'personal_details.secondary_phone' => ['nullable', 'string', 'max:255'],
+            'personal_details.permanent_physical_address' => ['nullable', 'string'],
+            'personal_details.secondary_physical_address' => ['nullable', 'string'],
+            'personal_details.postal_address' => ['nullable', 'string'],
+            'personal_details.identification_number' => ['nullable', 'string', 'max:255'],
+            'personal_details.tax_identification_pin' => ['nullable', 'string', 'max:255'],
+        ], $errorMessages);
+
+        if($employee)
+        {
+            return to_route('admin.teachers.edit', $employee);
+        }
+
+        return to_route('admin.teachers.create');
+    }
+
+    public function secondStep(Request $request, Employee $employee = null): \Illuminate\Http\RedirectResponse
+    {
+        $errorMessages = [
+            'employee_details.staff_number.string' => 'The staff number must be a valid string.',
+            'employee_details.staff_number.max' => 'The staff number must not exceed 255 characters.',
+            'employee_details.date_of_hire.date' => 'The date of hire must be a valid date.',
+            'employee_details.employment_type_id.required' => 'The employment type is required.',
+            'employee_details.employment_type_id.exists' => 'The selected employment type is invalid.',
+            'employee_details.employment_status_id.required' => 'The employment status is required.',
+            'employee_details.employment_status_id.exists' => 'The selected employment status is invalid.',
+            'employee_details.emergency_contacts.array' => 'The emergency contacts must be an array.',
+            'employee_details.emergency_contacts.*.name.string' => 'Each emergency contact name must be a valid string.',
+            'employee_details.emergency_contacts.*.name.max' => 'Each emergency contact name must not exceed 255 characters.',
+            'employee_details.emergency_contacts.*.email.string' => 'Each emergency contact email must be a valid string.',
+            'employee_details.emergency_contacts.*.email.max' => 'Each emergency contact email must not exceed 255 characters.',
+            'employee_details.emergency_contacts.*.phone.string' => 'Each emergency contact phone must be a valid string.',
+            'employee_details.emergency_contacts.*.phone.max' => 'Each emergency contact phone must not exceed 255 characters.',
+            'employee_details.emergency_contacts.*.relationship_id.exists' => 'Each emergency contact relationship must be valid.',
+        ];
+
+        $request->validate([
+//            'employee_details.staff_number' => ['nullable', 'string', 'max:255'],
+            'employee_details.date_of_hire' => ['nullable', 'date'],
+            'employee_details.employment_type_id' => ['required', Rule::exists('employment_types', 'id')],
+            'employee_details.employment_status_id' => ['required', Rule::exists('employment_statuses', 'id')],
+            'employee_details.emergency_contacts' => ['nullable', 'array'],
+            'employee_details.emergency_contacts.*.name' => ['nullable', 'string', 'max:255'],
+            'employee_details.emergency_contacts.*.email' => ['nullable', 'string', 'max:255'],
+            'employee_details.emergency_contacts.*.phone' => ['nullable', 'string', 'max:255'],
+            'employee_details.emergency_contacts.*.relationship_id' => ['nullable', Rule::exists('relationships', 'id')],
+        ], $errorMessages);
+
+        if($employee)
+        {
+            return to_route('admin.teachers.edit', $employee);
+        }
+
+        return to_route('admin.teachers.create');
+    }
+
+    public function thirdStep(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $errorMessages =[];
+
+        $request->validate([
+            'other_details.specialization_area_id' => ['nullable', Rule::exists('specializations', 'id')],
+            'other_details.job_title_id' => ['nullable', Rule::exists('job_titles', 'id')],
+            'other_details.tsc_number' => ['required', 'string', 'max:255'],
+            'other_details.years_of_experience' => ['nullable', 'integer', 'min:0'],
+            'other_details.qualifications' => ['nullable', 'array'],
+            'other_details.qualifications.*.institution_name' => ['nullable', 'string', 'max:255'],
+            'other_details.qualifications.*.course_name' => ['nullable', 'string', 'max:255'],
+            'other_details.qualifications.*.year_of_completion' => ['nullable', 'string', 'max:255'],
+            'other_details.qualifications.*.qualification_type_id' => ['nullable', Rule::exists('qualification_types', 'id')],
+            'other_details.work_histories' => ['nullable', 'array'],
+            'other_details.work_histories.*.institution_name' => ['nullable', 'string', 'max:255'],
+            'other_details.work_histories.*.start_date' => ['nullable', 'date'],
+            'other_details.work_histories.*.end_date' => ['nullable', 'date'],
+//            'other_details.work_histories.*.year_of_completion' => ['nullable', 'string', 'max:255'],
+        ], $errorMessages);
+
+        return to_route('admin.teachers.create');
+    }
+
+    public function otherDetailsValidation(Request $request): array
+    {
+        return $request->validate([
+            'other_details.specialization_area_id' => ['required', Rule::exists('specialization_areas', 'id')],
+            'other_details.job_title_id' => ['nullable', Rule::exists('job_titles', 'id')],
+            'other_details.tsc_number' => ['required', 'string', 'max:255'],
+            'other_details.years_of_experience' => ['nullable', 'integer', 'min:0'],
+            'other_details.qualifications' => ['nullable', 'array'],
+            'other_details.qualifications.*.institution_name' => ['nullable', 'string', 'max:255'],
+            'other_details.qualifications.*.course_name' => ['nullable', 'string', 'max:255'],
+            'other_details.qualifications.*.year_of_completion' => ['nullable', 'string', 'max:255'],
+            'other_details.qualifications.*.qualification_type_id' => ['nullable', Rule::exists('qualification_types', 'id')],
+            'other_details.work_histories' => ['nullable', 'array'],
+            'other_details.work_histories.*.institution_name' => ['nullable', 'string', 'max:255'],
+            'other_details.work_histories.*.start_date' => ['nullable', 'date'],
+            'other_details.work_histories.*.end_date' => ['nullable', 'date'],
+        ]);
+    }
+}

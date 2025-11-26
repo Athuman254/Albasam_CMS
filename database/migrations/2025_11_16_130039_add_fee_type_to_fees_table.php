@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('fee_structures', function (Blueprint $table) {
-            // Change the column type from decimal to json
-            $table->json('additional_fees')->nullable()->change();
+        Schema::table('fees', function (Blueprint $table) {
+            $table->string('fee_type')->default('tuition')->after('original_fee_structure_id');
         });
     }
 
@@ -22,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('fee_structures', function (Blueprint $table) {
-            $table->decimal('additional_fees', 10, 0)->nullable()->change();
+        Schema::table('fees', function (Blueprint $table) {
+            $table->dropColumn('fee_type');
         });
     }
 };

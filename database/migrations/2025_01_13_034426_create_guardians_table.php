@@ -29,20 +29,6 @@ return new class extends Migration
             $table->foreign('student_id')->references('id')->on('students')->cascadeOnDelete();
             $table->foreign('relationship_id')->references('id')->on('relationships');
         });
-
-        Schema::create('siblings', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('student_id');
-            $table->string('name');
-            $table->tinyInteger('age')->nullable();
-            $table->unsignedBigInteger('gender_id')->nullable();
-            $table->string('current_school')->nullable();
-            $table->string('current_class')->nullable();
-            $table->timestamps();
-
-            $table->foreign('student_id')->references('id')->on('students');
-            $table->foreign('gender_id')->references('id')->on('genders');
-        });
     }
 
     /**
@@ -50,7 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('siblings');
         Schema::dropIfExists('guardians');
     }
 };

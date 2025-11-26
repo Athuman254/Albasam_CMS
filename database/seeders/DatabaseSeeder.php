@@ -40,90 +40,94 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         Model::unguard();
-//        $this->call(AttendanceSeeder::class);
-//        $this->call(ServiceSeeder::class);
-        
+        //        $this->call(AttendanceSeeder::class);
+        //        $this->call(ServiceSeeder::class);
+
         Schema::disableForeignKeyConstraints();
-        
+
         $this->departments();
-        
+
         $this->genders();
-        
+
         $this->religions();
-        
+
         $this->relationships();
-        
+
         $this->divisions();
-        
+
         $this->streams();
-        
+
         $this->ranks();
-        
+
         $this->maritalStatuses();
-        
+
         $this->honorifics();
-        
+
         $this->employmentStatuses();
-        
+
         $this->employmentTypes();
-        
+
         $this->specialisations();
-        
+
         $this->qualificationTypes();
-        
+
         $this->salaryGrades();
-        
+
         $this->salaryScales();
-        
+
         $this->jobTitles();
-        
+
         $this->academicYears();
-        
+
         $this->institution();
-        
+
         $this->customisations();
-        
+
         $this->pages();
-        
+
         $this->menus();
-        
+
         User::create([
             'name'      => 'John Doe',
             'username'  => 'admin',
             'email'     => 'admin@app.com',
             'password'  => Hash::make('admin@!2025'),
         ]);
-        
+
         $this->call(LaratrustSeeder::class);
-        
+
+        // Seed primary school classes and students
+        $this->call(PrimarySchoolClassesSeeder::class);
+        $this->call(PrimarySchoolStudentsSeeder::class);
+
         Schema::enableForeignKeyConstraints();
     }
-    
+
     public function departments(): void
     {
         Department::truncate();
-        
+
         Department::insert([
             ['name' => 'Science', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Languages', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Library', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function genders(): void
     {
         Gender::truncate();
-        
+
         Gender::insert([
             ['name' => 'Male', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Female', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function religions(): void
     {
         Religion::truncate();
-        
+
         Religion::insert([
             ['name' => 'Christian', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Islam', 'created_at' => now(), 'updated_at' => now()],
@@ -131,11 +135,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Other', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function relationships(): void
     {
         Relationship::truncate();
-        
+
         Relationship::insert([
             ['name' => 'Father', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Mother', 'created_at' => now(), 'updated_at' => now()],
@@ -149,33 +153,33 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Other', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function divisions(): void
     {
         Division::truncate();
-        
+
         Division::insert([
             ['name' => 'High School', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function streams(): void
     {
         Stream::truncate();
-        
+
         Stream::insert([
             ['name' => 'Aberdare', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Satima', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Kinangop', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function ranks(): void
     {
         Rank::truncate();
         $divisionId = Division::first()->id;
         $streams = Stream::all();
-        
+
         Rank::insert([
             [
                 'name' => 'Form 1',
@@ -200,11 +204,11 @@ class DatabaseSeeder extends Seeder
             ],
         ]);
     }
-    
+
     public function maritalStatuses(): void
     {
         MaritalStatus::truncate();
-        
+
         MaritalStatus::insert([
             ['name' => 'Married', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Single', 'created_at' => now(), 'updated_at' => now()],
@@ -213,11 +217,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Other', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function honorifics(): void
     {
         Honorific::truncate();
-        
+
         Honorific::insert([
             ['name' => 'Mr.', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Mrs.', 'created_at' => now(), 'updated_at' => now()],
@@ -226,11 +230,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Lec.', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function employmentTypes(): void
     {
         EmploymentType::truncate();
-        
+
         EmploymentType::insert([
             ['name' => 'Pensionable', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Full-Time', 'created_at' => now(), 'updated_at' => now()],
@@ -240,11 +244,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Other', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function employmentStatuses(): void
     {
         EmploymentStatus::truncate();
-        
+
         EmploymentStatus::insert([
             ['name' => 'Active', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'On Leave', 'created_at' => now(), 'updated_at' => now()],
@@ -253,11 +257,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Suspended', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function specialisations(): void
     {
         Specialization::truncate();
-        
+
         Specialization::insert([
             ['name' => 'Sciences', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Languages', 'created_at' => now(), 'updated_at' => now()],
@@ -265,22 +269,22 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Religious Education', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function qualificationTypes(): void
     {
         QualificationType::truncate();
-        
+
         QualificationType::insert([
             ['name' => 'Degree', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Diploma', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Certificate', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function salaryGrades(): void
     {
         SalaryGrade::truncate();
-        
+
         SalaryGrade::insert([
             ['name' => 'D5', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'D4', 'created_at' => now(), 'updated_at' => now()],
@@ -295,13 +299,13 @@ class DatabaseSeeder extends Seeder
             ['name' => 'B5', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function salaryScales(): void
     {
         SalaryScale::truncate();
-        
+
         $grades = SalaryGrade::all();
-        
+
         $scales = [
             ['name' => 'T-Scale 15', 'salary_grade_id' => $grades->firstWhere('name', '=', 'D5')->id],
             ['name' => 'T-Scale 14', 'salary_grade_id' => $grades->firstWhere('name', '=', 'D4')->id],
@@ -315,53 +319,53 @@ class DatabaseSeeder extends Seeder
             ['name' => 'T-Scale 6', 'salary_grade_id' => $grades->firstWhere('name', '=', 'C1')->id],
             ['name' => 'T-Scale 5', 'salary_grade_id' => $grades->firstWhere('name', '=', 'B5')->id],
         ];
-        
-        foreach($scales as $index => $scale) {
-            
+
+        foreach ($scales as $index => $scale) {
+
             SalaryScale::create([
                 'name'  => $scale['name'],
                 'salary_grade_id' => $scale['salary_grade_id'],
             ]);
         }
     }
-    
+
     public function academicYears(): void
-{
-    AcademicYear::truncate();
-    
-    AcademicYear::insert([
-        [
-            'name' => '2024-2025', 
-            'start_date' => '2024-09-01', 
-            'end_date' => '2025-06-30',
-            'is_active' => false, 
-            'created_at' => now(), 
-            'updated_at' => now()
-        ],
-        [
-            'name' => '2025-2026', 
-            'start_date' => '2025-09-01', 
-            'end_date' => '2026-06-30',
-            'is_active' => true, 
-            'created_at' => now(), 
-            'updated_at' => now()
-        ],
-        [
-            'name' => '2026-2027', 
-            'start_date' => '2026-09-01', 
-            'end_date' => '2027-06-30',
-            'is_active' => false, 
-            'created_at' => now(), 
-            'updated_at' => now()
-        ],
-    ]);
-}
+    {
+        AcademicYear::truncate();
+
+        AcademicYear::insert([
+            [
+                'name' => '2024-2025',
+                'start_date' => '2024-09-01',
+                'end_date' => '2025-06-30',
+                'is_active' => false,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => '2025-2026',
+                'start_date' => '2025-09-01',
+                'end_date' => '2026-06-30',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => '2026-2027',
+                'start_date' => '2026-09-01',
+                'end_date' => '2027-06-30',
+                'is_active' => false,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+        ]);
+    }
     public function jobTitles(): void
     {
         JobTitle::truncate();
-        
+
         $inserts = $this->jobTitleInserts();
-        
+
         foreach ($inserts as $insert) {
             JobTitle::create([
                 'title' => $insert['title'],
@@ -370,11 +374,11 @@ class DatabaseSeeder extends Seeder
             ]);
         }
     }
-    
+
     public function institution(): void
     {
         Institution::truncate();
-        
+
         Institution::create([
             'name' => 'Albasam Comprehensive School',
             'email' => 'info@shariffnassirgirls.co.ke',
@@ -388,23 +392,23 @@ class DatabaseSeeder extends Seeder
             'mission' => null,
             'vision' => null,
             'motto' => null,
-//            'x_profile' => '',
-//            'fb_profile' => '',
-//            'ig_profile' => '',
-//            'tiktok_profile' => '',
-//            'youtube_profile' => '',
+            //            'x_profile' => '',
+            //            'fb_profile' => '',
+            //            'ig_profile' => '',
+            //            'tiktok_profile' => '',
+            //            'youtube_profile' => '',
         ]);
     }
-    
+
     public function customisations(): void
     {
         Customisation::truncate();
-        
+
         Customisation::create([
             'primary_color' => '#25615a',
         ]);
     }
-    
+
     public function pages(): void
     {
         Page::insert([
@@ -413,11 +417,11 @@ class DatabaseSeeder extends Seeder
             ['title' => 'Contact Us', 'slug' => 'contact-us', 'published' => true, 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
-    
+
     public function menus(): void
     {
         Menu::truncate();
-        
+
         $pages = Page::all();
         foreach ($pages as $page) {
             Menu::create([
@@ -428,12 +432,12 @@ class DatabaseSeeder extends Seeder
             ]);
         }
     }
-    
+
     public static function jobTitleInserts(): array
     {
         $scales = SalaryScale::all();
         $grades = SalaryGrade::all();
-        
+
         return [
             [
                 'title' => 'Chief Principal',

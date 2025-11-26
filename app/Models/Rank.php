@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Settings\AcademicYear;
 
 class Rank extends Model
 {
@@ -18,7 +19,7 @@ class Rank extends Model
     protected $table = 'ranks';
     protected $primaryKey = 'id';
     protected $appends = ['hashid', 'full_name', 'display_name', 'capacity_percentage', 'is_full', 'available_seats', 'class_teacher_name'];
-    
+
     protected $casts = [
         'activated' => 'bool',
         'is_active' => 'bool',
@@ -27,12 +28,12 @@ class Rank extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-    
+
     protected $fillable = [
-        'name', 
-        'division_id', 
-        'stream_id', 
-        'teacher_id', 
+        'name',
+        'division_id',
+        'stream_id',
+        'teacher_id',
         'activated',
         'capacity',
         'description',
@@ -74,7 +75,7 @@ class Rank extends Model
     {
         return $this->belongsTo(AcademicYear::class, 'academic_year_id', 'id');
     }
-    
+
     /**
      * Get the subjects for the rank.
      */
@@ -136,15 +137,15 @@ class Rank extends Model
     public function getFullNameAttribute(): string
     {
         $name = $this->name;
-        
+
         if ($this->stream) {
             $name .= ' - ' . $this->stream->name;
         }
-        
+
         if ($this->section) {
             $name .= ' (' . $this->section . ')';
         }
-        
+
         return $name;
     }
 
@@ -154,15 +155,15 @@ class Rank extends Model
     public function getDisplayNameAttribute(): string
     {
         $name = $this->name;
-        
+
         if ($this->stream) {
             $name .= ' - ' . $this->stream->name;
         }
-        
+
         if ($this->section) {
             $name .= ' (' . $this->section . ')';
         }
-        
+
         return $name;
     }
 
@@ -174,7 +175,7 @@ class Rank extends Model
         if (!$this->capacity || $this->capacity == 0) {
             return 0;
         }
-        
+
         $studentCount = $this->students()->count();
         return round(($studentCount / $this->capacity) * 100, 2);
     }
@@ -187,7 +188,7 @@ class Rank extends Model
         if (!$this->capacity) {
             return false;
         }
-        
+
         return $this->students()->count() >= $this->capacity;
     }
 
@@ -199,7 +200,7 @@ class Rank extends Model
         if (!$this->capacity) {
             return 0;
         }
-        
+
         $studentCount = $this->students()->count();
         return max(0, $this->capacity - $studentCount);
     }
@@ -214,17 +215,17 @@ class Rank extends Model
             ->with('employee')
             ->where('is_class_teacher', true)
             ->first();
-            
+
         if ($classTeacher && $classTeacher->employee) {
-            return $classTeacher->employee->full_name ?? 
-                   $classTeacher->employee->first_name . ' ' . $classTeacher->employee->last_name;
+            return $classTeacher->employee->full_name ??
+                $classTeacher->employee->first_name . ' ' . $classTeacher->employee->last_name;
         }
-        
+
         // Fallback to legacy teacher relationship
         if ($this->teacher) {
             return $this->teacher->full_name ?? $this->teacher->name ?? 'Unknown';
         }
-        
+
         return 'Not Assigned';
     }
 
@@ -235,16 +236,16 @@ class Rank extends Model
     {
         try {
             $studentCount = $this->students()->count();
-            
+
             // Count male and female students - using the gender relationship correctly
-            $maleCount = $this->students()->whereHas('gender', function($query) {
+            $maleCount = $this->students()->whereHas('gender', function ($query) {
                 $query->where('name', 'like', '%male%');
             })->count();
-            
-            $femaleCount = $this->students()->whereHas('gender', function($query) {
+
+            $femaleCount = $this->students()->whereHas('gender', function ($query) {
                 $query->where('name', 'like', '%female%');
             })->count();
-            
+
             $subjectCount = $this->subjects()->count();
             $teacherCount = $this->employeeAssignments()->distinct('employee_id')->count('employee_id');
 
@@ -261,7 +262,7 @@ class Rank extends Model
         } catch (\Exception $e) {
             // Return safe default values if there's any error
             \Log::error('Error getting class statistics for rank ' . $this->id . ': ' . $e->getMessage());
-            
+
             return [
                 'total_students' => 0,
                 'male_students' => 0,
@@ -281,11 +282,11 @@ class Rank extends Model
     public function getCurrentAssignmentsAttribute()
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         if (!$currentAcademicYear) {
             return collect();
         }
-        
+
         return $this->employeeAssignments()
             ->with(['employee', 'subject', 'academicYear'])
             ->where('academic_year_id', $currentAcademicYear->id)
@@ -315,10 +316,10 @@ class Rank extends Model
     {
         $query->where(function ($q) {
             $q->whereNull('capacity')
-              ->orWhere(function($q2) {
-                  $q2->whereNotNull('capacity')
-                     ->whereRaw('capacity > (SELECT COUNT(*) FROM students WHERE students.rank_id = ranks.id AND students.deleted_at IS NULL)');
-              });
+                ->orWhere(function ($q2) {
+                    $q2->whereNotNull('capacity')
+                        ->whereRaw('capacity > (SELECT COUNT(*) FROM students WHERE students.rank_id = ranks.id AND students.deleted_at IS NULL)');
+                });
         });
     }
 
@@ -392,30 +393,30 @@ class Rank extends Model
         }
 
         collect(explode(' ', $terms))->filter()->each(function ($term) use ($query) {
-            $term = '%'.$term.'%';
-            
+            $term = '%' . $term . '%';
+
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', $term)
-                  ->orWhere('section', 'like', $term)
-                  ->orWhere('room_number', 'like', $term)
-                  ->orWhere('grade_level', 'like', $term)
-                  ->orWhere('description', 'like', $term)
-                  ->orWhereHas('division', function($q) use ($term) {
-                      $q->where('name', 'like', $term);
-                  })
-                  ->orWhereHas('stream', function($q) use ($term) {
-                      $q->where('name', 'like', $term);
-                  })
-                  ->orWhereHas('teacher', function($q) use ($term) {
-                      $q->where('name', 'like', $term)
-                        ->orWhere('first_name', 'like', $term)
-                        ->orWhere('last_name', 'like', $term);
-                  })
-                  ->orWhereHas('employees', function($q) use ($term) {
-                      $q->where('first_name', 'like', $term)
-                        ->orWhere('last_name', 'like', $term)
-                        ->orWhere('staff_number', 'like', $term);
-                  });
+                    ->orWhere('section', 'like', $term)
+                    ->orWhere('room_number', 'like', $term)
+                    ->orWhere('grade_level', 'like', $term)
+                    ->orWhere('description', 'like', $term)
+                    ->orWhereHas('division', function ($q) use ($term) {
+                        $q->where('name', 'like', $term);
+                    })
+                    ->orWhereHas('stream', function ($q) use ($term) {
+                        $q->where('name', 'like', $term);
+                    })
+                    ->orWhereHas('teacher', function ($q) use ($term) {
+                        $q->where('name', 'like', $term)
+                            ->orWhere('first_name', 'like', $term)
+                            ->orWhere('last_name', 'like', $term);
+                    })
+                    ->orWhereHas('employees', function ($q) use ($term) {
+                        $q->where('first_name', 'like', $term)
+                            ->orWhere('last_name', 'like', $term)
+                            ->orWhere('staff_number', 'like', $term);
+                    });
             });
         });
     }
@@ -449,7 +450,7 @@ class Rank extends Model
      */
     public function scopeWithTeacherAssignments($query)
     {
-        return $query->with(['employeeAssignments' => function($q) {
+        return $query->with(['employeeAssignments' => function ($q) {
             $q->with(['employee', 'subject', 'academicYear']);
         }]);
     }
@@ -481,8 +482,8 @@ class Rank extends Model
      */
     public function canBeDeleted(): bool
     {
-        return $this->students()->count() === 0 && 
-               $this->employeeAssignments()->count() === 0;
+        return $this->students()->count() === 0 &&
+            $this->employeeAssignments()->count() === 0;
     }
 
     /**
@@ -507,11 +508,11 @@ class Rank extends Model
     public function transferStudentsTo(Rank $targetClass, array $studentIds = []): int
     {
         $query = $this->students();
-        
+
         if (!empty($studentIds)) {
             $query->whereIn('id', $studentIds);
         }
-        
+
         return $query->update(['rank_id' => $targetClass->id]);
     }
 
@@ -554,11 +555,11 @@ class Rank extends Model
     public function getCurrentYearAssignments()
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         if (!$currentAcademicYear) {
             return collect();
         }
-        
+
         return $this->employeeAssignments()
             ->with(['employee', 'subject'])
             ->where('academic_year_id', $currentAcademicYear->id)
@@ -571,11 +572,11 @@ class Rank extends Model
     public function isEmployeeAssigned(Employee $employee): bool
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         if (!$currentAcademicYear) {
             return false;
         }
-        
+
         return $this->employeeAssignments()
             ->where('employee_id', $employee->id)
             ->where('academic_year_id', $currentAcademicYear->id)
@@ -590,11 +591,11 @@ class Rank extends Model
         if (!$academicYearId) {
             $academicYearId = AcademicYear::where('is_active', true)->value('id');
         }
-        
+
         if (!$academicYearId) {
             return null;
         }
-        
+
         return $this->employeeAssignments()
             ->with('employee')
             ->where('academic_year_id', $academicYearId)
@@ -624,12 +625,13 @@ class Rank extends Model
 
         static::created(function ($rank) {
             // Set default academic year if not provided
-            if (!$rank->academic_year_id) {
-                $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-                if ($currentAcademicYear) {
-                    $rank->update(['academic_year_id' => $currentAcademicYear->id]);
-                }
-            }
+            // Commented out - academic_year_id column doesn't exist in current schema
+            // if (!$rank->academic_year_id) {
+            //     $currentAcademicYear = AcademicYear::where('is_active', true)->first();
+            //     if ($currentAcademicYear) {
+            //         $rank->update(['academic_year_id' => $currentAcademicYear->id]);
+            //     }
+            // }
         });
     }
 }

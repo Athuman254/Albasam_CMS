@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('fee_structures', function (Blueprint $table) {
-            //
+            $table->json('additional_fees')->nullable();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('fee_structures', function (Blueprint $table) {
-            //
+            $table->dropColumn('additional_fees');
         });
     }
 };

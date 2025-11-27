@@ -102,13 +102,43 @@
       </Link>
    </li>
 
-   <li v-if="can('access-time-table')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/time-table')}">
-      <Link :href="route('admin.timetable.index')" class="menu-link">
-         <span>
-            <i class="menu-icon tf-icons bx bx-table"></i>
-         </span>
-         Time-Table
-      </Link>
+   <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/timetable')}">
+      <a href="#" class="menu-link menu-toggle">
+         <i class="menu-icon tf-icons bx bx-table"></i>
+         <div class="text-truncate">Timetable</div>
+      </a>
+      <ul class="menu-sub">
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/timetable/setup/periods') }">
+            <Link :href="route('timetable.periods.index')" class="menu-link">
+               <div class="text-truncate">Periods</div>
+            </Link>
+         </li>
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/timetable/setup/allocations') }">
+            <Link :href="route('timetable.allocations.index')" class="menu-link">
+               <div class="text-truncate">Allocations</div>
+            </Link>
+         </li>
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/timetable/setup/constraints') }">
+            <Link :href="route('timetable.constraints.index')" class="menu-link">
+               <div class="text-truncate">Constraints</div>
+            </Link>
+         </li>
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/timetable/generate') }">
+            <Link :href="route('timetable.generate.index')" class="menu-link">
+               <div class="text-truncate">Generate</div>
+            </Link>
+         </li>
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/timetable/view/class') }">
+            <Link :href="route('timetable.view.class')" class="menu-link">
+               <div class="text-truncate">Class View</div>
+            </Link>
+         </li>
+         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/timetable/view/teacher') }">
+            <Link :href="route('timetable.view.teacher')" class="menu-link">
+               <div class="text-truncate">Teacher View</div>
+            </Link>
+         </li>
+      </ul>
    </li>
 
    <li v-if="canAny(['access-bulk-sms', 'access-sms-outbox'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/sms') }">
@@ -238,6 +268,20 @@
       </Link>
     </li> -->
   </ul>
+</li>
+
+<li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/reports') }">
+   <a href="#" class="menu-link menu-toggle">
+      <i class='bx bx-bar-chart-alt-2 menu-icon tf-icons'></i>
+      <div class="text-truncate">Reports</div>
+   </a>
+   <ul class="menu-sub">
+      <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/promotions') }">
+         <Link :href="route('admin.reports.promotions')" class="menu-link">
+            <div class="text-truncate">Promotion Report</div>
+         </Link>
+      </li>
+   </ul>
 </li>
 
    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/attendance') || $page.url.startsWith('/admin/payroll/run') }">

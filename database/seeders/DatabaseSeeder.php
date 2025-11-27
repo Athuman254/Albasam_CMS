@@ -100,6 +100,21 @@ class DatabaseSeeder extends Seeder
         $this->call(PrimarySchoolClassesSeeder::class);
         $this->call(PrimarySchoolStudentsSeeder::class);
 
+        // Seed subjects
+        $this->call(SubjectsSeeder::class);
+
+        // Seed skills
+        $this->call(SkillsSeeder::class);
+
+        // Seed teachers with qualifications and assignments
+        $this->call(TeachersSeeder::class);
+
+        // Seed exams with subjects and marks
+        $this->call(ExamsSeeder::class);
+
+        // Seed timetable data
+        $this->call(TimetableSeeder::class);
+
         Schema::enableForeignKeyConstraints();
     }
 

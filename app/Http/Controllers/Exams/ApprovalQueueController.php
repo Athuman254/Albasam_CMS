@@ -47,10 +47,10 @@ class ApprovalQueueController extends Controller
                 'student:id,admission_number,first_name,last_name',
                 'submittedBy:id,name,email'
             ])
-            ->where('status', 'submitted')
-            ->whereNotNull('submitted_by')
-            ->whereNotNull('submitted_at')
-            ->get();
+                ->where('status', 'submitted')
+                ->whereNotNull('submitted_by')
+                ->whereNotNull('submitted_at')
+                ->get();
 
             Log::info('Total submitted marks found: ' . $pendingMarks->count());
 
@@ -93,26 +93,26 @@ class ApprovalQueueController extends Controller
             })->map(function ($marks, $key) {
                 $firstMark = $marks->first();
                 $examSubject = $firstMark->examSubject;
-                
+
                 // Safely get exam, class, and subject names with fallbacks
                 $examName = $examSubject->exam->name ?? 'Unknown Exam';
                 $className = $examSubject->class->name ?? 'Unknown Class';
                 $subjectName = $examSubject->subject->name ?? 'Unknown Subject';
                 $subjectCode = $examSubject->subject->code ?? 'N/A';
-                
+
                 // Calculate counts
                 $studentsCount = $marks->unique('student_id')->count();
                 $totalMarks = $marks->count();
-                
+
                 // Get teacher information with multiple fallback methods
                 $teacherName = 'Unknown Teacher';
                 $teacherEmail = 'N/A';
-                
+
                 // Method 1: Use submittedBy relationship
                 if ($firstMark->submittedBy) {
                     $teacherName = $firstMark->submittedBy->name ?? 'Unknown Teacher';
                     $teacherEmail = $firstMark->submittedBy->email ?? 'N/A';
-                } 
+                }
                 // Method 2: Try to find user directly
                 else if ($firstMark->submitted_by) {
                     $user = User::find($firstMark->submitted_by);
@@ -129,7 +129,7 @@ class ApprovalQueueController extends Controller
                         $teacherEmail = $teacher->email ?? 'N/A';
                     }
                 }
-                
+
                 // Log if teacher is still unknown
                 if ($teacherName === 'Unknown Teacher') {
                     Log::warning('Teacher not found for submission:', [
@@ -139,7 +139,7 @@ class ApprovalQueueController extends Controller
                         'exam_subject_id' => $firstMark->exam_subject_id
                     ]);
                 }
-                
+
                 return [
                     'id' => 'virtual_' . $key,
                     'exam_id' => $examSubject->exam_id ?? null,
@@ -174,11 +174,10 @@ class ApprovalQueueController extends Controller
                     'sample_submission' => $groupedSubmissions->first() ?? 'No submissions'
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error loading pending submissions from marks: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
-            
+
             return response()->json([
                 'error' => 'Failed to load pending submissions',
                 'message' => $e->getMessage(),
@@ -188,22 +187,153 @@ class ApprovalQueueController extends Controller
     }
 
     /**
-     * Get approval statistics - FROM MARKS
+     * Get approved submissions history with search and pagination
+     */
+    public function getApprovedSubmissions(Request $request): JsonResponse
+    {
+        try {
+            $search = $request->input('search');
+            $perPage = $request->input('per_page', 10);
+            $page = $request->input('page', 1);
+
+            $query = ExamMark::with([
+                'examSubject.exam:id,name',
+                'examSubject.class:id,name',
+                'examSubject.subject:id,name,code',
+                'submittedBy:id,name,email',
+                'approvedBy:id,name',
+                'student:id,first_name,last_name,admission_number'
+            ])
+                ->where('status', 'approved')
+                ->whereNotNull('approved_at');
+
+            // Apply Search
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    // Search by Exam, Class, Subject
+                    $q->whereHas('examSubject', function ($q) use ($search) {
+                        $q->whereHas('exam', fn($q) => $q->where('name', 'like', "%{$search}%"))
+                            ->orWhereHas('class', fn($q) => $q->where('name', 'like', "%{$search}%"))
+                            ->orWhereHas('subject', fn($q) => $q->where('name', 'like', "%{$search}%")
+                                ->orWhere('code', 'like', "%{$search}%"));
+                    })
+                        // Search by Teacher
+                        ->orWhereHas('submittedBy', fn($q) => $q->where('name', 'like', "%{$search}%"))
+                        // Search by Student (This is the key requirement)
+                        ->orWhereHas('student', fn($q) => $q->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('admission_number', 'like', "%{$search}%"));
+                });
+            }
+
+            // Get results - limit to reasonable amount for performance if no search, 
+            // but if searching we need to scan more
+            $limit = $search ? 5000 : 2000;
+            $approvedMarks = $query->latest('approved_at')->limit($limit)->get();
+
+            // Group by exam_id, class_id, subject_id AND teacher_id
+            $groupedSubmissions = $approvedMarks->groupBy(function ($mark) {
+                $examId = $mark->examSubject->exam_id ?? 'unknown';
+                $classId = $mark->examSubject->class_id ?? 'unknown';
+                $subjectId = $mark->examSubject->subject_id ?? 'unknown';
+                return $examId . '_' . $classId . '_' . $subjectId . '_' . $mark->submitted_by;
+            })->map(function ($marks, $key) use ($search) {
+                $firstMark = $marks->first();
+                $examSubject = $firstMark->examSubject;
+
+                // Identify matched students if searching
+                $matchedStudents = [];
+                if ($search) {
+                    $matchedStudents = $marks->filter(function ($mark) use ($search) {
+                        return stripos($mark->student->first_name, $search) !== false ||
+                            stripos($mark->student->last_name, $search) !== false ||
+                            stripos($mark->student->admission_number, $search) !== false;
+                    })->map(function ($mark) {
+                        return $mark->student->first_name . ' ' . $mark->student->last_name;
+                    })->unique()->values()->toArray();
+                }
+
+                return [
+                    'id' => 'virtual_approved_' . $key,
+                    'virtual_id_raw' => $key,
+                    'exam_name' => $examSubject->exam->name ?? 'Unknown Exam',
+                    'class_name' => $examSubject->class->name ?? 'Unknown Class',
+                    'subject_name' => $examSubject->subject->name ?? 'Unknown Subject',
+                    'subject_code' => $examSubject->subject->code ?? 'N/A',
+                    'teacher_name' => $firstMark->submittedBy->name ?? 'Unknown Teacher',
+                    'approved_by_name' => $firstMark->approvedBy->name ?? 'Unknown Admin',
+                    'students_count' => $marks->unique('student_id')->count(),
+                    'total_marks' => $marks->count(),
+                    'submitted_date' => $firstMark->submitted_at ? $firstMark->submitted_at->format('Y-m-d H:i:s') : null,
+                    'approved_date' => $firstMark->approved_at ? $firstMark->approved_at->format('Y-m-d H:i:s') : null,
+                    'approved_at_formatted' => $firstMark->approved_at ? $firstMark->approved_at->format('M j, Y g:i A') : 'N/A',
+                    'matched_students' => $matchedStudents, // Return matched students
+                ];
+            })->values();
+
+            // Manual Pagination of the grouped results
+            $total = $groupedSubmissions->count();
+            $paginatedItems = $groupedSubmissions->forPage($page, $perPage)->values();
+
+            return response()->json([
+                'data' => $paginatedItems,
+                'meta' => [
+                    'current_page' => (int)$page,
+                    'per_page' => (int)$perPage,
+                    'total' => $total,
+                    'last_page' => ceil($total / $perPage)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error loading approved submissions: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to load approved submissions',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get approval statistics - COUNT UNIQUE SUBMISSIONS (not individual marks)
      */
     public function getStats(Request $request): JsonResponse
     {
         try {
+            // Count unique submissions by grouping exam_subject_id + submitted_by
+            $pending = ExamMark::where('status', 'submitted')
+                ->whereNotNull('submitted_by')
+                ->select('exam_subject_id', 'submitted_by')
+                ->distinct()
+                ->get()
+                ->count();
+
+            $approved = ExamMark::where('status', 'approved')
+                ->whereNotNull('approved_by')
+                ->select('exam_subject_id', 'submitted_by')
+                ->distinct()
+                ->get()
+                ->count();
+
+            $rejected = ExamMark::where('status', 'rejected')
+                ->whereNotNull('submitted_by')
+                ->select('exam_subject_id', 'submitted_by')
+                ->distinct()
+                ->get()
+                ->count();
+
+            // Total processed is approved + rejected
+            $total = $approved + $rejected;
+
             $stats = [
-                'pending' => ExamMark::where('status', 'submitted')->whereNotNull('submitted_by')->count(),
-                'approved' => ExamMark::where('status', 'approved')->whereNotNull('approved_by')->count(),
-                'rejected' => ExamMark::where('status', 'rejected')->count(),
-                'total' => ExamMark::whereNotNull('submitted_by')->count(),
+                'pending' => $pending,
+                'approved' => $approved,
+                'rejected' => $rejected,
+                'total' => $total,
             ];
 
             return response()->json([
                 'data' => $stats
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error loading approval stats: ' . $e->getMessage());
             return response()->json([
@@ -219,29 +349,40 @@ class ApprovalQueueController extends Controller
     public function getSubmissionDetails($submissionId): JsonResponse
     {
         try {
+            // Check if this is an approved submission request
+            $isApproved = str_contains($submissionId, 'virtual_approved_');
+            $cleanId = str_replace(['virtual_approved_', 'virtual_'], '', $submissionId);
+
             // Extract exam_id, class_id, subject_id, and teacher_id from virtual ID
-            $parts = explode('_', str_replace('virtual_', '', $submissionId));
+            $parts = explode('_', $cleanId);
             if (count($parts) !== 4) {
                 throw new \Exception('Invalid submission ID format');
             }
 
             list($examId, $classId, $subjectId, $teacherId) = $parts;
 
-            $marks = ExamMark::with([
+            $query = ExamMark::with([
                 'student:id,admission_number,first_name,last_name',
                 'examSubject.subject:id,name,code',
                 'examSubject.exam:id,name',
                 'examSubject.class:id,name',
                 'submittedBy:id,name,email'
             ])
-            ->whereHas('examSubject', function ($query) use ($examId, $classId, $subjectId) {
-                $query->where('exam_id', $examId)
-                      ->where('class_id', $classId)
-                      ->where('subject_id', $subjectId);
-            })
-            ->where('submitted_by', $teacherId)
-            ->where('status', 'submitted')
-            ->get();
+                ->whereHas('examSubject', function ($query) use ($examId, $classId, $subjectId) {
+                    $query->where('exam_id', $examId)
+                        ->where('class_id', $classId)
+                        ->where('subject_id', $subjectId);
+                })
+                ->where('submitted_by', $teacherId);
+
+            // Filter by status based on the ID type
+            if ($isApproved) {
+                $query->where('status', 'approved');
+            } else {
+                $query->where('status', 'submitted');
+            }
+
+            $marks = $query->get();
 
             if ($marks->isEmpty()) {
                 return response()->json([
@@ -257,7 +398,7 @@ class ApprovalQueueController extends Controller
             // Get teacher information with fallbacks
             $teacherName = 'Unknown Teacher';
             $teacherEmail = 'N/A';
-            
+
             if ($firstMark->submittedBy) {
                 $teacherName = $firstMark->submittedBy->name ?? 'Unknown Teacher';
                 $teacherEmail = $firstMark->submittedBy->email ?? 'N/A';
@@ -272,18 +413,18 @@ class ApprovalQueueController extends Controller
             $detailedMarks = $marks->map(function ($mark) {
                 $maxMarks = $mark->maximum_marks ?? $mark->examSubject->max_marks ?? 100;
                 $percentage = $maxMarks > 0 ? round(($mark->marks_obtained / $maxMarks) * 100, 2) : 0;
-                
+
                 // Calculate grade with fallback - use model's calculateGrade method
                 $grade = $mark->grade;
                 if (!$grade || $grade === 'N/A') {
                     $grade = $mark->calculateGrade();
                 }
-                
+
                 return [
                     'id' => $mark->id, // Individual mark ID for per-student approval
                     'student_id' => $mark->student_id,
-                    'student_name' => $mark->student ? 
-                        ($mark->student->first_name . ' ' . $mark->student->last_name) : 
+                    'student_name' => $mark->student ?
+                        ($mark->student->first_name . ' ' . $mark->student->last_name) :
                         'Unknown Student',
                     'admission_number' => $mark->student->admission_number ?? 'N/A',
                     'subject_name' => $mark->examSubject->subject->name ?? 'Unknown Subject',
@@ -328,7 +469,6 @@ class ApprovalQueueController extends Controller
                     ]
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error loading submission details: ' . $e->getMessage());
             return response()->json([
@@ -364,16 +504,16 @@ class ApprovalQueueController extends Controller
                 // Update all marks for this teacher's submission
                 $marksUpdated = ExamMark::whereHas('examSubject', function ($query) use ($examId, $classId, $subjectId) {
                     $query->where('exam_id', $examId)
-                          ->where('class_id', $classId)
-                          ->where('subject_id', $subjectId);
+                        ->where('class_id', $classId)
+                        ->where('subject_id', $subjectId);
                 })
-                ->where('submitted_by', $teacherId)
-                ->where('status', 'submitted')
-                ->update([
-                    'status' => 'approved',
-                    'approved_by' => auth()->id(),
-                    'approved_at' => now(),
-                ]);
+                    ->where('submitted_by', $teacherId)
+                    ->where('status', 'submitted')
+                    ->update([
+                        'status' => 'approved',
+                        'approved_by' => auth()->id(),
+                        'approved_at' => now(),
+                    ]);
 
                 $totalMarksApproved += $marksUpdated;
                 if ($marksUpdated > 0) {
@@ -395,7 +535,6 @@ class ApprovalQueueController extends Controller
                 'approved_count' => $approvedCount,
                 'marks_approved' => $totalMarksApproved
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error approving marks: ' . $e->getMessage());
@@ -434,15 +573,15 @@ class ApprovalQueueController extends Controller
                 // Update all marks for this teacher's submission
                 $marksUpdated = ExamMark::whereHas('examSubject', function ($query) use ($examId, $classId, $subjectId) {
                     $query->where('exam_id', $examId)
-                          ->where('class_id', $classId)
-                          ->where('subject_id', $subjectId);
+                        ->where('class_id', $classId)
+                        ->where('subject_id', $subjectId);
                 })
-                ->where('submitted_by', $teacherId)
-                ->where('status', 'submitted')
-                ->update([
-                    'status' => 'rejected',
-                    'remarks' => $rejectionReason,
-                ]);
+                    ->where('submitted_by', $teacherId)
+                    ->where('status', 'submitted')
+                    ->update([
+                        'status' => 'rejected',
+                        'remarks' => $rejectionReason,
+                    ]);
 
                 $totalMarksRejected += $marksUpdated;
                 if ($marksUpdated > 0) {
@@ -465,7 +604,6 @@ class ApprovalQueueController extends Controller
                 'rejected_count' => $rejectedCount,
                 'marks_rejected' => $totalMarksRejected
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error rejecting marks: ' . $e->getMessage());
@@ -509,7 +647,6 @@ class ApprovalQueueController extends Controller
                 'message' => $approvedCount . ' student mark(s) approved successfully.',
                 'approved_count' => $approvedCount
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error approving individual student marks: ' . $e->getMessage());
@@ -554,7 +691,6 @@ class ApprovalQueueController extends Controller
                 'message' => $rejectedCount . ' student mark(s) rejected successfully.',
                 'rejected_count' => $rejectedCount
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error rejecting individual student marks: ' . $e->getMessage());
@@ -580,14 +716,14 @@ class ApprovalQueueController extends Controller
 
             $marksUpdated = ExamMark::whereHas('examSubject', function ($query) use ($request) {
                 $query->where('exam_id', $request->exam_id)
-                      ->where('class_id', $request->class_id);
+                    ->where('class_id', $request->class_id);
             })
-            ->where('status', 'submitted')
-            ->update([
-                'status' => 'approved',
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-            ]);
+                ->where('status', 'submitted')
+                ->update([
+                    'status' => 'approved',
+                    'approved_by' => auth()->id(),
+                    'approved_at' => now(),
+                ]);
 
             DB::commit();
 
@@ -595,7 +731,6 @@ class ApprovalQueueController extends Controller
                 'message' => 'All pending submissions for this exam and class have been approved. ' . $marksUpdated . ' marks approved.',
                 'marks_approved' => $marksUpdated
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error in bulk approval: ' . $e->getMessage());
@@ -638,7 +773,6 @@ class ApprovalQueueController extends Controller
                 'message' => "Fixed grades for {$fixedCount} marks.",
                 'fixed_count' => $fixedCount
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fixing missing grades: ' . $e->getMessage());
             return response()->json([

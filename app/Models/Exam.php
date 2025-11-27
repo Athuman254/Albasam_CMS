@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Settings\AcademicYear;
 
 class Exam extends Model
 {
@@ -13,11 +14,11 @@ class Exam extends Model
     const PUBLISHED = 'published';
 
     protected $fillable = [
-      'name',
-      'academic_year_id',
-      'start_date',
-      'end_date',
-      'status'
+        'name',
+        'academic_year_id',
+        'start_date',
+        'end_date',
+        'status'
     ];
 
     protected $casts = [
@@ -25,12 +26,14 @@ class Exam extends Model
         'end_date' => 'datetime',
     ];
 
-    public function academicYear(){
-      return $this->belongsTo(AcademicYear::class,'academic_year_id');
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id');
     }
 
-    public function subjects(){
-      return $this->hasMany(ExamSubject::class, 'exam_id');
+    public function subjects()
+    {
+        return $this->hasMany(ExamSubject::class, 'exam_id');
     }
 
     /**
@@ -63,7 +66,7 @@ class Exam extends Model
      */
     public function skillsForSubject($subjectId)
     {
-        return $this->skills()->whereHas('subject', function($query) use ($subjectId) {
+        return $this->skills()->whereHas('subject', function ($query) use ($subjectId) {
             $query->where('id', $subjectId);
         });
     }

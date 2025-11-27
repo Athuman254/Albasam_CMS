@@ -74,10 +74,25 @@ class User extends Authenticatable implements LaratrustUser
     {
         return $this->belongsTo(Branch::class);
     }
-    
+
+
     public function teacher(): HasOne
     {
         return $this->hasOne(Teacher::class);
+    }
+
+    /**
+     * Relationship with subjects (for teachers)
+     * Get subjects that this teacher is qualified to teach
+     */
+    public function subjects(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Models\Subject::class,
+            'teacher_subjects',
+            'teacher_id',
+            'subject_id'
+        )->withTimestamps();
     }
 
     /**

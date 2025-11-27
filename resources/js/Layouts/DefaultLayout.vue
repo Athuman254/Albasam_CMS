@@ -44,8 +44,27 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .icon-base {
    line-height: 0.95 !important;
+}
+
+/* Ensure main content doesn't hide behind fixed sidebar */
+.layout-page {
+   margin-left: 260px; /* Default sidebar width */
+}
+
+/* Adjust for collapsed sidebar */
+@media (min-width: 1200px) {
+   .layout-wrapper.layout-menu-collapsed .layout-page {
+      margin-left: 80px; /* Collapsed sidebar width */
+   }
+}
+
+/* Mobile - no margin needed as sidebar is overlay */
+@media (max-width: 1199.98px) {
+   .layout-page {
+      margin-left: 0 !important;
+   }
 }
 </style>

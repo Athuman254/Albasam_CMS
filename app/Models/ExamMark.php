@@ -14,7 +14,7 @@ class ExamMark extends Model
     const APPROVED = 'approved';
     const REJECTED = 'rejected';
     const PUBLISHED = 'published';
-    
+
     protected $fillable = [
         'exam_submission_id',
         'exam_subject_id',
@@ -56,7 +56,7 @@ class ExamMark extends Model
             if (!$model->maximum_marks && $model->examSubject) {
                 $model->maximum_marks = $model->examSubject->max_marks;
             }
-            
+
             // Calculate grade if marks are provided
             if ($model->marks_obtained && $model->maximum_marks) {
                 $model->grade = $model->calculateGrade();
@@ -158,7 +158,7 @@ class ExamMark extends Model
     {
         // If skill marks exist, use actual teacher-entered data
         if ($this->skillMarks->isNotEmpty()) {
-            return $this->skillMarks->map(function($skillMark) {
+            return $this->skillMarks->map(function ($skillMark) {
                 return [
                     'skill_name' => $skillMark->skill->skill_name,
                     'marks_obtained' => $skillMark->marks_obtained,
@@ -184,16 +184,16 @@ class ExamMark extends Model
         $subjectName = $this->examSubject->subject->name;
         $skillsConfig = config('exam_skills');
         $subjectSkills = $skillsConfig[$subjectName] ?? null;
-        
+
         if (!$subjectSkills) {
             return null;
         }
-        
+
         $breakdown = [];
         foreach ($subjectSkills as $skillName => $percentage) {
             $skillMaxMarks = round($this->maximum_marks * $percentage, 1);
             $skillMarks = round($this->marks_obtained * $percentage, 1);
-            
+
             $breakdown[] = [
                 'skill_name' => $skillName,
                 'marks_obtained' => $skillMarks,
@@ -201,7 +201,7 @@ class ExamMark extends Model
                 'remarks' => $this->getSkillRemarks($skillMarks, $skillMaxMarks)
             ];
         }
-        
+
         return $breakdown;
     }
 
@@ -211,10 +211,10 @@ class ExamMark extends Model
     private function getSkillRemarks($marks, $maxMarks)
     {
         if ($maxMarks == 0 || $marks === null) return 'Not assessed';
-        
+
         $percentage = ($marks / $maxMarks) * 100;
-        
-        return match(true) {
+
+        return match (true) {
             $percentage >= 80 => 'You exceeded expectations',
             $percentage >= 70 => 'You met expectations',
             $percentage >= 60 => 'You approached expectations',
@@ -257,19 +257,12 @@ class ExamMark extends Model
     public function calculateGrade(): string
     {
         $percentage = $this->percentage();
-        
+
         if ($percentage === null) {
             return 'N/A';
         }
 
-        return match (true) {
-            $percentage >= 80 => 'A',
-            $percentage >= 70 => 'B',
-            $percentage >= 60 => 'C',
-            $percentage >= 50 => 'D',
-            $percentage >= 40 => 'E',
-            default => 'F',
-        };
+        return \App\Services\GradingService::getGrade($percentage);
     }
 
     /**
@@ -280,7 +273,7 @@ class ExamMark extends Model
         if ($value) {
             return $value;
         }
-        
+
         return $this->calculateGrade();
     }
 
@@ -378,7 +371,7 @@ class ExamMark extends Model
     public function scopeByExamAndClass($query, $examId, $classId)
     {
         return $query->where('exam_id', $examId)
-                    ->where('class_id', $classId);
+            ->where('class_id', $classId);
     }
 
     /**
@@ -411,7 +404,7 @@ class ExamMark extends Model
     public function scopeWithMarks($query)
     {
         return $query->whereNotNull('marks_obtained')
-                    ->where('marks_obtained', '>', 0);
+            ->where('marks_obtained', '>', 0);
     }
 
     /**
@@ -420,7 +413,7 @@ class ExamMark extends Model
     public function scopeWithoutMarks($query)
     {
         return $query->whereNull('marks_obtained')
-                    ->orWhere('marks_obtained', '<=', 0);
+            ->orWhere('marks_obtained', '<=', 0);
     }
 
     /**
@@ -707,8 +700,8 @@ class ExamMark extends Model
     public static function getExamClassStatistics($examId, $classId): array
     {
         $marks = self::where('exam_id', $examId)
-                    ->where('class_id', $classId)
-                    ->get();
+            ->where('class_id', $classId)
+            ->get();
 
         $totalStudents = $marks->unique('student_id')->count();
         $totalSubjects = $marks->unique('exam_subject_id')->count();
@@ -722,10 +715,10 @@ class ExamMark extends Model
             'approved_marks' => $marks->where('status', self::APPROVED)->count(),
             'published_marks' => $marks->where('status', self::PUBLISHED)->count(),
             'rejected_marks' => $marks->where('status', self::REJECTED)->count(),
-            'completion_rate' => $totalStudents > 0 ? 
+            'completion_rate' => $totalStudents > 0 ?
                 round((($marks->whereIn('status', [self::SUBMITTED, self::APPROVED, self::PUBLISHED])->count()) / ($totalStudents * $totalSubjects)) * 100, 2) : 0,
             'average_marks' => $marks->where('status', self::APPROVED)->avg('marks_obtained'),
-            'marks_with_breakdown' => $marks->where('status', self::APPROVED)->filter(function($mark) {
+            'marks_with_breakdown' => $marks->where('status', self::APPROVED)->filter(function ($mark) {
                 return $mark->hasSkillBreakdown();
             })->count(),
         ];
@@ -805,10 +798,10 @@ class ExamMark extends Model
     public static function hasMarksForStudent($studentId, $examId, $classId): bool
     {
         return self::where('student_id', $studentId)
-                  ->where('exam_id', $examId)
-                  ->where('class_id', $classId)
-                  ->whereNotNull('marks_obtained')
-                  ->exists();
+            ->where('exam_id', $examId)
+            ->where('class_id', $classId)
+            ->whereNotNull('marks_obtained')
+            ->exists();
     }
 
     /**
@@ -817,10 +810,10 @@ class ExamMark extends Model
     public static function getStudentTotalMarks($studentId, $examId, $classId): float
     {
         return self::where('student_id', $studentId)
-                  ->where('exam_id', $examId)
-                  ->where('class_id', $classId)
-                  ->whereNotNull('marks_obtained')
-                  ->sum('marks_obtained');
+            ->where('exam_id', $examId)
+            ->where('class_id', $classId)
+            ->whereNotNull('marks_obtained')
+            ->sum('marks_obtained');
     }
 
     /**
@@ -829,10 +822,10 @@ class ExamMark extends Model
     public static function getStudentAveragePercentage($studentId, $examId, $classId): ?float
     {
         $marks = self::where('student_id', $studentId)
-                    ->where('exam_id', $examId)
-                    ->where('class_id', $classId)
-                    ->whereNotNull('marks_obtained')
-                    ->get();
+            ->where('exam_id', $examId)
+            ->where('class_id', $classId)
+            ->whereNotNull('marks_obtained')
+            ->get();
 
         if ($marks->isEmpty()) {
             return null;

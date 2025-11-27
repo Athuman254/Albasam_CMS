@@ -28,100 +28,100 @@ use App\Http\Controllers\Fee\FeeStructureController;
 
 class StudentAdmissionController extends Controller
 {
-    public function dataTable(Request $request)
-    {
-        Log::info('=== STUDENT ADMISSIONS DATATABLE ===');
-        
-        try {
-            // Build query with relationships
-            $query = StudentAdmission::with([
-                'student', 
-                'division',
-                'student.rank',
-                'student.gender'
-            ])->orderBy('created_at', 'desc');
+   public function dataTable(Request $request)
+{
+    Log::info('=== STUDENT ADMISSIONS DATATABLE ===');
 
-            // Apply search filter
-            if ($request->has('filter.search') && !empty($request->filter['search'])) {
-                $search = $request->filter['search'];
-                Log::info("Applying search filter: {$search}");
-                
-                $query->where(function($q) use ($search) {
-                    $q->whereHas('student', function($studentQuery) use ($search) {
-                        $studentQuery->where('first_name', 'like', "%{$search}%")
-                                    ->orWhere('last_name', 'like', "%{$search}%")
-                                    ->orWhere('admission_number', 'like', "%{$search}%");
-                    })
+    try {
+        // Build query with relationships
+        $query = StudentAdmission::with([
+            'student',
+            'division',
+            'student.rank',
+            'student.gender'
+        ])->orderBy('created_at', 'desc');
+
+        // Apply search filter
+        if ($request->has('filter.search') && !empty($request->filter['search'])) {
+            $search = $request->filter['search'];
+            Log::info("Applying search filter: {$search}");
+
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('student', function ($studentQuery) use ($search) {
+                    $studentQuery->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('admission_number', 'like', "%{$search}%");
+                })
                     ->orWhere('id', 'like', "%{$search}%");
-                });
-            }
-
-            // Get pagination parameters
-            $perPage = $request->get('page.size', 60);
-            $currentPage = $request->get('page.number', 1);
-            
-            Log::info("Pagination params - perPage: {$perPage}, currentPage: {$currentPage}");
-
-            // Paginate with error handling
-            $admissions = $query->paginate($perPage, ['*'], 'page', $currentPage);
-            
-            Log::info('Pagination successful', [
-                'total' => $admissions->total(),
-                'current_page' => $admissions->currentPage(),
-                'last_page' => $admissions->lastPage(),
-                'per_page' => $admissions->perPage()
-            ]);
-
-            $transformedData = $admissions->through(function ($admission) {
-                return [
-                    'id' => $admission->id,
-                    'hashid' => $admission->hashid,
-                    'date' => $admission->created_at ? $admission->created_at->toISOString() : null,
-                    'formatted_date' => $admission->formatted_date,
-                    'student_name' => $admission->student_name,
-                    'admission_number' => $admission->admission_number,
-                    'student_class' => $admission->student_class,
-                    'division_name' => $admission->division_name,
-                    'is_active' => $admission->is_active,
-                    'has_student' => $admission->has_student,
-                    'student' => $admission->student ? [
-                        'id' => $admission->student->id,
-                        'first_name' => $admission->student->first_name,
-                        'last_name' => $admission->student->last_name,
-                        'admission_number' => $admission->student->admission_number,
-                    ] : null,
-                    'division' => $admission->division ? [
-                        'id' => $admission->division->id,
-                        'name' => $admission->division->name,
-                    ] : null,
-                ];
             });
-
-            return Resource::collection($transformedData);
-            
-        } catch (\Exception $e) {
-            Log::error('DATATABLE ERROR: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-            return response()->json([
-                'error' => 'Failed to fetch admissions data',
-                'message' => $e->getMessage(),
-                'data' => [],
-                'meta' => [
-                    'current_page' => 1,
-                    'last_page' => 1,
-                    'per_page' => 60,
-                    'total' => 0
-                ]
-            ], 500);
         }
+
+        // Get pagination parameters
+        Log::info('Request parameters:', $request->all());
+        $perPage = $request->input('page.size', 20); // Default to 20 if not specified
+        $currentPage = $request->input('page.number', 1);
+
+        Log::info("Pagination params - perPage: {$perPage}, currentPage: {$currentPage}");
+
+        // Paginate with error handling
+        $admissions = $query->paginate($perPage, ['*'], 'page', $currentPage);
+
+        Log::info('Pagination successful', [
+            'total' => $admissions->total(),
+            'current_page' => $admissions->currentPage(),
+            'last_page' => $admissions->lastPage(),
+            'per_page' => $admissions->perPage()
+        ]);
+
+        $transformedData = $admissions->through(function ($admission) {
+            return [
+                'id' => $admission->id,
+                'hashid' => $admission->hashid,
+                'date' => $admission->created_at ? $admission->created_at->toISOString() : null,
+                'formatted_date' => $admission->formatted_date,
+                'student_name' => $admission->student_name,
+                'admission_number' => $admission->admission_number,
+                'student_class' => $admission->student_class,
+                'division_name' => $admission->division_name,
+                'is_active' => $admission->is_active,
+                'has_student' => $admission->has_student,
+                'student' => $admission->student ? [
+                    'id' => $admission->student->id,
+                    'first_name' => $admission->student->first_name,
+                    'last_name' => $admission->student->last_name,
+                    'admission_number' => $admission->student->admission_number,
+                ] : null,
+                'division' => $admission->division ? [
+                    'id' => $admission->division->id,
+                    'name' => $admission->division->name,
+                ] : null,
+            ];
+        });
+
+        return Resource::collection($transformedData);
+    } catch (\Exception $e) {
+        Log::error('DATATABLE ERROR: ' . $e->getMessage());
+        Log::error('Stack trace: ' . $e->getTraceAsString());
+
+        return response()->json([
+            'error' => 'Failed to fetch admissions data',
+            'message' => $e->getMessage(),
+            'data' => [],
+            'meta' => [
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => $perPage ?? 20,
+                'total' => 0
+            ]
+        ], 500);
     }
+}
 
     public function index()
     {
         Log::info('🎯 STUDENT ADMISSION CONTROLLER INDEX METHOD CALLED');
         Log::info('📁 Component path: Admin/StudentAdmissions/Index');
-        
+
         try {
             Log::info('🔄 Attempting Inertia render...');
             $response = Inertia::render('Admin/StudentAdmissions/Index');
@@ -138,7 +138,7 @@ class StudentAdmissionController extends Controller
     {
         Log::info('🎯 STUDENT ADMISSION CONTROLLER CREATE METHOD CALLED');
         Log::info('📁 Component path: Admin/StudentAdmissions/Create');
-        
+
         try {
             $response = Inertia::render('Admin/StudentAdmissions/Create');
             Log::info('✅ INERTIA RENDER SUCCESS - Student admission create page should load');
@@ -157,11 +157,11 @@ class StudentAdmissionController extends Controller
         try {
             // Get the latest admission number
             $latestStudent = Student::orderBy('id', 'desc')->first();
-            
+
             if ($latestStudent && !empty($latestStudent->admission_number)) {
                 // Extract the numeric part from the latest admission number
                 $latestNumber = preg_replace('/[^0-9]/', '', $latestStudent->admission_number);
-                
+
                 if ($latestNumber !== '') {
                     $nextNumber = (int)$latestNumber + 1;
                 } else {
@@ -172,15 +172,14 @@ class StudentAdmissionController extends Controller
                 // If no students exist yet, start from 1
                 $nextNumber = 1;
             }
-            
+
             // Format the number with leading zeros (at least 2 digits)
             $formattedNumber = str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
-            
+
             return "ADM{$formattedNumber}";
-            
         } catch (\Exception $e) {
             Log::error('Error generating admission number: ' . $e->getMessage());
-            
+
             // Fallback: use timestamp-based number
             $fallbackNumber = date('YmdHis');
             return "ADM{$fallbackNumber}";
@@ -194,14 +193,14 @@ class StudentAdmissionController extends Controller
     {
         try {
             $admissionNumber = $this->generateAdmissionNumber();
-            
+
             return response()->json([
                 'success' => true,
                 'admission_number' => $admissionNumber,
             ]);
         } catch (\Exception $e) {
             Log::error('Error generating admission number: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to generate admission number',
@@ -218,7 +217,7 @@ class StudentAdmissionController extends Controller
         try {
             // Generate admission number if not provided (for backward compatibility)
             $admissionNumber = $validated['student']['admission_number'] ?? $this->generateAdmissionNumber();
-            
+
             // Create admission - REMOVE 'date' field
             $admission = StudentAdmission::create([
                 'division_id' => $validated['registration_details']['division_id'],
@@ -287,7 +286,7 @@ class StudentAdmissionController extends Controller
                         ];
                     })->toArray();
 
-                if(!empty($siblingRecords)) {
+                if (!empty($siblingRecords)) {
                     Sibling::insert($siblingRecords);
                 }
             }
@@ -301,7 +300,6 @@ class StudentAdmissionController extends Controller
 
             Log::info('🎉 STUDENT ADMISSION CREATION SUCCESSFUL - Redirecting to index');
             return to_route('admin.admissions.index');
-
         } catch (\Throwable $exception) {
             DB::rollBack();
             Log::error('❌ STUDENT ADMISSION CREATION FAILED: ' . $exception->getMessage());
@@ -326,7 +324,7 @@ class StudentAdmissionController extends Controller
 
             $feeController = app(FeeStructureController::class);
             $result = $feeController->applyRelevantFeesToStudent($student);
-            
+
             if ($result['success']) {
                 Log::info("Auto-applied fees to new student successfully", [
                     'student_id' => $student->id,
@@ -341,13 +339,12 @@ class StudentAdmissionController extends Controller
             }
 
             return $result;
-
         } catch (\Exception $e) {
             Log::error('Error in applyRelevantFeesToNewStudent: ' . $e->getMessage(), [
                 'student_id' => $student->id,
                 'exception' => $e
             ]);
-            
+
             return [
                 'success' => false,
                 'message' => 'Failed to apply fees automatically: ' . $e->getMessage()
@@ -359,13 +356,13 @@ class StudentAdmissionController extends Controller
     {
         Log::info('🎯 STUDENT ADMISSION CONTROLLER SHOW METHOD CALLED');
         Log::info('📁 Student Admission ID: ' . $id);
-        
+
         try {
             // Find by ID but don't load the student relationship with computed properties
             $admission = StudentAdmission::with([
                 'division',
                 'student.rank.stream',
-                'student.gender', 
+                'student.gender',
                 'student.religion',
                 'student.guardians.relationship',
                 'student.siblings.gender',
@@ -465,7 +462,7 @@ class StudentAdmissionController extends Controller
         } catch (\Exception $e) {
             Log::error('❌ Error in show method: ' . $e->getMessage());
             Log::error('📝 Stack trace: ' . $e->getTraceAsString());
-            
+
             abort(500, 'Failed to load student admission details: ' . $e->getMessage());
         }
     }
@@ -474,13 +471,13 @@ class StudentAdmissionController extends Controller
     {
         Log::info('🎯 STUDENT ADMISSION CONTROLLER EDIT METHOD CALLED');
         Log::info('📁 Student Admission ID: ' . $id);
-        
+
         try {
             // Find by ID (not hashid)
             $admission = StudentAdmission::with([
                 'division',
                 'student.rank',
-                'student.gender', 
+                'student.gender',
                 'student.religion',
                 'student.guardians.relationship',
                 'student.siblings.gender',
@@ -502,174 +499,172 @@ class StudentAdmissionController extends Controller
         } catch (\Exception $e) {
             Log::error('❌ Error in edit method: ' . $e->getMessage());
             Log::error('📝 Stack trace: ' . $e->getTraceAsString());
-            
+
             abort(500, 'Failed to load student admission for editing');
         }
     }
 
-   public function update(Request $request, $id)
-{
-    Log::info('🎯 STUDENT ADMISSION CONTROLLER UPDATE METHOD CALLED');
-    Log::info('📁 Student Admission ID: ' . $id);
-  
-    $studentAdmission = StudentAdmission::find($id);
-    
-    if (!$studentAdmission) {
-        Log::error('❌ Student admission not found with ID: ' . $id);
-        return redirect()->back()->withErrors(['message' => 'Student admission not found.']);
-    }
+    public function update(Request $request, $id)
+    {
+        Log::info('🎯 STUDENT ADMISSION CONTROLLER UPDATE METHOD CALLED');
+        Log::info('📁 Student Admission ID: ' . $id);
 
-    Log::info('📁 Student Admission Hashid: ' . $studentAdmission->hashid);
-    Log::info('📦 Full Request Data:', $request->all());
+        $studentAdmission = StudentAdmission::find($id);
 
-    DB::beginTransaction();
-    try {
-        // Get the student first to check if it exists
-        $student = $studentAdmission->student;
-        
-        if (!$student) {
-            Log::error('❌ No student found for admission ID: ' . $studentAdmission->id);
-            throw new \Exception('No student found for this admission. Student Admission ID: ' . $studentAdmission->id);
+        if (!$studentAdmission) {
+            Log::error('❌ Student admission not found with ID: ' . $id);
+            return redirect()->back()->withErrors(['message' => 'Student admission not found.']);
         }
 
-        Log::info('✅ Student found: ' . $student->id);
+        Log::info('📁 Student Admission Hashid: ' . $studentAdmission->hashid);
+        Log::info('📦 Full Request Data:', $request->all());
 
-        // Basic validation for required fields
-        $request->validate([
-            'registration_details.division_id' => ['required', 'exists:divisions,id'],
-            'student.first_name' => ['required', 'string', 'max:255'],
-            'student.last_name' => ['required', 'string', 'max:255'],
-            'student.rank_id' => ['required', 'exists:ranks,id'],
-            'student.gender_id' => ['required', 'exists:genders,id'],
-            'student.religion_id' => ['required', 'exists:religions,id'],
-            'student.date_of_birth' => ['nullable', 'date'],
-        ]);
+        DB::beginTransaction();
+        try {
+            // Get the student first to check if it exists
+            $student = $studentAdmission->student;
 
-        Log::info('✅ Validation passed');
-
-        // Update admission
-        $studentAdmission->update([
-            'division_id' => $request->input('registration_details.division_id'),
-        ]);
-
-        Log::info('✅ Admission updated');
-
-        // Update student
-        $studentData = [
-            'first_name' => $request->input('student.first_name'),
-            'middle_name' => $request->input('student.middle_name', ''),
-            'last_name' => $request->input('student.last_name'),
-            'rank_id' => $request->input('student.rank_id'),
-            'date_of_birth' => $request->input('student.date_of_birth'),
-            'birth_certificate_number' => $request->input('student.birth_certificate_number', ''),
-            'gender_id' => $request->input('student.gender_id'),
-            'religion_id' => $request->input('student.religion_id'),
-            'citizenship' => $request->input('student.citizenship', ''),
-            'county' => $request->input('student.county', ''),
-            'ward' => $request->input('student.ward', ''),
-            'permanent_address' => $request->input('student.permanent_address', ''),
-            'kcpe_score' => $request->input('student.kcpe_score', ''),
-            'previous_school' => $request->input('student.previous_school', ''),
-            'physical_disability' => $request->input('other_details.physical_disability', ''),
-            'hobby' => $request->input('other_details.hobby', ''),
-            'medical_details' => $request->input('other_details.medical_details', ''),
-            'character_book' => $request->input('other_details.character_book', ''),
-        ];
-
-        Log::info('📦 Student Update Data:', $studentData);
-
-        $student->update($studentData);
-        Log::info('✅ Student updated');
-
-        // Handle guardians
-        if ($request->has('guardians') && is_array($request->input('guardians'))) {
-            Log::info('🔄 Processing guardians...');
-            $student->guardians()->delete();
-
-            $guardianRecords = collect($request->input('guardians'))
-                ->filter(function ($guardian) {
-                    return !empty($guardian['first_name']) && !empty($guardian['last_name']);
-                })
-                ->map(function ($guardian) use ($student) {
-                    return [
-                        'student_id' => $student->id,
-                        'relationship_id' => $guardian['relationship_id'] ?? null,
-                        'first_name' => $guardian['first_name'],
-                        'middle_name' => $guardian['middle_name'] ?? null,
-                        'last_name' => $guardian['last_name'],
-                        'email' => $guardian['email'] ?? null,
-                        'phone' => $guardian['phone'] ?? null,
-                        'profession' => $guardian['profession'] ?? null,
-                        'identification_number' => $guardian['identification_number'] ?? null,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                })->toArray();
-
-            if (!empty($guardianRecords)) {
-                Guardian::insert($guardianRecords);
-                Log::info('✅ Guardians updated: ' . count($guardianRecords) . ' records');
-            } else {
-                Log::info('ℹ️ No guardians to update');
+            if (!$student) {
+                Log::error('❌ No student found for admission ID: ' . $studentAdmission->id);
+                throw new \Exception('No student found for this admission. Student Admission ID: ' . $studentAdmission->id);
             }
-        }
 
-        // Handle siblings
-        if ($request->has('other_details.siblings') && is_array($request->input('other_details.siblings'))) {
-            Log::info('🔄 Processing siblings...');
-            $student->siblings()->delete();
+            Log::info('✅ Student found: ' . $student->id);
 
-            $siblingRecords = collect($request->input('other_details.siblings'))
-                ->filter(function ($sibling) {
-                    return !empty($sibling['name']);
-                })
-                ->map(function ($sibling) use ($student) {
-                    return [
-                        'student_id' => $student->id,
-                        'name' => $sibling['name'],
-                        'age' => $sibling['age'] ?? null,
-                        'gender_id' => $sibling['gender_id'] ?? null,
-                        'current_school' => $sibling['current_school'] ?? null,
-                        'current_class' => $sibling['current_class'] ?? null,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                })->toArray();
+            // Basic validation for required fields
+            $request->validate([
+                'registration_details.division_id' => ['required', 'exists:divisions,id'],
+                'student.first_name' => ['required', 'string', 'max:255'],
+                'student.last_name' => ['required', 'string', 'max:255'],
+                'student.rank_id' => ['required', 'exists:ranks,id'],
+                'student.gender_id' => ['required', 'exists:genders,id'],
+                'student.religion_id' => ['required', 'exists:religions,id'],
+                'student.date_of_birth' => ['nullable', 'date'],
+            ]);
 
-            if(!empty($siblingRecords)) {
-                Sibling::insert($siblingRecords);
-                Log::info('✅ Siblings updated: ' . count($siblingRecords) . ' records');
-            } else {
-                Log::info('ℹ️ No siblings to update');
+            Log::info('✅ Validation passed');
+
+            // Update admission
+            $studentAdmission->update([
+                'division_id' => $request->input('registration_details.division_id'),
+            ]);
+
+            Log::info('✅ Admission updated');
+
+            // Update student
+            $studentData = [
+                'first_name' => $request->input('student.first_name'),
+                'middle_name' => $request->input('student.middle_name', ''),
+                'last_name' => $request->input('student.last_name'),
+                'rank_id' => $request->input('student.rank_id'),
+                'date_of_birth' => $request->input('student.date_of_birth'),
+                'birth_certificate_number' => $request->input('student.birth_certificate_number', ''),
+                'gender_id' => $request->input('student.gender_id'),
+                'religion_id' => $request->input('student.religion_id'),
+                'citizenship' => $request->input('student.citizenship', ''),
+                'county' => $request->input('student.county', ''),
+                'ward' => $request->input('student.ward', ''),
+                'permanent_address' => $request->input('student.permanent_address', ''),
+                'kcpe_score' => $request->input('student.kcpe_score', ''),
+                'previous_school' => $request->input('student.previous_school', ''),
+                'physical_disability' => $request->input('other_details.physical_disability', ''),
+                'hobby' => $request->input('other_details.hobby', ''),
+                'medical_details' => $request->input('other_details.medical_details', ''),
+                'character_book' => $request->input('other_details.character_book', ''),
+            ];
+
+            Log::info('📦 Student Update Data:', $studentData);
+
+            $student->update($studentData);
+            Log::info('✅ Student updated');
+
+            // Handle guardians
+            if ($request->has('guardians') && is_array($request->input('guardians'))) {
+                Log::info('🔄 Processing guardians...');
+                $student->guardians()->delete();
+
+                $guardianRecords = collect($request->input('guardians'))
+                    ->filter(function ($guardian) {
+                        return !empty($guardian['first_name']) && !empty($guardian['last_name']);
+                    })
+                    ->map(function ($guardian) use ($student) {
+                        return [
+                            'student_id' => $student->id,
+                            'relationship_id' => $guardian['relationship_id'] ?? null,
+                            'first_name' => $guardian['first_name'],
+                            'middle_name' => $guardian['middle_name'] ?? null,
+                            'last_name' => $guardian['last_name'],
+                            'email' => $guardian['email'] ?? null,
+                            'phone' => $guardian['phone'] ?? null,
+                            'profession' => $guardian['profession'] ?? null,
+                            'identification_number' => $guardian['identification_number'] ?? null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    })->toArray();
+
+                if (!empty($guardianRecords)) {
+                    Guardian::insert($guardianRecords);
+                    Log::info('✅ Guardians updated: ' . count($guardianRecords) . ' records');
+                } else {
+                    Log::info('ℹ️ No guardians to update');
+                }
             }
+
+            // Handle siblings
+            if ($request->has('other_details.siblings') && is_array($request->input('other_details.siblings'))) {
+                Log::info('🔄 Processing siblings...');
+                $student->siblings()->delete();
+
+                $siblingRecords = collect($request->input('other_details.siblings'))
+                    ->filter(function ($sibling) {
+                        return !empty($sibling['name']);
+                    })
+                    ->map(function ($sibling) use ($student) {
+                        return [
+                            'student_id' => $student->id,
+                            'name' => $sibling['name'],
+                            'age' => $sibling['age'] ?? null,
+                            'gender_id' => $sibling['gender_id'] ?? null,
+                            'current_school' => $sibling['current_school'] ?? null,
+                            'current_class' => $sibling['current_class'] ?? null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    })->toArray();
+
+                if (!empty($siblingRecords)) {
+                    Sibling::insert($siblingRecords);
+                    Log::info('✅ Siblings updated: ' . count($siblingRecords) . ' records');
+                } else {
+                    Log::info('ℹ️ No siblings to update');
+                }
+            }
+
+            DB::commit();
+            Log::info('🎉 STUDENT ADMISSION UPDATE SUCCESSFUL - Redirecting to index');
+
+            // If class was changed, re-apply relevant fees
+            if ($student->wasChanged('rank_id')) {
+                $this->applyRelevantFeesToStudentAfterClassChange($student);
+            }
+
+            return redirect()->route('admin.admissions.index')->with('success', 'Student admission updated successfully!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            Log::error('❌ VALIDATION ERROR: ' . $e->getMessage());
+            Log::error('📝 Validation errors:', $e->errors());
+            return redirect()->back()->withInput()->withErrors($e->errors());
+        } catch (\Throwable $exception) {
+            DB::rollBack();
+            Log::error('❌ STUDENT ADMISSION UPDATE FAILED: ' . $exception->getMessage());
+            Log::error('📝 Stack trace: ' . $exception->getTraceAsString());
+            Log::error('📝 File: ' . $exception->getFile());
+            Log::error('📝 Line: ' . $exception->getLine());
+
+            return redirect()->back()->withInput()->withErrors(['message' => 'Failed to update student details: ' . $exception->getMessage()]);
         }
-
-        DB::commit();
-        Log::info('🎉 STUDENT ADMISSION UPDATE SUCCESSFUL - Redirecting to index');
-
-        // If class was changed, re-apply relevant fees
-        if ($student->wasChanged('rank_id')) {
-            $this->applyRelevantFeesToStudentAfterClassChange($student);
-        }
-
-        return redirect()->route('admin.admissions.index')->with('success', 'Student admission updated successfully!');
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        DB::rollBack();
-        Log::error('❌ VALIDATION ERROR: ' . $e->getMessage());
-        Log::error('📝 Validation errors:', $e->errors());
-        return redirect()->back()->withInput()->withErrors($e->errors());
-        
-    } catch (\Throwable $exception) {
-        DB::rollBack();
-        Log::error('❌ STUDENT ADMISSION UPDATE FAILED: ' . $exception->getMessage());
-        Log::error('📝 Stack trace: ' . $exception->getTraceAsString());
-        Log::error('📝 File: ' . $exception->getFile());
-        Log::error('📝 Line: ' . $exception->getLine());
-        
-        return redirect()->back()->withInput()->withErrors(['message' => 'Failed to update student details: ' . $exception->getMessage()]);
     }
-}
     /**
      * Apply relevant fees when student class is changed
      */
@@ -685,7 +680,7 @@ class StudentAdmissionController extends Controller
 
             $feeController = app(FeeStructureController::class);
             $result = $feeController->applyRelevantFeesToStudent($student);
-            
+
             if ($result['success']) {
                 Log::info("Applied fees after class change successfully", [
                     'student_id' => $student->id,
@@ -700,12 +695,11 @@ class StudentAdmissionController extends Controller
             }
 
             return $result;
-
         } catch (\Exception $e) {
             Log::error('Error applying fees after class change: ' . $e->getMessage(), [
                 'student_id' => $student->id
             ]);
-            
+
             return [
                 'success' => false,
                 'message' => 'Failed to apply fees after class change: ' . $e->getMessage()
@@ -713,227 +707,227 @@ class StudentAdmissionController extends Controller
         }
     }
 
-   /**
- * Updated firstStep method to handle both create and edit scenarios
- */
-public function firstStep(Request $request)
-{
-    Log::info('🎯 FIRST STEP METHOD CALLED');
-    Log::info('📦 Request data:', $request->all());
+    /**
+     * Updated firstStep method to handle both create and edit scenarios
+     */
+    public function firstStep(Request $request)
+    {
+        Log::info('🎯 FIRST STEP METHOD CALLED');
+        Log::info('📦 Request data:', $request->all());
 
-    $errorMessages = [
-        'registration_details.division_id' => 'Please select a division.',
-    ];
+        $errorMessages = [
+            'registration_details.division_id' => 'Please select a division.',
+        ];
 
-    $request->validate([
-        'registration_details.division_id' => ['required', Rule::exists('divisions', 'id')],
-    ], $errorMessages);
+        $request->validate([
+            'registration_details.division_id' => ['required', Rule::exists('divisions', 'id')],
+        ], $errorMessages);
 
-    // Handle edit scenario
-    if ($request->has('student_admission_id')) {
-        $studentAdmission = StudentAdmission::find($request->student_admission_id);
-        if ($studentAdmission) {
-            // Update the division
-            $studentAdmission->update([
-                'division_id' => $request->input('registration_details.division_id')
-            ]);
-            
-            Log::info('✅ Division updated for admission ID: ' . $studentAdmission->id);
-            
-            // Return success response for Inertia
-            if ($request->header('X-Inertia')) {
-                return back()->with('success', 'Division updated successfully');
+        // Handle edit scenario
+        if ($request->has('student_admission_id')) {
+            $studentAdmission = StudentAdmission::find($request->student_admission_id);
+            if ($studentAdmission) {
+                // Update the division
+                $studentAdmission->update([
+                    'division_id' => $request->input('registration_details.division_id')
+                ]);
+
+                Log::info('✅ Division updated for admission ID: ' . $studentAdmission->id);
+
+                // Return success response for Inertia
+                if ($request->header('X-Inertia')) {
+                    return back()->with('success', 'Division updated successfully');
+                }
+
+                return response()->json(['success' => true, 'message' => 'Division updated']);
+            } else {
+                Log::error('❌ Student admission not found with ID: ' . $request->student_admission_id);
+
+                if ($request->header('X-Inertia')) {
+                    return back()->withErrors(['error' => 'Student admission not found']);
+                }
+
+                return response()->json(['success' => false, 'message' => 'Student admission not found'], 404);
             }
-            
-            return response()->json(['success' => true, 'message' => 'Division updated']);
-        } else {
-            Log::error('❌ Student admission not found with ID: ' . $request->student_admission_id);
-            
-            if ($request->header('X-Inertia')) {
-                return back()->withErrors(['error' => 'Student admission not found']);
-            }
-            
-            return response()->json(['success' => false, 'message' => 'Student admission not found'], 404);
         }
-    }
 
-    // For create scenario, continue with session or other logic
-    Log::info('✅ First step validation passed for create scenario');
-    
-    if ($request->header('X-Inertia')) {
-        return back()->with('success', 'First step completed');
-    }
-    
-    return response()->json(['success' => true]);
-}
+        // For create scenario, continue with session or other logic
+        Log::info('✅ First step validation passed for create scenario');
 
-/**
- * Updated secondStep method to handle both create and edit scenarios
- */
-public function secondStep(Request $request)
-{
-    Log::info('🎯 SECOND STEP METHOD CALLED');
-    Log::info('📦 Request data:', $request->all());
-
-    $errorMessages = [
-        'student.first_name.required' => 'The first name is required.',
-        'student.first_name.string' => 'The first name must be a valid string.',
-        'student.first_name.max' => 'The first name may not be greater than 255 characters.',
-        'student.middle_name.string' => 'The middle name must be a valid string.',
-        'student.middle_name.max' => 'The middle name may not be greater than 255 characters.',
-        'student.last_name.required' => 'The last name is required.',
-        'student.last_name.string' => 'The last name must be a valid string.',
-        'student.last_name.max' => 'The last name may not be greater than 255 characters.',
-        'student.rank_id.required' => 'Please select a class first.',
-        'student.rank_id.exists' => 'The selected class does not exist.',
-        'student.gender_id.required' => 'The gender is required.',
-        'student.gender_id.exists' => 'The selected gender is invalid.',
-        'student.religion_id.required' => 'The religion is required.',
-        'student.religion_id.exists' => 'The selected religion is invalid.',
-        'student.date_of_birth.required' => 'The date of birth is required.',
-        'student.date_of_birth.string' => 'The date of birth must be a valid string.',
-        'student.date_of_birth.max' => 'The date of birth may not be greater than 255 characters.',
-        'student.birth_certificate_number.string' => 'The birth certificate number must be a valid string.',
-        'student.birth_certificate_number.max' => 'The birth certificate number may not be greater than 255 characters.',
-        'student.citizenship.required' => 'The citizenship is required.',
-        'student.citizenship.string' => 'The citizenship must be a valid string.',
-        'student.citizenship.max' => 'The citizenship may not be greater than 255 characters.',
-        'student.county.string' => 'The county must be a valid string.',
-        'student.county.max' => 'The county may not be greater than 255 characters.',
-        'student.ward.string' => 'The ward must be a valid string.',
-        'student.ward.max' => 'The ward may not be greater than 255 characters.',
-        'student.permanent_address.required' => 'The permanent address is required.',
-        'student.permanent_address.string' => 'The permanent address must be a valid string.',
-        'student.permanent_address.max' => 'The permanent address may not be greater than 255 characters.',
-        'student.kcpe_score.string' => 'The KCPE score must be a valid string.',
-        'student.kcpe_score.max' => 'The KCPE score may not be greater than 255 characters.',
-        'student.previous_school.string' => 'The previous school must be a valid string.',
-        'student.previous_school.max' => 'The previous school may not be greater than 255 characters.',
-    ];
-
-    $request->validate([
-        'student.first_name' => ['required', 'string', 'max:255'],
-        'student.middle_name' => ['nullable', 'string', 'max:255'],
-        'student.last_name' => ['required', 'string', 'max:255'],
-        'student.rank_id' => ['required', Rule::exists('ranks', 'id')],
-        'student.gender_id' => ['required', Rule::exists('genders', 'id')],
-        'student.religion_id' => ['required', Rule::exists('religions', 'id')],
-        'student.date_of_birth' => ['nullable', 'string', 'max:255'],
-        'student.birth_certificate_number' => ['nullable', 'string', 'max:255'],
-        'student.citizenship' => ['nullable', 'string', 'max:255'],
-        'student.county' => ['nullable', 'string', 'max:255'],
-        'student.ward' => ['nullable', 'string', 'max:255'],
-        'student.permanent_address' => ['nullable', 'string', 'max:255'],
-        'student.kcpe_score' => ['nullable', 'string', 'max:255'],
-        'student.previous_school' => ['nullable', 'string', 'max:255'],
-    ], $errorMessages);
-
-    // Handle edit scenario
-    if ($request->has('student_admission_id')) {
-        $studentAdmission = StudentAdmission::with('student')->find($request->student_admission_id);
-        if ($studentAdmission && $studentAdmission->student) {
-            // Update student details
-            $studentAdmission->student->update([
-                'first_name' => $request->input('student.first_name'),
-                'middle_name' => $request->input('student.middle_name'),
-                'last_name' => $request->input('student.last_name'),
-                'rank_id' => $request->input('student.rank_id'),
-                'gender_id' => $request->input('student.gender_id'),
-                'religion_id' => $request->input('student.religion_id'),
-                'date_of_birth' => $request->input('student.date_of_birth'),
-                'birth_certificate_number' => $request->input('student.birth_certificate_number'),
-                'citizenship' => $request->input('student.citizenship'),
-                'county' => $request->input('student.county'),
-                'ward' => $request->input('student.ward'),
-                'permanent_address' => $request->input('student.permanent_address'),
-                'kcpe_score' => $request->input('student.kcpe_score'),
-                'previous_school' => $request->input('student.previous_school'),
-            ]);
-            
-            Log::info('✅ Student details updated for admission ID: ' . $studentAdmission->id);
-            
-            // Return success response for Inertia
-            if ($request->header('X-Inertia')) {
-                return back()->with('success', 'Student details updated successfully');
-            }
-            
-            return response()->json(['success' => true, 'message' => 'Student details updated']);
-        } else {
-            Log::error('❌ Student admission or student not found with ID: ' . $request->student_admission_id);
-            
-            if ($request->header('X-Inertia')) {
-                return back()->withErrors(['error' => 'Student admission or student not found']);
-            }
-            
-            return response()->json(['success' => false, 'message' => 'Student admission or student not found'], 404);
+        if ($request->header('X-Inertia')) {
+            return back()->with('success', 'First step completed');
         }
+
+        return response()->json(['success' => true]);
     }
 
-    Log::info('✅ Second step validation passed for create scenario');
-    
-    if ($request->header('X-Inertia')) {
-        return back()->with('success', 'Second step completed');
+    /**
+     * Updated secondStep method to handle both create and edit scenarios
+     */
+    public function secondStep(Request $request)
+    {
+        Log::info('🎯 SECOND STEP METHOD CALLED');
+        Log::info('📦 Request data:', $request->all());
+
+        $errorMessages = [
+            'student.first_name.required' => 'The first name is required.',
+            'student.first_name.string' => 'The first name must be a valid string.',
+            'student.first_name.max' => 'The first name may not be greater than 255 characters.',
+            'student.middle_name.string' => 'The middle name must be a valid string.',
+            'student.middle_name.max' => 'The middle name may not be greater than 255 characters.',
+            'student.last_name.required' => 'The last name is required.',
+            'student.last_name.string' => 'The last name must be a valid string.',
+            'student.last_name.max' => 'The last name may not be greater than 255 characters.',
+            'student.rank_id.required' => 'Please select a class first.',
+            'student.rank_id.exists' => 'The selected class does not exist.',
+            'student.gender_id.required' => 'The gender is required.',
+            'student.gender_id.exists' => 'The selected gender is invalid.',
+            'student.religion_id.required' => 'The religion is required.',
+            'student.religion_id.exists' => 'The selected religion is invalid.',
+            'student.date_of_birth.required' => 'The date of birth is required.',
+            'student.date_of_birth.string' => 'The date of birth must be a valid string.',
+            'student.date_of_birth.max' => 'The date of birth may not be greater than 255 characters.',
+            'student.birth_certificate_number.string' => 'The birth certificate number must be a valid string.',
+            'student.birth_certificate_number.max' => 'The birth certificate number may not be greater than 255 characters.',
+            'student.citizenship.required' => 'The citizenship is required.',
+            'student.citizenship.string' => 'The citizenship must be a valid string.',
+            'student.citizenship.max' => 'The citizenship may not be greater than 255 characters.',
+            'student.county.string' => 'The county must be a valid string.',
+            'student.county.max' => 'The county may not be greater than 255 characters.',
+            'student.ward.string' => 'The ward must be a valid string.',
+            'student.ward.max' => 'The ward may not be greater than 255 characters.',
+            'student.permanent_address.required' => 'The permanent address is required.',
+            'student.permanent_address.string' => 'The permanent address must be a valid string.',
+            'student.permanent_address.max' => 'The permanent address may not be greater than 255 characters.',
+            'student.kcpe_score.string' => 'The KCPE score must be a valid string.',
+            'student.kcpe_score.max' => 'The KCPE score may not be greater than 255 characters.',
+            'student.previous_school.string' => 'The previous school must be a valid string.',
+            'student.previous_school.max' => 'The previous school may not be greater than 255 characters.',
+        ];
+
+        $request->validate([
+            'student.first_name' => ['required', 'string', 'max:255'],
+            'student.middle_name' => ['nullable', 'string', 'max:255'],
+            'student.last_name' => ['required', 'string', 'max:255'],
+            'student.rank_id' => ['required', Rule::exists('ranks', 'id')],
+            'student.gender_id' => ['required', Rule::exists('genders', 'id')],
+            'student.religion_id' => ['required', Rule::exists('religions', 'id')],
+            'student.date_of_birth' => ['nullable', 'string', 'max:255'],
+            'student.birth_certificate_number' => ['nullable', 'string', 'max:255'],
+            'student.citizenship' => ['nullable', 'string', 'max:255'],
+            'student.county' => ['nullable', 'string', 'max:255'],
+            'student.ward' => ['nullable', 'string', 'max:255'],
+            'student.permanent_address' => ['nullable', 'string', 'max:255'],
+            'student.kcpe_score' => ['nullable', 'string', 'max:255'],
+            'student.previous_school' => ['nullable', 'string', 'max:255'],
+        ], $errorMessages);
+
+        // Handle edit scenario
+        if ($request->has('student_admission_id')) {
+            $studentAdmission = StudentAdmission::with('student')->find($request->student_admission_id);
+            if ($studentAdmission && $studentAdmission->student) {
+                // Update student details
+                $studentAdmission->student->update([
+                    'first_name' => $request->input('student.first_name'),
+                    'middle_name' => $request->input('student.middle_name'),
+                    'last_name' => $request->input('student.last_name'),
+                    'rank_id' => $request->input('student.rank_id'),
+                    'gender_id' => $request->input('student.gender_id'),
+                    'religion_id' => $request->input('student.religion_id'),
+                    'date_of_birth' => $request->input('student.date_of_birth'),
+                    'birth_certificate_number' => $request->input('student.birth_certificate_number'),
+                    'citizenship' => $request->input('student.citizenship'),
+                    'county' => $request->input('student.county'),
+                    'ward' => $request->input('student.ward'),
+                    'permanent_address' => $request->input('student.permanent_address'),
+                    'kcpe_score' => $request->input('student.kcpe_score'),
+                    'previous_school' => $request->input('student.previous_school'),
+                ]);
+
+                Log::info('✅ Student details updated for admission ID: ' . $studentAdmission->id);
+
+                // Return success response for Inertia
+                if ($request->header('X-Inertia')) {
+                    return back()->with('success', 'Student details updated successfully');
+                }
+
+                return response()->json(['success' => true, 'message' => 'Student details updated']);
+            } else {
+                Log::error('❌ Student admission or student not found with ID: ' . $request->student_admission_id);
+
+                if ($request->header('X-Inertia')) {
+                    return back()->withErrors(['error' => 'Student admission or student not found']);
+                }
+
+                return response()->json(['success' => false, 'message' => 'Student admission or student not found'], 404);
+            }
+        }
+
+        Log::info('✅ Second step validation passed for create scenario');
+
+        if ($request->header('X-Inertia')) {
+            return back()->with('success', 'Second step completed');
+        }
+
+        return response()->json(['success' => true]);
     }
-    
-    return response()->json(['success' => true]);
-}
 
-/**
- * Updated thirdStep method to handle both create and edit scenarios
- */
-public function thirdStep(Request $request)
-{
-    Log::info('🎯 THIRD STEP METHOD CALLED');
-    Log::info('📦 Request data:', $request->all());
+    /**
+     * Updated thirdStep method to handle both create and edit scenarios
+     */
+    public function thirdStep(Request $request)
+    {
+        Log::info('🎯 THIRD STEP METHOD CALLED');
+        Log::info('📦 Request data:', $request->all());
 
-    $errorMessages = [
-        'guardians.required' => 'Please provide at least one guardian.',
-        'guardians.min' => 'You must add at least one guardian.',
-        'guardians.*.first_name.required' => 'The first name of each guardian is required.',
-        'guardians.*.first_name.string' => 'The first name must be a valid string.',
-        'guardians.*.first_name.max' => 'The first name cannot be longer than 255 characters.',
-        'guardians.*.last_name.required' => 'The last name of each guardian is required.',
-        'guardians.*.last_name.string' => 'The last name must be a valid string.',
-        'guardians.*.last_name.max' => 'The last name cannot be longer than 255 characters.',
-        'guardians.*.email.required' => 'The guardian\'s email is required.',
-        'guardians.*.email.email' => 'The guardian\'s email must be a valid email address.',
-        'guardians.*.phone.required' => 'The guardian\'s phone number is required.',
-        'guardians.*.phone.string' => 'The phone number must be a valid string.',
-        'guardians.*.identification_number.string' => 'The identification number must be a valid string.',
-        'guardians.*.profession.string' => 'The guardian\'s profession must be a valid string.',
-    ];
+        $errorMessages = [
+            'guardians.required' => 'Please provide at least one guardian.',
+            'guardians.min' => 'You must add at least one guardian.',
+            'guardians.*.first_name.required' => 'The first name of each guardian is required.',
+            'guardians.*.first_name.string' => 'The first name must be a valid string.',
+            'guardians.*.first_name.max' => 'The first name cannot be longer than 255 characters.',
+            'guardians.*.last_name.required' => 'The last name of each guardian is required.',
+            'guardians.*.last_name.string' => 'The last name must be a valid string.',
+            'guardians.*.last_name.max' => 'The last name cannot be longer than 255 characters.',
+            'guardians.*.email.required' => 'The guardian\'s email is required.',
+            'guardians.*.email.email' => 'The guardian\'s email must be a valid email address.',
+            'guardians.*.phone.required' => 'The guardian\'s phone number is required.',
+            'guardians.*.phone.string' => 'The phone number must be a valid string.',
+            'guardians.*.identification_number.string' => 'The identification number must be a valid string.',
+            'guardians.*.profession.string' => 'The guardian\'s profession must be a valid string.',
+        ];
 
-    $request->validate([
-        'guardians' => ['nullable', 'array'], 
-        'guardians.*.relationship_id' => ['nullable', Rule::exists('relationships', 'id')],
-        'guardians.*.first_name' => ['nullable', 'string', 'max:255'],
-        'guardians.*.middle_name' => ['nullable', 'string', 'max:255'],
-        'guardians.*.last_name' => ['nullable', 'string', 'max:255'],
-        'guardians.*.email' => ['nullable', 'email'],
-        'guardians.*.phone' => ['nullable', 'string'],
-        'guardians.*.identification_number' => ['nullable', 'string'],
-        'guardians.*.profession' => ['nullable', 'string'],
-    ], $errorMessages);
+        $request->validate([
+            'guardians' => ['nullable', 'array'],
+            'guardians.*.relationship_id' => ['nullable', Rule::exists('relationships', 'id')],
+            'guardians.*.first_name' => ['nullable', 'string', 'max:255'],
+            'guardians.*.middle_name' => ['nullable', 'string', 'max:255'],
+            'guardians.*.last_name' => ['nullable', 'string', 'max:255'],
+            'guardians.*.email' => ['nullable', 'email'],
+            'guardians.*.phone' => ['nullable', 'string'],
+            'guardians.*.identification_number' => ['nullable', 'string'],
+            'guardians.*.profession' => ['nullable', 'string'],
+        ], $errorMessages);
 
-    // Handle edit scenario - guardians are handled separately in the main update
-    if ($request->has('student_admission_id')) {
-        Log::info('✅ Third step validation passed for edit scenario - guardians will be handled in main update');
-        
+        // Handle edit scenario - guardians are handled separately in the main update
+        if ($request->has('student_admission_id')) {
+            Log::info('✅ Third step validation passed for edit scenario - guardians will be handled in main update');
+
+            if ($request->header('X-Inertia')) {
+                return back()->with('success', 'Third step completed');
+            }
+
+            return response()->json(['success' => true, 'message' => 'Step validated']);
+        }
+
+        Log::info('✅ Third step validation passed for create scenario');
+
         if ($request->header('X-Inertia')) {
             return back()->with('success', 'Third step completed');
         }
-        
-        return response()->json(['success' => true, 'message' => 'Step validated']);
-    }
 
-    Log::info('✅ Third step validation passed for create scenario');
-    
-    if ($request->header('X-Inertia')) {
-        return back()->with('success', 'Third step completed');
+        return response()->json(['success' => true]);
     }
-    
-    return response()->json(['success' => true]);
-}
 
     public function otherDetailsValidation(Request $request)
     {
@@ -964,7 +958,7 @@ public function thirdStep(Request $request)
         $rateLimiter = RateLimiter::attempt(
             'admission_requests:' . $request->ip(),
             1,
-            function() {},
+            function () {},
             60 * 60 * 5
         );
 
@@ -982,10 +976,9 @@ public function thirdStep(Request $request)
             Cache::put('admission_request_' . md5($email), true, now()->addHours(24));
 
             return back()->with('success', 'Your admission request has been sent successfully! Please wait 24 hours before submitting another request.');
-
         } catch (\Exception $e) {
             return back()->with('error', 'Something went wrong. Please try again.')
-                        ->withInput();
+                ->withInput();
         }
     }
 }

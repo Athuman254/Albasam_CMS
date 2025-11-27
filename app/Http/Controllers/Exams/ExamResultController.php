@@ -78,26 +78,26 @@ class ExamResultController extends Controller
     private function generateSkillBreakdown($subjectName, $totalMarks, $maxMarks, $studentId = null, $examId = null, $classId = null)
     {
         // Get the subject with its skills from the database
-        $subject = Subject::with(['skills' => function($query) {
+        $subject = Subject::with(['skills' => function ($query) {
             $query->where('is_active', true)->orderBy('name');
         }])->where('name', $subjectName)->first();
-        
+
         if (!$subject || $subject->skills->isEmpty()) {
             return null;
         }
-        
+
         $breakdown = [];
         $numberOfSkills = $subject->skills->count();
-        
+
         // If we have specific student, exam, and class, try to get detailed skill marks
         $hasDetailedSkillMarks = false;
         $detailedSkillMarks = [];
-        
+
         if ($studentId && $examId && $classId) {
             $detailedSkillMarks = $this->getDetailedSkillMarks($studentId, $examId, $classId, $subject->id);
             $hasDetailedSkillMarks = !empty($detailedSkillMarks);
         }
-        
+
         if ($hasDetailedSkillMarks) {
             // Use actual skill marks from database
             foreach ($subject->skills as $skill) {
@@ -105,7 +105,7 @@ class ExamResultController extends Controller
                     'marks_obtained' => 0,
                     'maximum_marks' => 0
                 ];
-                
+
                 $breakdown[] = [
                     'skill_name' => $skill->name,
                     'marks_obtained' => $skillMark['marks_obtained'],
@@ -117,7 +117,7 @@ class ExamResultController extends Controller
             // Distribute marks evenly among skills (fallback)
             $marksPerSkill = $maxMarks / $numberOfSkills;
             $obtainedPerSkill = $totalMarks / $numberOfSkills;
-            
+
             foreach ($subject->skills as $skill) {
                 $breakdown[] = [
                     'skill_name' => $skill->name,
@@ -127,7 +127,7 @@ class ExamResultController extends Controller
                 ];
             }
         }
-        
+
         return $breakdown;
     }
 
@@ -138,11 +138,11 @@ class ExamResultController extends Controller
     {
         // This is where you would fetch actual skill-based marks from your database
         // You need to implement this based on your skill marks storage structure
-        
+
         // For now, return empty array as placeholder
         // You'll need to create a table like 'exam_skill_marks' that stores:
         // student_id, exam_id, class_id, subject_id, skill_id, marks_obtained, maximum_marks
-        
+
         return [];
     }
 
@@ -152,10 +152,10 @@ class ExamResultController extends Controller
     private function getSkillRemarks($marks, $maxMarks)
     {
         if ($maxMarks == 0) return 'Not assessed';
-        
+
         $percentage = ($marks / $maxMarks) * 100;
-        
-        return match(true) {
+
+        return match (true) {
             $percentage >= 80 => 'You exceeded expectations',
             $percentage >= 70 => 'You met expectations',
             $percentage >= 60 => 'You approached expectations',
@@ -172,12 +172,12 @@ class ExamResultController extends Controller
         if (!$institution) {
             return null;
         }
-        
+
         $logoMedia = $institution->getFirstMedia('logo');
         if (!$logoMedia) {
             return null;
         }
-        
+
         try {
             $logoPath = $logoMedia->getPath();
             if (file_exists($logoPath)) {
@@ -188,7 +188,7 @@ class ExamResultController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error getting logo: ' . $e->getMessage());
         }
-        
+
         return null;
     }
 
@@ -254,11 +254,11 @@ class ExamResultController extends Controller
         // For CLASS report type: Generate individual student reports concatenated
         if ($reportType === 'class') {
             return $this->generateClassIndividualReports(
-                $institution, 
-                $exam, 
-                $class, 
-                $students, 
-                $includeAnalysis, 
+                $institution,
+                $exam,
+                $class,
+                $students,
+                $includeAnalysis,
                 $includeRankings,
                 $onlyPublished,
                 $examId,
@@ -300,7 +300,7 @@ class ExamResultController extends Controller
         foreach ($students as $student) {
             $marksQuery = ExamMark::with('examSubject.subject')
                 ->where('student_id', $student->id)
-                ->whereHas('examSubject', function($q) use ($examId, $classId) {
+                ->whereHas('examSubject', function ($q) use ($examId, $classId) {
                     $q->where('exam_id', $examId)->where('class_id', $classId);
                 });
 
@@ -320,7 +320,7 @@ class ExamResultController extends Controller
 
             $totalMarks = $marks->sum('marks_obtained');
             $average = $marks->count() > 0 ? $totalMarks / $marks->count() : 0;
-            $totalMaxMarks = $marks->sum(function($mark) {
+            $totalMaxMarks = $marks->sum(function ($mark) {
                 return $mark->examSubject->max_marks;
             });
             $overallPercentage = $totalMaxMarks > 0 ? ($totalMarks / $totalMaxMarks) * 100 : 0;
@@ -340,17 +340,17 @@ class ExamResultController extends Controller
         }
 
         if (empty($studentResults)) {
-            $statusMessage = $onlyPublished ? 
-                'No published marks found. Try unchecking "Only Published Results".' : 
+            $statusMessage = $onlyPublished ?
+                'No published marks found. Try unchecking "Only Published Results".' :
                 'No marks found for the selected criteria.';
-                
+
             return response()->json([
                 'error' => $statusMessage
             ], 404);
         }
 
         // Sort by total marks descending
-        usort($studentResults, function($a, $b) {
+        usort($studentResults, function ($a, $b) {
             return $b['total_marks'] <=> $a['total_marks'];
         });
 
@@ -397,7 +397,7 @@ class ExamResultController extends Controller
                 // Get marks for this student
                 $marksQuery = ExamMark::with('examSubject.subject')
                     ->where('student_id', $student->id)
-                    ->whereHas('examSubject', function($q) use ($examId, $classId) {
+                    ->whereHas('examSubject', function ($q) use ($examId, $classId) {
                         $q->where('exam_id', $examId)->where('class_id', $classId);
                     });
 
@@ -414,7 +414,7 @@ class ExamResultController extends Controller
                 }
 
                 $totalMarks = $marks->sum('marks_obtained');
-                $totalMaxMarks = $marks->sum(function($mark) {
+                $totalMaxMarks = $marks->sum(function ($mark) {
                     return $mark->examSubject->max_marks;
                 });
                 $average = $marks->count() > 0 ? $totalMarks / $marks->count() : 0;
@@ -438,10 +438,10 @@ class ExamResultController extends Controller
                     $subjectId = $mark->examSubject->subject_id;
 
                     // Class subject rank
-                    $allSubjectMarksQuery = ExamMark::whereHas('examSubject', function($q) use ($examId, $classId, $subjectId) {
+                    $allSubjectMarksQuery = ExamMark::whereHas('examSubject', function ($q) use ($examId, $classId, $subjectId) {
                         $q->where('exam_id', $examId)
-                          ->where('class_id', $classId)
-                          ->where('subject_id', $subjectId);
+                            ->where('class_id', $classId)
+                            ->where('subject_id', $subjectId);
                     });
 
                     if ($onlyPublished) {
@@ -451,7 +451,7 @@ class ExamResultController extends Controller
                     }
 
                     $allSubjectMarks = $allSubjectMarksQuery->get()->sortByDesc('marks_obtained');
-                    $classSubjectRank = $allSubjectMarks->search(function($item) use ($mark) {
+                    $classSubjectRank = $allSubjectMarks->search(function ($item) use ($mark) {
                         return $item->id === $mark->id;
                     }) + 1;
 
@@ -460,12 +460,12 @@ class ExamResultController extends Controller
                     $totalStudentsStream = null;
                     if ($class->stream) {
                         $streamId = $class->stream_id;
-                        $allStreamSubjectMarksQuery = ExamMark::whereHas('examSubject', function($q) use ($examId, $streamId, $subjectId) {
+                        $allStreamSubjectMarksQuery = ExamMark::whereHas('examSubject', function ($q) use ($examId, $streamId, $subjectId) {
                             $q->where('exam_id', $examId)
-                              ->whereHas('class', function($classQuery) use ($streamId) {
-                                  $classQuery->where('stream_id', $streamId);
-                              })
-                              ->where('subject_id', $subjectId);
+                                ->whereHas('class', function ($classQuery) use ($streamId) {
+                                    $classQuery->where('stream_id', $streamId);
+                                })
+                                ->where('subject_id', $subjectId);
                         });
 
                         if ($onlyPublished) {
@@ -475,7 +475,7 @@ class ExamResultController extends Controller
                         }
 
                         $allStreamSubjectMarks = $allStreamSubjectMarksQuery->get()->sortByDesc('marks_obtained');
-                        $streamSubjectRank = $allStreamSubjectMarks->search(function($item) use ($mark) {
+                        $streamSubjectRank = $allStreamSubjectMarks->search(function ($item) use ($mark) {
                             return $item->id === $mark->id;
                         }) + 1;
                         $totalStudentsStream = $allStreamSubjectMarks->count();
@@ -493,12 +493,12 @@ class ExamResultController extends Controller
                 $performanceAnalysis = $includeAnalysis ? $this->calculatePerformanceAnalysis($marks, $classRank, $classSize) : null;
 
                 // Prepare marks data with grades and ranks
-                $marksWithGrades = $marks->map(function($mark) use ($subjectRanks, $includeRankings, $student, $examId, $classId) {
-                    $percentage = $mark->examSubject->max_marks > 0 ? 
+                $marksWithGrades = $marks->map(function ($mark) use ($subjectRanks, $includeRankings, $student, $examId, $classId) {
+                    $percentage = $mark->examSubject->max_marks > 0 ?
                         ($mark->marks_obtained / $mark->examSubject->max_marks) * 100 : 0;
-                    
+
                     $subjectRankInfo = $subjectRanks[$mark->examSubject->subject_id] ?? [];
-                    
+
                     // Generate skill breakdown for this subject - pass student, exam, and class info
                     $breakdown = $this->generateSkillBreakdown(
                         $mark->examSubject->subject->name,
@@ -508,7 +508,7 @@ class ExamResultController extends Controller
                         $examId,
                         $classId
                     );
-                    
+
                     return [
                         'subject_name' => $mark->examSubject->subject->name,
                         'subject_code' => $mark->examSubject->subject->code ?? '',
@@ -557,7 +557,6 @@ class ExamResultController extends Controller
                 if ($index < count($students) - 1) {
                     $allStudentHtml .= '<div style="page-break-after: always;"></div>';
                 }
-
             } catch (\Exception $e) {
                 \Log::error("Error generating report for student {$student->id}: " . $e->getMessage());
                 continue;
@@ -618,7 +617,7 @@ class ExamResultController extends Controller
 
         $marksQuery = ExamMark::with('examSubject.subject')
             ->where('student_id', $studentId)
-            ->whereHas('examSubject', function($q) use ($examId, $classId) {
+            ->whereHas('examSubject', function ($q) use ($examId, $classId) {
                 $q->where('exam_id', $examId)->where('class_id', $classId);
             });
 
@@ -632,17 +631,17 @@ class ExamResultController extends Controller
         $marks = $marksQuery->get();
 
         if ($marks->isEmpty()) {
-            $statusMessage = $onlyPublished ? 
-                'No published marks found for this student. Try unchecking "Only Published Results".' : 
+            $statusMessage = $onlyPublished ?
+                'No published marks found for this student. Try unchecking "Only Published Results".' :
                 'No marks found for this student.';
-                
+
             return response()->json([
                 'error' => $statusMessage
             ], 404);
         }
 
         $totalMarks = $marks->sum('marks_obtained');
-        $totalMaxMarks = $marks->sum(function($mark) {
+        $totalMaxMarks = $marks->sum(function ($mark) {
             return $mark->examSubject->max_marks;
         });
         $average = $marks->count() > 0 ? $totalMarks / $marks->count() : 0;
@@ -663,10 +662,10 @@ class ExamResultController extends Controller
             $subjectId = $mark->examSubject->subject_id;
 
             // Class subject rank
-            $allSubjectMarksQuery = ExamMark::whereHas('examSubject', function($q) use ($examId, $classId, $subjectId) {
+            $allSubjectMarksQuery = ExamMark::whereHas('examSubject', function ($q) use ($examId, $classId, $subjectId) {
                 $q->where('exam_id', $examId)
-                  ->where('class_id', $classId)
-                  ->where('subject_id', $subjectId);
+                    ->where('class_id', $classId)
+                    ->where('subject_id', $subjectId);
             });
 
             if ($onlyPublished) {
@@ -676,7 +675,7 @@ class ExamResultController extends Controller
             }
 
             $allSubjectMarks = $allSubjectMarksQuery->get()->sortByDesc('marks_obtained');
-            $classSubjectRank = $allSubjectMarks->search(function($item) use ($mark) {
+            $classSubjectRank = $allSubjectMarks->search(function ($item) use ($mark) {
                 return $item->id === $mark->id;
             }) + 1;
 
@@ -685,12 +684,12 @@ class ExamResultController extends Controller
             $totalStudentsStream = null;
             if ($class->stream) {
                 $streamId = $class->stream_id; // Extract to variable for use in closure
-                $allStreamSubjectMarksQuery = ExamMark::whereHas('examSubject', function($q) use ($examId, $streamId, $subjectId) {
+                $allStreamSubjectMarksQuery = ExamMark::whereHas('examSubject', function ($q) use ($examId, $streamId, $subjectId) {
                     $q->where('exam_id', $examId)
-                      ->whereHas('class', function($classQuery) use ($streamId) {
-                          $classQuery->where('stream_id', $streamId);
-                      })
-                      ->where('subject_id', $subjectId);
+                        ->whereHas('class', function ($classQuery) use ($streamId) {
+                            $classQuery->where('stream_id', $streamId);
+                        })
+                        ->where('subject_id', $subjectId);
                 });
 
                 if ($onlyPublished) {
@@ -700,7 +699,7 @@ class ExamResultController extends Controller
                 }
 
                 $allStreamSubjectMarks = $allStreamSubjectMarksQuery->get()->sortByDesc('marks_obtained');
-                $streamSubjectRank = $allStreamSubjectMarks->search(function($item) use ($mark) {
+                $streamSubjectRank = $allStreamSubjectMarks->search(function ($item) use ($mark) {
                     return $item->id === $mark->id;
                 }) + 1;
                 $totalStudentsStream = $allStreamSubjectMarks->count();
@@ -718,12 +717,12 @@ class ExamResultController extends Controller
         $performanceAnalysis = $includeAnalysis ? $this->calculatePerformanceAnalysis($marks, $classRank, $this->getClassSize($examId, $classId, $onlyPublished)) : null;
 
         // Prepare marks data with grades and ranks
-        $marksWithGrades = $marks->map(function($mark) use ($subjectRanks, $includeRankings, $studentId, $examId, $classId) {
-            $percentage = $mark->examSubject->max_marks > 0 ? 
+        $marksWithGrades = $marks->map(function ($mark) use ($subjectRanks, $includeRankings, $studentId, $examId, $classId) {
+            $percentage = $mark->examSubject->max_marks > 0 ?
                 ($mark->marks_obtained / $mark->examSubject->max_marks) * 100 : 0;
-            
+
             $subjectRankInfo = $subjectRanks[$mark->examSubject->subject_id] ?? [];
-            
+
             // Generate skill breakdown for this subject - pass student, exam, and class info
             $breakdown = $this->generateSkillBreakdown(
                 $mark->examSubject->subject->name,
@@ -733,7 +732,7 @@ class ExamResultController extends Controller
                 $examId,
                 $classId
             );
-            
+
             return [
                 'subject_name' => $mark->examSubject->subject->name,
                 'subject_code' => $mark->examSubject->subject->code ?? '',
@@ -792,7 +791,7 @@ class ExamResultController extends Controller
      */
     private function calculateClassRank($studentId, $examId, $classId, $onlyPublished = false)
     {
-        $allStudentsMarksQuery = ExamMark::whereHas('examSubject', function($q) use ($examId, $classId) {
+        $allStudentsMarksQuery = ExamMark::whereHas('examSubject', function ($q) use ($examId, $classId) {
             $q->where('exam_id', $examId)->where('class_id', $classId);
         });
 
@@ -804,7 +803,7 @@ class ExamResultController extends Controller
 
         $allStudentsMarks = $allStudentsMarksQuery->get()
             ->groupBy('student_id')
-            ->map(function($marks) {
+            ->map(function ($marks) {
                 return $marks->sum('marks_obtained');
             })
             ->sortDesc();
@@ -818,11 +817,11 @@ class ExamResultController extends Controller
      */
     private function calculateStreamRank($studentId, $examId, $streamId, $onlyPublished = false)
     {
-        $allStreamMarksQuery = ExamMark::whereHas('examSubject', function($q) use ($examId, $streamId) {
+        $allStreamMarksQuery = ExamMark::whereHas('examSubject', function ($q) use ($examId, $streamId) {
             $q->where('exam_id', $examId)
-              ->whereHas('class', function($classQuery) use ($streamId) {
-                  $classQuery->where('stream_id', $streamId);
-              });
+                ->whereHas('class', function ($classQuery) use ($streamId) {
+                    $classQuery->where('stream_id', $streamId);
+                });
         });
 
         if ($onlyPublished) {
@@ -833,7 +832,7 @@ class ExamResultController extends Controller
 
         $allStreamMarks = $allStreamMarksQuery->get()
             ->groupBy('student_id')
-            ->map(function($marks) {
+            ->map(function ($marks) {
                 return $marks->sum('marks_obtained');
             })
             ->sortDesc();
@@ -847,7 +846,7 @@ class ExamResultController extends Controller
      */
     private function getClassSize($examId, $classId, $onlyPublished = false)
     {
-        $query = ExamMark::whereHas('examSubject', function($q) use ($examId, $classId) {
+        $query = ExamMark::whereHas('examSubject', function ($q) use ($examId, $classId) {
             $q->where('exam_id', $examId)->where('class_id', $classId);
         });
 
@@ -865,11 +864,11 @@ class ExamResultController extends Controller
      */
     private function getStreamSize($examId, $streamId, $onlyPublished = false)
     {
-        $query = ExamMark::whereHas('examSubject', function($q) use ($examId, $streamId) {
+        $query = ExamMark::whereHas('examSubject', function ($q) use ($examId, $streamId) {
             $q->where('exam_id', $examId)
-              ->whereHas('class', function($classQuery) use ($streamId) {
-                  $classQuery->where('stream_id', $streamId);
-              });
+                ->whereHas('class', function ($classQuery) use ($streamId) {
+                    $classQuery->where('stream_id', $streamId);
+                });
         });
 
         if ($onlyPublished) {
@@ -894,10 +893,10 @@ class ExamResultController extends Controller
                 foreach ($result['marks'] as $mark) {
                     $subjectId = $mark->examSubject->subject_id;
 
-                    $allSubjectMarksQuery = ExamMark::whereHas('examSubject', function($q) use ($examId, $classId, $subjectId) {
+                    $allSubjectMarksQuery = ExamMark::whereHas('examSubject', function ($q) use ($examId, $classId, $subjectId) {
                         $q->where('exam_id', $examId)
-                          ->where('class_id', $classId)
-                          ->where('subject_id', $subjectId);
+                            ->where('class_id', $classId)
+                            ->where('subject_id', $subjectId);
                     });
 
                     if ($onlyPublished) {
@@ -908,7 +907,7 @@ class ExamResultController extends Controller
 
                     $allSubjectMarks = $allSubjectMarksQuery->get()->sortByDesc('marks_obtained');
 
-                    $subjectRank = $allSubjectMarks->search(function($item) use ($mark) {
+                    $subjectRank = $allSubjectMarks->search(function ($item) use ($mark) {
                         return $item->id === $mark->id;
                     }) + 1;
 
@@ -938,10 +937,17 @@ class ExamResultController extends Controller
 
         // FIXED: Include all possible grades from calculateGrade method
         $gradeDistribution = [
-            'A' => 0, 
-            'B+' => 0, 'B' => 0, 'B-' => 0,
-            'C+' => 0, 'C' => 0, 'C-' => 0,
-            'D+' => 0, 'D-' => 0,
+            'A' => 0,
+            'A-' => 0,
+            'B+' => 0,
+            'B' => 0,
+            'B-' => 0,
+            'C+' => 0,
+            'C' => 0,
+            'C-' => 0,
+            'D+' => 0,
+            'D' => 0,
+            'D-' => 0,
             'E' => 0
         ];
 
@@ -980,21 +986,21 @@ class ExamResultController extends Controller
                 'name' => $bestSubject->examSubject->subject->name,
                 'marks' => $bestSubject->marks_obtained,
                 'max_marks' => $bestSubject->examSubject->max_marks,
-                'percentage' => $bestSubject->examSubject->max_marks > 0 ? 
+                'percentage' => $bestSubject->examSubject->max_marks > 0 ?
                     ($bestSubject->marks_obtained / $bestSubject->examSubject->max_marks) * 100 : 0,
             ],
             'weak_subject' => [
                 'name' => $weakSubject->examSubject->subject->name,
                 'marks' => $weakSubject->marks_obtained,
                 'max_marks' => $weakSubject->examSubject->max_marks,
-                'percentage' => $weakSubject->examSubject->max_marks > 0 ? 
+                'percentage' => $weakSubject->examSubject->max_marks > 0 ?
                     ($weakSubject->marks_obtained / $weakSubject->examSubject->max_marks) * 100 : 0,
             ],
             'recommendations' => []
         ];
 
         $totalMarks = $marks->sum('marks_obtained');
-        $totalMaxMarks = $marks->sum(function($mark) {
+        $totalMaxMarks = $marks->sum(function ($mark) {
             return $mark->examSubject->max_marks;
         });
         $percentage = $totalMaxMarks > 0 ? ($totalMarks / $totalMaxMarks) * 100 : 0;
@@ -1028,18 +1034,7 @@ class ExamResultController extends Controller
      */
     private function calculateGrade($percentage)
     {
-        return match (true) {
-            $percentage >= 80 => 'A',
-            $percentage >= 70 => 'B+',
-            $percentage >= 65 => 'B',
-            $percentage >= 60 => 'B-',
-            $percentage >= 55 => 'C+',
-            $percentage >= 50 => 'C',
-            $percentage >= 45 => 'C-',
-            $percentage >= 40 => 'D+',
-            $percentage >= 35 => 'D-',
-            default => 'E',
-        };
+        return \App\Services\GradingService::getGrade($percentage);
     }
 
     /**
@@ -1086,18 +1081,18 @@ class ExamResultController extends Controller
         $classId = $request->class_id;
 
         $students = Student::where('rank_id', $classId)
-            ->whereHas('examMarks', function($query) use ($examId, $classId) {
-                $query->whereHas('examSubject', function($q) use ($examId, $classId) {
+            ->whereHas('examMarks', function ($query) use ($examId, $classId) {
+                $query->whereHas('examSubject', function ($q) use ($examId, $classId) {
                     $q->where('exam_id', $examId)->where('class_id', $classId);
                 })->whereIn('status', ['approved', ExamMark::PUBLISHED]);
             })
-            ->with(['examMarks' => function($query) use ($examId, $classId) {
-                $query->whereHas('examSubject', function($q) use ($examId, $classId) {
+            ->with(['examMarks' => function ($query) use ($examId, $classId) {
+                $query->whereHas('examSubject', function ($q) use ($examId, $classId) {
                     $q->where('exam_id', $examId)->where('class_id', $classId);
                 })->whereIn('status', ['approved', ExamMark::PUBLISHED]);
             }])
             ->get()
-            ->map(function($student) {
+            ->map(function ($student) {
                 return [
                     'id' => $student->id,
                     'name' => $student->first_name . ' ' . $student->last_name,

@@ -138,4 +138,21 @@ export default {
    height: auto;
    width: 100%;
 }
+
+/* Fixed sidebar that stays in place when scrolling */
+#layout-menu {
+   position: fixed !important;
+   top: 0;
+   left: 0;
+   height: 100vh;
+   overflow-y: auto;
+   overflow-x: hidden;
+   z-index: 1000;
+}
+
+/* Ensure menu content is scrollable */
+.menu-inner {
+   max-height: calc(100vh - 80px);
+   overflow-y: auto;
+}
 </style>

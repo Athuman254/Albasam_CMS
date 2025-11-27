@@ -78,6 +78,20 @@
                            <!-- Student Selection for Individual Reports -->
                            <div v-if="reportType === 'student'" class="mb-3">
                               <label class="form-label fw-semibold">Select Students:</label>
+                              
+                              <!-- Search Input -->
+                              <div class="mb-2">
+                                 <input 
+                                    type="text" 
+                                    class="form-control form-control-sm" 
+                                    v-model="studentSearchQuery"
+                                    placeholder="🔍 Search by name or admission number..."
+                                 >
+                                 <small class="text-muted">
+                                    Showing {{ filteredStudents.length }} of {{ students.length }} students
+                                 </small>
+                              </div>
+                              
                               <div class="d-flex align-items-center gap-2 mb-2">
                                  <button class="btn btn-sm btn-outline-primary" @click="selectAllStudents" :disabled="!hasMarks">
                                     Select All
@@ -93,7 +107,10 @@
                                  </span>
                               </div>
                               <div class="student-checkboxes" style="max-height: 150px; overflow-y: auto;">
-                                 <div v-for="student in students" :key="student.id" class="form-check">
+                                 <div v-if="filteredStudents.length === 0" class="text-muted text-center p-3">
+                                    <i class="bi bi-search"></i> No students found matching "{{ studentSearchQuery }}"
+                                 </div>
+                                 <div v-for="student in filteredStudents" :key="student.id" class="form-check">
                                     <input class="form-check-input" type="checkbox" 
                                            :id="`student-${student.id}`" 
                                            :value="student.id" 
@@ -235,6 +252,7 @@ const marks = ref({});
 const studentStatuses = ref({});
 const selectedStudents = ref([]);
 const loading = ref(false);
+const studentSearchQuery = ref('');
 
 const selectedExam = ref(null);
 const selectedClass = ref(null);
@@ -279,6 +297,21 @@ const statistics = computed(() => {
       topScore
    };
 });
+
+// Filter students based on search query
+const filteredStudents = computed(() => {
+   if (!studentSearchQuery.value || studentSearchQuery.value.trim() === '') {
+      return students.value;
+   }
+   
+   const query = studentSearchQuery.value.toLowerCase().trim();
+   return students.value.filter(student => {
+      const name = (student.name || '').toLowerCase();
+      const admNo = (student.adm_no || student.admission_number || '').toLowerCase();
+      return name.includes(query) || admNo.includes(query);
+   });
+});
+
 
 const hasAnalysis = computed(() => {
    return students.value.length > 0 && subjects.value.length > 0;

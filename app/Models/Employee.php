@@ -27,17 +27,17 @@ class Employee extends Authenticatable
     protected $table = 'employees';
     protected $primaryKey = 'id';
     protected $appends = [
-        'hashid', 
-        'full_name', 
+        'hashid',
+        'full_name',
         'formal_name',
-        'assigned_classes_count', 
+        'assigned_classes_count',
         'assigned_subjects_count',
         'current_assignments_count',
         'is_teacher'
     ];
-    
+
     protected $casts = [
-        'use_existing_user' => 'bool', 
+        'use_existing_user' => 'bool',
         'has_system_access' => 'bool',
         'in_payroll' => 'bool',
         'pays_paye' => 'bool',
@@ -49,16 +49,40 @@ class Employee extends Authenticatable
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-    
+
     protected $fillable = [
-        'use_existing_user', 'user_id', 'employment_type_id', 'employment_status_id', 
-        'honorific_id', 'marital_status_id', 'gender_id', 'religion_id',
-        'staff_number', 'date_of_hire', 'first_name', 'middle_name', 'last_name', 
-        'email', 'primary_phone', 'secondary_phone', 'permanent_physical_address',
-        'secondary_physical_address', 'postal_address', 'identification_number', 
-        'tax_identification_pin', 'has_system_access', 'password', 'in_payroll',
-        'pays_paye', 'pays_sha', 'sha_no', 'pays_nssf', 'nssf_no', 'pays_housing_levy',
-        'username', 'remember_token'
+        'use_existing_user',
+        'user_id',
+        'employment_type_id',
+        'employment_status_id',
+        'honorific_id',
+        'marital_status_id',
+        'gender_id',
+        'religion_id',
+        'staff_number',
+        'date_of_hire',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'email',
+        'primary_phone',
+        'secondary_phone',
+        'permanent_physical_address',
+        'secondary_physical_address',
+        'postal_address',
+        'identification_number',
+        'tax_identification_pin',
+        'has_system_access',
+        'password',
+        'in_payroll',
+        'pays_paye',
+        'pays_sha',
+        'sha_no',
+        'pays_nssf',
+        'nssf_no',
+        'pays_housing_levy',
+        'username',
+        'remember_token'
     ];
 
     protected $hidden = [
@@ -269,7 +293,7 @@ class Employee extends Authenticatable
      */
     public function basicSalary(): HasOne
     {
-        return $this->hasOne(EmployeeIncome::class)->whereHas('income', function($q) {
+        return $this->hasOne(EmployeeIncome::class)->whereHas('income', function ($q) {
             return $q->where('name', 'like', '%basic%');
         });
     }
@@ -280,11 +304,11 @@ class Employee extends Authenticatable
     public function currentAssignments()
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         if (!$currentAcademicYear) {
             return collect();
         }
-        
+
         return $this->employeeClasses()
             ->with(['class.stream', 'subject', 'academicYear'])
             ->where('academic_year_id', $currentAcademicYear->id)
@@ -349,22 +373,22 @@ class Employee extends Authenticatable
         }
 
         collect(explode(' ', $terms))->filter()->each(function ($term) use ($query) {
-            $term = '%'.$term.'%';
+            $term = '%' . $term . '%';
 
             $query->where(function ($q) use ($term) {
                 $q->where('first_name', 'like', $term)
-                  ->orWhere('last_name', 'like', $term)
-                  ->orWhere('middle_name', 'like', $term)
-                  ->orWhere('staff_number', 'like', $term)
-                  ->orWhere('email', 'like', $term)
-                  ->orWhere('primary_phone', 'like', $term)
-                  ->orWhere('identification_number', 'like', $term)
-                  ->orWhereHas('employmentType', function($q) use ($term) {
-                      $q->where('name', 'like', $term);
-                  })
-                  ->orWhereHas('employmentStatus', function($q) use ($term) {
-                      $q->where('name', 'like', $term);
-                  });
+                    ->orWhere('last_name', 'like', $term)
+                    ->orWhere('middle_name', 'like', $term)
+                    ->orWhere('staff_number', 'like', $term)
+                    ->orWhere('email', 'like', $term)
+                    ->orWhere('primary_phone', 'like', $term)
+                    ->orWhere('identification_number', 'like', $term)
+                    ->orWhereHas('employmentType', function ($q) use ($term) {
+                        $q->where('name', 'like', $term);
+                    })
+                    ->orWhereHas('employmentStatus', function ($q) use ($term) {
+                        $q->where('name', 'like', $term);
+                    });
             });
         });
 
@@ -392,7 +416,7 @@ class Employee extends Authenticatable
      */
     public function scopeSubjectTeachers(Builder $query): Builder
     {
-        return $query->whereHas('employeeClasses', function($q) {
+        return $query->whereHas('employeeClasses', function ($q) {
             $q->whereNotNull('subject_id');
         });
     }
@@ -402,7 +426,7 @@ class Employee extends Authenticatable
      */
     public function scopeClassTeachers(Builder $query): Builder
     {
-        return $query->whereHas('employeeClasses', function($q) {
+        return $query->whereHas('employeeClasses', function ($q) {
             $q->where('is_class_teacher', true);
         });
     }
@@ -444,7 +468,7 @@ class Employee extends Authenticatable
      */
     public function scopeWithCurrentAssignments(Builder $query): Builder
     {
-        return $query->with(['employeeClasses' => function($q) {
+        return $query->with(['employeeClasses' => function ($q) {
             $currentAcademicYear = AcademicYear::where('is_active', true)->first();
             if ($currentAcademicYear) {
                 $q->where('academic_year_id', $currentAcademicYear->id);
@@ -459,13 +483,13 @@ class Employee extends Authenticatable
     public function getFullNameAttribute(): string
     {
         $names = [$this->first_name];
-        
+
         if ($this->middle_name) {
             $names[] = $this->middle_name;
         }
-        
+
         $names[] = $this->last_name;
-        
+
         return implode(' ', array_filter($names));
     }
 
@@ -486,7 +510,7 @@ class Employee extends Authenticatable
         if (array_key_exists('class_assignments_count', $this->attributes)) {
             return $this->attributes['class_assignments_count'];
         }
-        
+
         return $this->employeeClasses()->count();
     }
 
@@ -498,7 +522,7 @@ class Employee extends Authenticatable
         if (array_key_exists('subject_assignments_count', $this->attributes)) {
             return $this->attributes['subject_assignments_count'];
         }
-        
+
         return $this->employeeClasses()->whereNotNull('subject_id')->count();
     }
 
@@ -508,11 +532,11 @@ class Employee extends Authenticatable
     public function getCurrentAssignmentsCountAttribute(): int
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         if (!$currentAcademicYear) {
             return 0;
         }
-        
+
         return $this->employeeClasses()
             ->where('academic_year_id', $currentAcademicYear->id)
             ->count();
@@ -585,11 +609,11 @@ class Employee extends Authenticatable
         $query = $this->employeeClasses()
             ->with(['class.stream', 'academicYear'])
             ->where('is_class_teacher', true);
-        
+
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-        
+
         return $query->get();
     }
 
@@ -602,11 +626,11 @@ class Employee extends Authenticatable
             ->with(['subject', 'academicYear'])
             ->where('class_id', $classId)
             ->whereNotNull('subject_id');
-        
+
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-        
+
         return $query->get();
     }
 
@@ -618,11 +642,11 @@ class Employee extends Authenticatable
         $query = $this->employeeClasses()
             ->where('is_class_teacher', true)
             ->where('class_id', $classId);
-        
+
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-        
+
         return $query->exists();
     }
 
@@ -633,11 +657,11 @@ class Employee extends Authenticatable
     {
         $query = $this->employeeClasses()
             ->where('subject_id', $subjectId);
-        
+
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-        
+
         return $query->exists();
     }
 
@@ -691,11 +715,11 @@ class Employee extends Authenticatable
     public function removeClassAssignment($classId, $academicYearId = null): bool
     {
         $query = $this->employeeClasses()->where('class_id', $classId);
-        
+
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-        
+
         return $query->delete() > 0;
     }
 
@@ -705,11 +729,11 @@ class Employee extends Authenticatable
     public function removeSubjectAssignment($subjectId, $academicYearId = null): bool
     {
         $query = $this->employeeClasses()->where('subject_id', $subjectId);
-        
+
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-        
+
         return $query->delete() > 0;
     }
 
@@ -727,11 +751,11 @@ class Employee extends Authenticatable
     public function getAllAssignments($academicYearId = null)
     {
         $query = $this->employeeClasses()->with(['class.stream', 'subject', 'academicYear']);
-        
+
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-        
+
         return $query->get();
     }
 
@@ -741,11 +765,11 @@ class Employee extends Authenticatable
     public function hasTeachingAssignments($academicYearId = null): bool
     {
         $query = $this->employeeClasses();
-        
+
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-        
+
         return $query->exists();
     }
 
@@ -755,13 +779,13 @@ class Employee extends Authenticatable
     public function getTeachingWorkload($academicYearId = null): array
     {
         $query = $this->employeeClasses();
-        
+
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-        
+
         $assignments = $query->get();
-        
+
         $classTeacherCount = $assignments->where('is_class_teacher', true)->count();
         $subjectCount = $assignments->whereNotNull('subject_id')->count();
         $uniqueClasses = $assignments->pluck('class_id')->unique()->count();
@@ -782,7 +806,7 @@ class Employee extends Authenticatable
     public function getEmployeeStatistics(): array
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        $currentAssignments = $currentAcademicYear ? 
+        $currentAssignments = $currentAcademicYear ?
             $this->employeeClasses()->where('academic_year_id', $currentAcademicYear->id)->count() : 0;
 
         return [
@@ -801,12 +825,12 @@ class Employee extends Authenticatable
     public function grantSystemAccess($password = null): bool
     {
         $updateData = ['has_system_access' => true];
-        
+
         if ($password) {
             // Use plain text password - the mutator will handle hashing
             $updateData['password'] = $password;
         }
-        
+
         return $this->update($updateData);
     }
 
@@ -909,11 +933,12 @@ class Employee extends Authenticatable
         });
 
         // Set email as username if not provided
-        static::creating(function ($employee) {
-            if (empty($employee->username) && !empty($employee->email)) {
-                $employee->username = $employee->email;
-            }
-        });
+        // COMMENTED OUT: username column does not exist in employees table
+        // static::creating(function ($employee) {
+        //     if (empty($employee->username) && !empty($employee->email)) {
+        //         $employee->username = $employee->email;
+        //     }
+        // });
 
         // Ensure has_system_access is properly cast
         static::saving(function ($employee) {

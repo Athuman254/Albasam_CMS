@@ -29,7 +29,7 @@ Route::get('/generate-pdf', [PdfController::class, 'generateArabicPdf']);
 
 // Add this route for CSRF cookie - MUST be outside auth middleware
 Route::get('/sanctum/csrf-cookie', function () {
-    return response()->json(['message' => 'CSRF cookie set']);
+   return response()->json(['message' => 'CSRF cookie set']);
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
@@ -102,15 +102,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
       Route::get('deduction/adjustments', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'deductionAdjustmentDataTable']);
       Route::get('employee/incomes', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'employeeIncomeDataTable']);
       Route::get('employee/deductions', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'employeeDeductionDataTable']);
-      Route::get('payroll/summary',[\App\Http\Controllers\Payroll\PayrollController::class, 'datatableSummary']);
-      
+      Route::get('payroll/summary', [\App\Http\Controllers\Payroll\PayrollController::class, 'datatableSummary']);
+
       // EXAM MODULE DATATABLES
       Route::get('academic-years', [\App\Http\Controllers\Settings\AcademicYearController::class, 'dataTable']);
       Route::get('exams', [\App\Http\Controllers\Exams\ExamManageController::class, 'dataTable']);
-      Route::get('exam-subjects',[ \App\Http\Controllers\Exams\ExamManageController::class, 'examSubject']);
-      Route::get('exam-marks',[ \App\Http\Controllers\Exams\UploadExamResultController::class, 'examMarks']);
+      Route::get('exam-subjects', [\App\Http\Controllers\Exams\ExamManageController::class, 'examSubject']);
+      Route::get('exam-marks', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'examMarks']);
       Route::get('enrolled-students', [\App\Http\Controllers\Exams\ExamStudentController::class, 'dataTableEnrollStudents']);
-      
+
       // FEE MANAGEMENT DATATABLES - UPDATED WITH TRANSFER IMPROVEMENTS
       Route::get('fees', [\App\Http\Controllers\Fee\FeeController::class, 'dataTable'])->name('fees.datatable');
       Route::get('fee-payments', [\App\Http\Controllers\Fee\FeePaymentController::class, 'dataTable'])->name('fee-payments.datatable');
@@ -122,6 +122,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
       Route::get('employee-class-assignments', [EmployeeController::class, 'dataTableEmployeeClasses'])->name('employee-class.assignments');
       Route::get('employee-subject-assignments', [EmployeeController::class, 'dataTableEmployeeSubjects'])->name('employee-subject.assignments');
       Route::get('skills', [\App\Http\Controllers\Settings\SubjectController::class, 'getAllSkills'])->name('skills.datatable');
+
+      // SMS DATATABLES
+      Route::get('sms/outbox', [\App\Http\Controllers\SmsController::class, 'dataTable'])->name('sms.outbox.datatable');
    });
 
    /********************************
@@ -145,170 +148,176 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
       Route::get('/reports/attendance', [\App\Http\Controllers\AttendanceController::class, 'records'])->name('reports.attendance');
       Route::get('/attendance/fetch', [\App\Http\Controllers\AttendanceController::class, 'fetchForDate']);
 
- /********************************
- * FEE MANAGEMENT ROUTES - COMPLETE FIXED STRUCTURE WITH IMPROVEMENTS
- *******************************/
-Route::prefix('fees')->name('fees.')->group(function () {
-    // Basic CRUD routes
-    Route::get('/', [\App\Http\Controllers\Fee\FeeController::class, 'index'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Fee\FeeController::class, 'create'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Fee\FeeController::class, 'store'])->name('store');
-    
-    // FEE BALANCE ROUTES - MUST COME BEFORE PARAMETERIZED ROUTES
-    Route::get('/balances', [\App\Http\Controllers\Fee\FeeController::class, 'balances'])->name('balances');
-    
-    // ADD GET VERSION OF CLASS-BALANCES FOR DEBUGGING
-    Route::get('/class-balances', [\App\Http\Controllers\Fee\FeeController::class, 'getClassBalances'])->name('class-balances.get');
-    Route::post('/class-balances', [\App\Http\Controllers\Fee\FeeController::class, 'getClassBalances'])->name('class-balances');
-    
-    // ADD FEE REPORT ROUTES HERE
-    Route::get('/reports/fee-report', [\App\Http\Controllers\Fee\FeeReportController::class, 'index'])->name('reports.fee-report');
-    Route::post('/reports/generate-fee-report', [\App\Http\Controllers\Fee\FeeReportController::class, 'generateReport'])->name('reports.generate-fee-report');
-    
-    Route::post('/search-student-balance', [\App\Http\Controllers\Fee\FeeController::class, 'searchStudentBalance'])->name('search-student-balance');
-    Route::post('/student-details', [\App\Http\Controllers\Fee\FeeController::class, 'getStudentDetails'])->name('student-details');
-    Route::get('/print-statement/{studentId}', [\App\Http\Controllers\Fee\FeeController::class, 'printStudentStatement'])->name('print-statement');
-    Route::post('/print-class-statements', [\App\Http\Controllers\Fee\FeeController::class, 'printClassStatements'])->name('print-class-statements');
-    Route::post('/export-balances', [\App\Http\Controllers\Fee\FeeController::class, 'exportFeeBalances'])->name('export-balances');
-    Route::post('/send-reminder', [\App\Http\Controllers\Fee\FeeController::class, 'sendFeeReminder'])->name('send-reminder');
-    Route::post('/bulk-reminders', [\App\Http\Controllers\Fee\FeeController::class, 'bulkSendReminders'])->name('bulk-reminders');
-    Route::get('/dashboard-statistics', [\App\Http\Controllers\Fee\FeeController::class, 'getDashboardStatistics'])->name('dashboard-statistics');
-    
-    // Template and generation routes
-    Route::post('/copy-template/{feeId}', [\App\Http\Controllers\Fee\FeeController::class, 'copyTemplateToClass'])->name('copy-template');
-    Route::post('/generate-from-templates', [\App\Http\Controllers\Fee\FeeController::class, 'generateFeesFromTemplates'])->name('generate-from-templates');
-    Route::get('/statistics', [\App\Http\Controllers\Fee\FeeController::class, 'getFeeStatistics'])->name('statistics');
-    
-    // Class-based operations
-    Route::get('/class-students/{rankId}', [\App\Http\Controllers\Fee\FeeController::class, 'getClassStudents'])->name('class-students');
-    
-    // Student lookup routes
-    Route::get('/students/search/{admissionNumber}', [\App\Http\Controllers\Fee\FeeController::class, 'searchStudent'])->name('students.search');
-    Route::get('/students/{student}/balance', [\App\Http\Controllers\Fee\FeeController::class, 'getStudentBalance'])->name('students.balance');
-    
-    // Student fee routes
-    Route::get('/students/{student}', [\App\Http\Controllers\Fee\FeeController::class, 'studentFees'])->name('students.show');
-    Route::post('/students/{student}/pay', [\App\Http\Controllers\Fee\FeeController::class, 'manualPayment'])->name('students.manual-payment');
-    
-    // PARAMETERIZED ROUTES - MUST COME AFTER ALL SPECIFIC ROUTES
-    Route::get('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'show'])->name('show');
-    Route::get('/{fee}/edit', [\App\Http\Controllers\Fee\FeeController::class, 'edit'])->name('edit');
-    Route::put('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'update'])->name('update');
-    Route::delete('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'destroy'])->name('destroy');
-    
-    // Bulk operations
-    Route::delete('/bulk-destroy', [\App\Http\Controllers\Fee\FeeController::class, 'bulkDestroy'])->name('bulk-destroy');
-    
-    // PAYMENT ROUTES - COMPLETE IMPROVED STRUCTURE
-    Route::prefix('payments')->name('payments.')->group(function () {
-        // Main payment routes
-        Route::get('/', [\App\Http\Controllers\Fee\FeePaymentController::class, 'index'])->name('index');
-        Route::get('/verify', [\App\Http\Controllers\Fee\FeePaymentController::class, 'verify'])->name('verify');
-        Route::post('/check', [\App\Http\Controllers\Fee\FeePaymentController::class, 'checkPayment'])->name('check');
-        
-        // NEW: Multiple fee confirmation route
-        Route::post('/confirm', [\App\Http\Controllers\Fee\FeePaymentController::class, 'confirmPayment'])->name('confirm');
-        
-        // LEGACY: Single fee confirmation route (backward compatibility)
-        Route::post('/confirm-single', [\App\Http\Controllers\Fee\FeePaymentController::class, 'confirmSinglePayment'])->name('confirm.single');
-        
-        // Payment verification queue
-        Route::get('/recorded-payments', [\App\Http\Controllers\Fee\FeePaymentController::class, 'recordedPayments'])->name('recorded.payments');
-        Route::post('/auto-match', [\App\Http\Controllers\Fee\FeePaymentController::class, 'autoMatchPayments'])->name('auto-match');
-        Route::post('/{payment}/reject', [\App\Http\Controllers\Fee\FeePaymentController::class, 'rejectPayment'])->name('reject');
-        Route::post('/{payment}/match', [\App\Http\Controllers\Fee\FeePaymentController::class, 'matchPayment'])->name('match');
-        
-        // Receipt management
-        Route::get('/{payment}/receipt-data', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getReceiptData'])->name('receipt.data');
-        Route::get('/{payment}/receipt', [\App\Http\Controllers\Fee\FeePaymentController::class, 'viewReceipt'])->name('receipt');
-        Route::get('/{payment}/receipt/download', [\App\Http\Controllers\Fee\FeePaymentController::class, 'generateReceipt'])->name('receipt.download');
-        Route::post('/{payment}/reverse', [\App\Http\Controllers\Fee\FeePaymentController::class, 'reversePayment'])->name('reverse');
-        
-        // Analytics and reports
-        Route::get('/stats', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getPaymentStats'])->name('stats');
-        Route::get('/analytics', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getPaymentAnalytics'])->name('analytics');
-        Route::get('/verification-stats', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getVerificationStats'])->name('verification-stats');
-        Route::get('/students/{student}/payments', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getStudentPayments'])->name('students.payments');
-        Route::get('/students/{student}/statement', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getStudentFeeStatement'])->name('students.statement');
-        Route::get('/students/{student}/all-outstanding-fees', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getAllOutstandingFees'])
-            ->name('students.all-outstanding-fees');
-        Route::get('/students/{student}/outstanding-fees', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getOutstandingFees'])
-            ->name('students.outstanding-fees');
-    });
-    
-    // TRANSFER ROUTES - UPDATED WITH REASON VALIDATION AND APPROVAL WORKFLOW
-        Route::prefix('transfers')->name('transfers.')->group(function () {
-        Route::get('/stats', [\App\Http\Controllers\Fee\FeeTransferController::class, 'stats'])->name('stats');
-        Route::get('/reasons', [\App\Http\Controllers\Fee\FeeTransferController::class, 'reasons'])->name('reasons');
-        Route::get('/pending-approvals', [\App\Http\Controllers\Fee\FeeTransferController::class, 'pendingApprovals'])->name('pending-approvals');
-        Route::get('/', [\App\Http\Controllers\Fee\FeeTransferController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Fee\FeeTransferController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Fee\FeeTransferController::class, 'store'])->name('store');
-        Route::post('/{transfer}/approve', [\App\Http\Controllers\Fee\FeeTransferController::class, 'approve'])->name('approve');
-        Route::post('/{transfer}/reject', [\App\Http\Controllers\Fee\FeeTransferController::class, 'reject'])->name('reject');
-        Route::get('/{transfer}', [\App\Http\Controllers\Fee\FeeTransferController::class, 'show'])->name('show');
-        Route::post('/credit-transfer', [\App\Http\Controllers\Fee\FeePaymentController::class, 'transferCredit'])->name('credit-transfer');
-    });
-    Route::get('/reports/overview', [\App\Http\Controllers\Fee\FeeReportController::class, 'overview'])->name('reports.overview');
-    Route::get('/reports/student/{student}', [\App\Http\Controllers\Fee\FeeReportController::class, 'student'])->name('reports.student');
-    Route::get('/reports/collection', [\App\Http\Controllers\Fee\FeeReportController::class, 'collectionReport'])->name('reports.collection');
-    Route::get('/reports/outstanding', [\App\Http\Controllers\Fee\FeeReportController::class, 'outstandingReport'])->name('reports.outstanding');
-    Route::get('/reports/export-collection', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportCollectionReport'])->name('reports.export-collection');
-    Route::get('/reports/export-outstanding', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportOutstandingReport'])->name('reports.export-outstanding');
-    Route::get('/reports/export-student/{student}', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportStudentReport'])->name('reports.export-student');
-    Route::get('/reports/export-overview', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportOverviewReport'])->name('reports.export-overview');
-});
+      /********************************
+       * PROMOTION REPORT ROUTES
+       *******************************/
+      Route::get('/reports/promotions', [\App\Http\Controllers\Admin\PromotionReportController::class, 'index'])->name('reports.promotions');
+      Route::get('/reports/promotions/data', [\App\Http\Controllers\Admin\PromotionReportController::class, 'data'])->name('reports.promotions.data');
+      Route::post('/reports/promotions/generate', [\App\Http\Controllers\Admin\PromotionReportController::class, 'generate'])->name('reports.promotions.generate');
 
- /********************************
- * FEE STRUCTURE ROUTES - FIXED VERSION WITH AUTO-FEE APPLICATION
- *******************************/
-    Route::prefix('fee-structures')->name('fee-structures.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Fee\FeeStructureController::class, 'index'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Fee\FeeStructureController::class, 'create'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Fee\FeeStructureController::class, 'store'])->name('store');
-    Route::get('/{fee_structure}/edit', [\App\Http\Controllers\Fee\FeeStructureController::class, 'edit'])->name('edit');
-    Route::put('/{fee_structure}', [\App\Http\Controllers\Fee\FeeStructureController::class, 'update'])->name('update');
-    Route::delete('/{fee_structure}', [\App\Http\Controllers\Fee\FeeStructureController::class, 'destroy'])->name('destroy');
-    Route::post('/{fee_structure}/update-status', [\App\Http\Controllers\Fee\FeeStructureController::class, 'updateStatus'])->name('update-status');
-    Route::post('/{fee_structure}/generate-fees', [\App\Http\Controllers\Fee\FeeController::class, 'generateFeesFromStructure'])->name('generate-fees');
-    
-    Route::post('/{fee_structure}/bulk-delete-fees', [\App\Http\Controllers\Fee\FeeStructureController::class, 'bulkDeleteFees'])->name('bulk-delete-fees');
-    Route::get('/{fee_structure}', [\App\Http\Controllers\Fee\FeeStructureController::class, 'show'])->name('show');
-    
-    // NEW: Auto-fee application routes
-    Route::post('/{fee_structure}/apply-to-student/{student}', [\App\Http\Controllers\Fee\FeeStructureController::class, 'applyToStudent'])->name('apply-to-student');
-    Route::post('/{fee_structure}/apply-to-eligible', [\App\Http\Controllers\Fee\FeeStructureController::class, 'applyToAllEligibleStudents'])->name('apply-to-eligible');
-});  
+      /********************************
+       * FEE MANAGEMENT ROUTES - COMPLETE FIXED STRUCTURE WITH IMPROVEMENTS
+       *******************************/
+      Route::prefix('fees')->name('fees.')->group(function () {
+         // Basic CRUD routes
+         Route::get('/', [\App\Http\Controllers\Fee\FeeController::class, 'index'])->name('index');
+         Route::get('/create', [\App\Http\Controllers\Fee\FeeController::class, 'create'])->name('create');
+         Route::post('/', [\App\Http\Controllers\Fee\FeeController::class, 'store'])->name('store');
 
-/********************************
- * AUTO-FEE APPLICATION ROUTES - ADDED HERE
- *******************************/
-Route::post('/fee-structures/sync-all', [\App\Http\Controllers\Fee\FeeStructureController::class, 'syncAllFeeStructures'])->name('admin.fee-structures.sync-all');
-Route::post('/students/{student}/apply-fees', [\App\Http\Controllers\Fee\FeeStructureController::class, 'applyRelevantFeesToStudent'])->name('admin.students.apply-fees');
+         // FEE BALANCE ROUTES - MUST COME BEFORE PARAMETERIZED ROUTES
+         Route::get('/balances', [\App\Http\Controllers\Fee\FeeController::class, 'balances'])->name('balances');
+
+         // ADD GET VERSION OF CLASS-BALANCES FOR DEBUGGING
+         Route::get('/class-balances', [\App\Http\Controllers\Fee\FeeController::class, 'getClassBalances'])->name('class-balances.get');
+         Route::post('/class-balances', [\App\Http\Controllers\Fee\FeeController::class, 'getClassBalances'])->name('class-balances');
+
+         // ADD FEE REPORT ROUTES HERE
+         Route::get('/reports/fee-report', [\App\Http\Controllers\Fee\FeeReportController::class, 'index'])->name('reports.fee-report');
+         Route::post('/reports/generate-fee-report', [\App\Http\Controllers\Fee\FeeReportController::class, 'generateReport'])->name('reports.generate-fee-report');
+
+         Route::post('/search-student-balance', [\App\Http\Controllers\Fee\FeeController::class, 'searchStudentBalance'])->name('search-student-balance');
+         Route::post('/student-details', [\App\Http\Controllers\Fee\FeeController::class, 'getStudentDetails'])->name('student-details');
+         Route::get('/print-statement/{studentId}', [\App\Http\Controllers\Fee\FeeController::class, 'printStudentStatement'])->name('print-statement');
+         Route::post('/print-class-statements', [\App\Http\Controllers\Fee\FeeController::class, 'printClassStatements'])->name('print-class-statements');
+         Route::post('/export-balances', [\App\Http\Controllers\Fee\FeeController::class, 'exportFeeBalances'])->name('export-balances');
+         Route::post('/send-reminder', [\App\Http\Controllers\Fee\FeeController::class, 'sendFeeReminder'])->name('send-reminder');
+         Route::post('/bulk-reminders', [\App\Http\Controllers\Fee\FeeController::class, 'bulkSendReminders'])->name('bulk-reminders');
+         Route::get('/dashboard-statistics', [\App\Http\Controllers\Fee\FeeController::class, 'getDashboardStatistics'])->name('dashboard-statistics');
+
+         // Template and generation routes
+         Route::post('/copy-template/{feeId}', [\App\Http\Controllers\Fee\FeeController::class, 'copyTemplateToClass'])->name('copy-template');
+         Route::post('/generate-from-templates', [\App\Http\Controllers\Fee\FeeController::class, 'generateFeesFromTemplates'])->name('generate-from-templates');
+         Route::get('/statistics', [\App\Http\Controllers\Fee\FeeController::class, 'getFeeStatistics'])->name('statistics');
+
+         // Class-based operations
+         Route::get('/class-students/{rankId}', [\App\Http\Controllers\Fee\FeeController::class, 'getClassStudents'])->name('class-students');
+
+         // Student lookup routes
+         Route::get('/students/search/{admissionNumber}', [\App\Http\Controllers\Fee\FeeController::class, 'searchStudent'])->name('students.search');
+         Route::get('/students/{student}/balance', [\App\Http\Controllers\Fee\FeeController::class, 'getStudentBalance'])->name('students.balance');
+
+         // Student fee routes
+         Route::get('/students/{student}', [\App\Http\Controllers\Fee\FeeController::class, 'studentFees'])->name('students.show');
+         Route::post('/students/{student}/pay', [\App\Http\Controllers\Fee\FeeController::class, 'manualPayment'])->name('students.manual-payment');
+
+         // PARAMETERIZED ROUTES - MUST COME AFTER ALL SPECIFIC ROUTES
+         Route::get('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'show'])->name('show');
+         Route::get('/{fee}/edit', [\App\Http\Controllers\Fee\FeeController::class, 'edit'])->name('edit');
+         Route::put('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'update'])->name('update');
+         Route::delete('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'destroy'])->name('destroy');
+
+         // Bulk operations
+         Route::delete('/bulk-destroy', [\App\Http\Controllers\Fee\FeeController::class, 'bulkDestroy'])->name('bulk-destroy');
+
+         // PAYMENT ROUTES - COMPLETE IMPROVED STRUCTURE
+         Route::prefix('payments')->name('payments.')->group(function () {
+            // Main payment routes
+            Route::get('/', [\App\Http\Controllers\Fee\FeePaymentController::class, 'index'])->name('index');
+            Route::get('/verify', [\App\Http\Controllers\Fee\FeePaymentController::class, 'verify'])->name('verify');
+            Route::post('/check', [\App\Http\Controllers\Fee\FeePaymentController::class, 'checkPayment'])->name('check');
+
+            // NEW: Multiple fee confirmation route
+            Route::post('/confirm', [\App\Http\Controllers\Fee\FeePaymentController::class, 'confirmPayment'])->name('confirm');
+
+            // LEGACY: Single fee confirmation route (backward compatibility)
+            Route::post('/confirm-single', [\App\Http\Controllers\Fee\FeePaymentController::class, 'confirmSinglePayment'])->name('confirm.single');
+
+            // Payment verification queue
+            Route::get('/recorded-payments', [\App\Http\Controllers\Fee\FeePaymentController::class, 'recordedPayments'])->name('recorded.payments');
+            Route::post('/auto-match', [\App\Http\Controllers\Fee\FeePaymentController::class, 'autoMatchPayments'])->name('auto-match');
+            Route::post('/{payment}/reject', [\App\Http\Controllers\Fee\FeePaymentController::class, 'rejectPayment'])->name('reject');
+            Route::post('/{payment}/match', [\App\Http\Controllers\Fee\FeePaymentController::class, 'matchPayment'])->name('match');
+
+            // Receipt management
+            Route::get('/{payment}/receipt-data', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getReceiptData'])->name('receipt.data');
+            Route::get('/{payment}/receipt', [\App\Http\Controllers\Fee\FeePaymentController::class, 'viewReceipt'])->name('receipt');
+            Route::get('/{payment}/receipt/download', [\App\Http\Controllers\Fee\FeePaymentController::class, 'generateReceipt'])->name('receipt.download');
+            Route::post('/{payment}/reverse', [\App\Http\Controllers\Fee\FeePaymentController::class, 'reversePayment'])->name('reverse');
+
+            // Analytics and reports
+            Route::get('/stats', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getPaymentStats'])->name('stats');
+            Route::get('/analytics', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getPaymentAnalytics'])->name('analytics');
+            Route::get('/verification-stats', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getVerificationStats'])->name('verification-stats');
+            Route::get('/students/{student}/payments', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getStudentPayments'])->name('students.payments');
+            Route::get('/students/{student}/statement', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getStudentFeeStatement'])->name('students.statement');
+            Route::get('/students/{student}/all-outstanding-fees', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getAllOutstandingFees'])
+               ->name('students.all-outstanding-fees');
+            Route::get('/students/{student}/outstanding-fees', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getOutstandingFees'])
+               ->name('students.outstanding-fees');
+         });
+
+         // TRANSFER ROUTES - UPDATED WITH REASON VALIDATION AND APPROVAL WORKFLOW
+         Route::prefix('transfers')->name('transfers.')->group(function () {
+            Route::get('/stats', [\App\Http\Controllers\Fee\FeeTransferController::class, 'stats'])->name('stats');
+            Route::get('/reasons', [\App\Http\Controllers\Fee\FeeTransferController::class, 'reasons'])->name('reasons');
+            Route::get('/pending-approvals', [\App\Http\Controllers\Fee\FeeTransferController::class, 'pendingApprovals'])->name('pending-approvals');
+            Route::get('/', [\App\Http\Controllers\Fee\FeeTransferController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\Fee\FeeTransferController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Fee\FeeTransferController::class, 'store'])->name('store');
+            Route::post('/{transfer}/approve', [\App\Http\Controllers\Fee\FeeTransferController::class, 'approve'])->name('approve');
+            Route::post('/{transfer}/reject', [\App\Http\Controllers\Fee\FeeTransferController::class, 'reject'])->name('reject');
+            Route::get('/{transfer}', [\App\Http\Controllers\Fee\FeeTransferController::class, 'show'])->name('show');
+            Route::post('/credit-transfer', [\App\Http\Controllers\Fee\FeePaymentController::class, 'transferCredit'])->name('credit-transfer');
+         });
+         Route::get('/reports/overview', [\App\Http\Controllers\Fee\FeeReportController::class, 'overview'])->name('reports.overview');
+         Route::get('/reports/student/{student}', [\App\Http\Controllers\Fee\FeeReportController::class, 'student'])->name('reports.student');
+         Route::get('/reports/collection', [\App\Http\Controllers\Fee\FeeReportController::class, 'collectionReport'])->name('reports.collection');
+         Route::get('/reports/outstanding', [\App\Http\Controllers\Fee\FeeReportController::class, 'outstandingReport'])->name('reports.outstanding');
+         Route::get('/reports/export-collection', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportCollectionReport'])->name('reports.export-collection');
+         Route::get('/reports/export-outstanding', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportOutstandingReport'])->name('reports.export-outstanding');
+         Route::get('/reports/export-student/{student}', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportStudentReport'])->name('reports.export-student');
+         Route::get('/reports/export-overview', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportOverviewReport'])->name('reports.export-overview');
+      });
+
+      /********************************
+       * FEE STRUCTURE ROUTES - FIXED VERSION WITH AUTO-FEE APPLICATION
+       *******************************/
+      Route::prefix('fee-structures')->name('fee-structures.')->group(function () {
+         Route::get('/', [\App\Http\Controllers\Fee\FeeStructureController::class, 'index'])->name('index');
+         Route::get('/create', [\App\Http\Controllers\Fee\FeeStructureController::class, 'create'])->name('create');
+         Route::post('/', [\App\Http\Controllers\Fee\FeeStructureController::class, 'store'])->name('store');
+         Route::get('/{fee_structure}/edit', [\App\Http\Controllers\Fee\FeeStructureController::class, 'edit'])->name('edit');
+         Route::put('/{fee_structure}', [\App\Http\Controllers\Fee\FeeStructureController::class, 'update'])->name('update');
+         Route::delete('/{fee_structure}', [\App\Http\Controllers\Fee\FeeStructureController::class, 'destroy'])->name('destroy');
+         Route::post('/{fee_structure}/update-status', [\App\Http\Controllers\Fee\FeeStructureController::class, 'updateStatus'])->name('update-status');
+         Route::post('/{fee_structure}/generate-fees', [\App\Http\Controllers\Fee\FeeController::class, 'generateFeesFromStructure'])->name('generate-fees');
+
+         Route::post('/{fee_structure}/bulk-delete-fees', [\App\Http\Controllers\Fee\FeeStructureController::class, 'bulkDeleteFees'])->name('bulk-delete-fees');
+         Route::get('/{fee_structure}', [\App\Http\Controllers\Fee\FeeStructureController::class, 'show'])->name('show');
+
+         // NEW: Auto-fee application routes
+         Route::post('/{fee_structure}/apply-to-student/{student}', [\App\Http\Controllers\Fee\FeeStructureController::class, 'applyToStudent'])->name('apply-to-student');
+         Route::post('/{fee_structure}/apply-to-eligible', [\App\Http\Controllers\Fee\FeeStructureController::class, 'applyToAllEligibleStudents'])->name('apply-to-eligible');
+      });
+
+      /********************************
+       * AUTO-FEE APPLICATION ROUTES - ADDED HERE
+       *******************************/
+      Route::post('/fee-structures/sync-all', [\App\Http\Controllers\Fee\FeeStructureController::class, 'syncAllFeeStructures'])->name('admin.fee-structures.sync-all');
+      Route::post('/students/{student}/apply-fees', [\App\Http\Controllers\Fee\FeeStructureController::class, 'applyRelevantFeesToStudent'])->name('admin.students.apply-fees');
 
       Route::get('/students/search', [\App\Http\Controllers\Fee\FeePaymentController::class, 'searchStudents'])->name('students.search');
-/********************************
- * STUDENT ADMISSIONS ROUTES - CLEANED VERSION
- *******************************/
-Route::group([
-    'prefix' => '/student-admissions',
-    'as' => 'admissions.'
-], function () {
-    Route::get('/', [\App\Http\Controllers\StudentAdmissionController::class, 'index'])->name('index');
-    Route::get('/admission-form', [\App\Http\Controllers\StudentAdmissionController::class, 'create'])->name('form');
-    Route::post('/', [\App\Http\Controllers\StudentAdmissionController::class, 'store'])->name('store');
-    Route::get('/generate-admission-number', [\App\Http\Controllers\StudentAdmissionController::class, 'generateAdmissionNumberApi'])->name('generate.number');
-    Route::post('/first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('first.step');
-    Route::post('/second-step', [\App\Http\Controllers\StudentAdmissionController::class, 'secondStep'])->name('second.step');
-    Route::post('/third-step', [\App\Http\Controllers\StudentAdmissionController::class, 'thirdStep'])->name('third.step');
-    Route::post('/{id}/edit-first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('edit.first.step');
-    Route::post('/{id}/edit-second-step', [\App\Http\Controllers\StudentAdmissionController::class, 'secondStep'])->name('edit.second.step');
-    Route::post('/{id}/edit-third-step', [\App\Http\Controllers\StudentAdmissionController::class, 'thirdStep'])->name('edit.third.step');
-    Route::get('/{id}/edit', [\App\Http\Controllers\StudentAdmissionController::class, 'edit'])->name('edit');
-    Route::patch('/{id}', [\App\Http\Controllers\StudentAdmissionController::class, 'update'])->name('update'); 
-    Route::get('/{id}', [\App\Http\Controllers\StudentAdmissionController::class, 'show'])->name('show');
-    
-});
+      /********************************
+       * STUDENT ADMISSIONS ROUTES - CLEANED VERSION
+       *******************************/
+      Route::group([
+         'prefix' => '/student-admissions',
+         'as' => 'admissions.'
+      ], function () {
+         Route::get('/', [\App\Http\Controllers\StudentAdmissionController::class, 'index'])->name('index');
+         Route::get('/admission-form', [\App\Http\Controllers\StudentAdmissionController::class, 'create'])->name('form');
+         Route::post('/', [\App\Http\Controllers\StudentAdmissionController::class, 'store'])->name('store');
+         Route::get('/generate-admission-number', [\App\Http\Controllers\StudentAdmissionController::class, 'generateAdmissionNumberApi'])->name('generate.number');
+         Route::post('/first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('first.step');
+         Route::post('/second-step', [\App\Http\Controllers\StudentAdmissionController::class, 'secondStep'])->name('second.step');
+         Route::post('/third-step', [\App\Http\Controllers\StudentAdmissionController::class, 'thirdStep'])->name('third.step');
+         Route::post('/{id}/edit-first-step', [\App\Http\Controllers\StudentAdmissionController::class, 'firstStep'])->name('edit.first.step');
+         Route::post('/{id}/edit-second-step', [\App\Http\Controllers\StudentAdmissionController::class, 'secondStep'])->name('edit.second.step');
+         Route::post('/{id}/edit-third-step', [\App\Http\Controllers\StudentAdmissionController::class, 'thirdStep'])->name('edit.third.step');
+         Route::get('/{id}/edit', [\App\Http\Controllers\StudentAdmissionController::class, 'edit'])->name('edit');
+         Route::patch('/{id}', [\App\Http\Controllers\StudentAdmissionController::class, 'update'])->name('update');
+         Route::get('/{id}', [\App\Http\Controllers\StudentAdmissionController::class, 'show'])->name('show');
+      });
 
       Route::post('/users/{user}/permissions', [\App\Http\Controllers\UserController::class, 'updatePermission']);
       Route::post('/medias/institution', [\App\Http\Controllers\InstitutionController::class, 'uploadMedia'])->name('institution.media-upload');
@@ -320,76 +329,76 @@ Route::group([
       Route::patch('/lessons/{lesson}', [\App\Http\Controllers\LessonController::class, 'update']);
       Route::delete('/lessons/{lesson}', [\App\Http\Controllers\LessonController::class, 'destroy']);
 
-     /********************************
- * EMPLOYEE MANAGEMENT ROUTES
- *******************************/
-Route::group([
-    'prefix' => 'employees',
-], function () {
-    /********************************
-     * FORM WIZARD ROUTES
-     *******************************/
-    Route::group([
-        'prefix' => '/teacher-registration',
-    ], function () {
-        Route::post('/first-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'firstStep'])->name('teacher.registration.first.step');
-        Route::post('/first-step/{employee}', [\App\Http\Controllers\FormWizard\TeacherController::class, 'firstStep'])->name('teacher.registration.edit.first.step');
-        Route::post('/second-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'secondStep'])->name('teacher.registration.second.step');
-        Route::post('/second-step/{employee}', [\App\Http\Controllers\FormWizard\TeacherController::class, 'secondStep'])->name('teacher.registration.edit.second.step');
-        Route::post('/third-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'thirdStep'])->name('teacher.registration.third.step');
-        Route::post('/third-step/{employee}', [\App\Http\Controllers\FormWizard\TeacherController::class, 'thirdStep'])->name('teacher.registration.edit.third.step');
-        Route::post('/fourth-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'fourthStep'])->name('teacher.registration.fourth.step');
-    });
+      /********************************
+       * EMPLOYEE MANAGEMENT ROUTES
+       *******************************/
+      Route::group([
+         'prefix' => 'employees',
+      ], function () {
+         /********************************
+          * FORM WIZARD ROUTES
+          *******************************/
+         Route::group([
+            'prefix' => '/teacher-registration',
+         ], function () {
+            Route::post('/first-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'firstStep'])->name('teacher.registration.first.step');
+            Route::post('/first-step/{employee}', [\App\Http\Controllers\FormWizard\TeacherController::class, 'firstStep'])->name('teacher.registration.edit.first.step');
+            Route::post('/second-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'secondStep'])->name('teacher.registration.second.step');
+            Route::post('/second-step/{employee}', [\App\Http\Controllers\FormWizard\TeacherController::class, 'secondStep'])->name('teacher.registration.edit.second.step');
+            Route::post('/third-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'thirdStep'])->name('teacher.registration.third.step');
+            Route::post('/third-step/{employee}', [\App\Http\Controllers\FormWizard\TeacherController::class, 'thirdStep'])->name('teacher.registration.edit.third.step');
+            Route::post('/fourth-step', [\App\Http\Controllers\FormWizard\TeacherController::class, 'fourthStep'])->name('teacher.registration.fourth.step');
+         });
 
-    // TEACHER ROUTES
-    Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
-    Route::get('/teachers/create', [TeacherController::class, 'create'])->name('teachers.create');
-    Route::post('/teachers', [TeacherController::class, 'store'])->name('teachers.store');
-    Route::get('/teachers/{teacher}', [TeacherController::class, 'show'])->name('teachers.show');
-    Route::get('/teachers/{teacher}/edit', [TeacherController::class, 'edit'])->name('teachers.edit');
-    Route::patch('/teachers/{teacher}', [TeacherController::class, 'update'])->name('teachers.update');
-    
-    // MAIN EMPLOYEE ROUTES
-    Route::get('/', [EmployeeController::class, 'index'])->name('employees.index');
-    Route::get('/create', [EmployeeController::class, 'create'])->name('employees.create');
-    Route::post('/', [EmployeeController::class, 'store'])->name('employees.store');
-    Route::get('/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
-    Route::get('/{employee}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
-    Route::patch('/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
-    Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
+         // TEACHER ROUTES
+         Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
+         Route::get('/teachers/create', [TeacherController::class, 'create'])->name('teachers.create');
+         Route::post('/teachers', [TeacherController::class, 'store'])->name('teachers.store');
+         Route::get('/teachers/{teacher}', [TeacherController::class, 'show'])->name('teachers.show');
+         Route::get('/teachers/{teacher}/edit', [TeacherController::class, 'edit'])->name('teachers.edit');
+         Route::patch('/teachers/{teacher}', [TeacherController::class, 'update'])->name('teachers.update');
 
-    // SYSTEM ACCESS ROUTES
-    Route::post('/system-access/{employee}', [EmployeeController::class, 'systemAccess'])->name('employees.system-access');
-    Route::patch('/system-access/{employee}', [EmployeeController::class, 'revokeSystemAccess'])->name('employees.revoke-system-access');
+         // MAIN EMPLOYEE ROUTES
+         Route::get('/', [EmployeeController::class, 'index'])->name('employees.index');
+         Route::get('/create', [EmployeeController::class, 'create'])->name('employees.create');
+         Route::post('/', [EmployeeController::class, 'store'])->name('employees.store');
+         Route::get('/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
+         Route::get('/{employee}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
+         Route::patch('/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
+         Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
 
-    // CLASS ASSIGNMENT ROUTES
-    Route::get('/{employee}/assign-classes', [EmployeeController::class, 'assignClasses'])->name('employees.assign-classes');
-    Route::post('/{employee}/class-assignments', [EmployeeController::class, 'storeClassAssignments'])->name('employees.class-assignments.store');
-    Route::put('/{employee}/class-assignments/{assignment}', [EmployeeController::class, 'updateClassAssignment'])->name('employees.class-assignments.update');
-    Route::delete('/{employee}/class-assignments', [EmployeeController::class, 'removeClassAssignment'])->name('employees.class-assignments.remove');
-    
-    // SUBJECT ASSIGNMENT ROUTES
-    Route::get('/{employee}/assign-subjects', [EmployeeController::class, 'assignSubjects'])->name('employees.assign-subjects');
-    Route::post('/{employee}/subject-assignments', [EmployeeController::class, 'storeSubjectAssignments'])->name('employees.subject-assignments.store');
-    Route::delete('/{employee}/subject-assignments', [EmployeeController::class, 'removeSubjectAssignment'])->name('employees.subject-assignments.remove');
-    
-    // API ROUTES FOR CLASS ASSIGNMENTS
-    Route::get('/class/{class}/teachers', [EmployeeController::class, 'getTeachersForClass'])->name('employees.class-teachers');
-    Route::get('/{employee}/classes', [EmployeeController::class, 'getEmployeeClasses'])->name('employees.classes');
-    Route::get('/available-teachers', [EmployeeController::class, 'getAvailableTeachers'])->name('employees.available-teachers');
-    Route::get('/teacher-statistics', [EmployeeController::class, 'getTeacherStatistics'])->name('employees.teacher-statistics');
-    Route::get('/{employee}/get-employee-assignments', [EmployeeController::class, 'getEmployeeAssignments'])->name('employees.get-employee-assignments');
-    
-    // API ROUTES FOR SUBJECT ASSIGNMENTS
-    Route::get('/{employee}/subjects', [EmployeeController::class, 'getEmployeeSubjects'])->name('employees.subjects');
-    Route::get('/subject/{subject}/teachers', [EmployeeController::class, 'getTeachersForSubject'])->name('employees.subject-teachers');
-    Route::get('/available-subjects', [EmployeeController::class, 'getAvailableSubjects'])->name('employees.available-subjects');
+         // SYSTEM ACCESS ROUTES
+         Route::post('/system-access/{employee}', [EmployeeController::class, 'systemAccess'])->name('employees.system-access');
+         Route::patch('/system-access/{employee}', [EmployeeController::class, 'revokeSystemAccess'])->name('employees.revoke-system-access');
 
-    // EMPLOYEE RELATED RESOURCES
-    Route::resource('/qualifications', \App\Http\Controllers\QualificationController::class)->names('qualifications');
-    Route::resource('/work-histories', \App\Http\Controllers\WorkHistoryController::class)->names('work.histories');
-    Route::resource('/emergency-contacts', \App\Http\Controllers\EmergencyContactController::class)->names('emergency.contacts');
-});
+         // CLASS ASSIGNMENT ROUTES
+         Route::get('/{employee}/assign-classes', [EmployeeController::class, 'assignClasses'])->name('employees.assign-classes');
+         Route::post('/{employee}/class-assignments', [EmployeeController::class, 'storeClassAssignments'])->name('employees.class-assignments.store');
+         Route::put('/{employee}/class-assignments/{assignment}', [EmployeeController::class, 'updateClassAssignment'])->name('employees.class-assignments.update');
+         Route::delete('/{employee}/class-assignments', [EmployeeController::class, 'removeClassAssignment'])->name('employees.class-assignments.remove');
+
+         // SUBJECT ASSIGNMENT ROUTES
+         Route::get('/{employee}/assign-subjects', [EmployeeController::class, 'assignSubjects'])->name('employees.assign-subjects');
+         Route::post('/{employee}/subject-assignments', [EmployeeController::class, 'storeSubjectAssignments'])->name('employees.subject-assignments.store');
+         Route::delete('/{employee}/subject-assignments', [EmployeeController::class, 'removeSubjectAssignment'])->name('employees.subject-assignments.remove');
+
+         // API ROUTES FOR CLASS ASSIGNMENTS
+         Route::get('/class/{class}/teachers', [EmployeeController::class, 'getTeachersForClass'])->name('employees.class-teachers');
+         Route::get('/{employee}/classes', [EmployeeController::class, 'getEmployeeClasses'])->name('employees.classes');
+         Route::get('/available-teachers', [EmployeeController::class, 'getAvailableTeachers'])->name('employees.available-teachers');
+         Route::get('/teacher-statistics', [EmployeeController::class, 'getTeacherStatistics'])->name('employees.teacher-statistics');
+         Route::get('/{employee}/get-employee-assignments', [EmployeeController::class, 'getEmployeeAssignments'])->name('employees.get-employee-assignments');
+
+         // API ROUTES FOR SUBJECT ASSIGNMENTS
+         Route::get('/{employee}/subjects', [EmployeeController::class, 'getEmployeeSubjects'])->name('employees.subjects');
+         Route::get('/subject/{subject}/teachers', [EmployeeController::class, 'getTeachersForSubject'])->name('employees.subject-teachers');
+         Route::get('/available-subjects', [EmployeeController::class, 'getAvailableSubjects'])->name('employees.available-subjects');
+
+         // EMPLOYEE RELATED RESOURCES
+         Route::resource('/qualifications', \App\Http\Controllers\QualificationController::class)->names('qualifications');
+         Route::resource('/work-histories', \App\Http\Controllers\WorkHistoryController::class)->names('work.histories');
+         Route::resource('/emergency-contacts', \App\Http\Controllers\EmergencyContactController::class)->names('emergency.contacts');
+      });
       /********************************
        * SMS MANAGEMENT ROUTES
        *******************************/
@@ -409,9 +418,9 @@ Route::group([
       ], function () {
          Route::get('adjustment', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'payrollAdjustment'])->name('adjustment.index');
          Route::get('run', [\App\Http\Controllers\Payroll\PayrollController::class, 'run'])->name('payroll.run');
-         Route::post('run',[\App\Http\Controllers\Payroll\PayrollController::class, 'store'])->name('payroll.store');
-         Route::get('summary',[\App\Http\Controllers\Payroll\PayrollController::class, 'index'])->name('payroll.index');
-         Route::get('/lists/{pay_date}',[\App\Http\Controllers\Payroll\PayrollController::class,'show'])->name('payroll-details');
+         Route::post('run', [\App\Http\Controllers\Payroll\PayrollController::class, 'store'])->name('payroll.store');
+         Route::get('summary', [\App\Http\Controllers\Payroll\PayrollController::class, 'index'])->name('payroll.index');
+         Route::get('/lists/{pay_date}', [\App\Http\Controllers\Payroll\PayrollController::class, 'show'])->name('payroll-details');
          Route::post("dedution/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeDeductionAdjustment'])->name("deduction.adjustment");
          Route::patch('deduction/adjustments/{payrollDeduction}', [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'updateDeductionAdjustment'])->name('deduction.adjustment.update');
          Route::post("allowance/adjustments", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'storeAllowanceAdjustment'])->name("allowance.adjustment");
@@ -424,44 +433,44 @@ Route::group([
          Route::delete("employee/deduction/{employeeDeduction}delete", [\App\Http\Controllers\Payroll\EmployeePayrollController::class, 'deleteEmployeeDedection'])->name("employee.deductions.delete");
       });
 
-   /********************************
- * SYSTEM SETTINGS ROUTES
- *******************************/
-Route::group([
-    'prefix' => 'settings',
-], function () {
-    Route::get('/',  [\App\Http\Controllers\Settings\SettingController::class, 'index'])->name('settings.index');
-    Route::resource('/guardians', \App\Http\Controllers\GuardianController::class)->names('guardians')->only('store', 'update', 'destroy');
-    Route::resource('/blog_categories', \App\Http\Controllers\Website\BlogCategoryController::class)->names('blog_categories')->only('store', 'update', 'destroy');
-    Route::resource('/divisions', \App\Http\Controllers\Settings\DivisionController::class)->names('divisions')->only('store', 'update', 'destroy');
-    Route::resource('/streams', \App\Http\Controllers\Settings\StreamController::class)->names('streams')->only('store', 'update', 'destroy');
-    Route::resource('/subjects', \App\Http\Controllers\Settings\SubjectController::class)->names('subjects');
-    Route::get('/subjects/{subject}/skills', [\App\Http\Controllers\Settings\SubjectController::class, 'getSkills'])->name('subjects.skills');
-    Route::post('/subjects/{subject}/skills', [\App\Http\Controllers\Settings\SubjectController::class, 'storeSkill'])->name('subjects.skills.store');
-    Route::put('/subjects/{subject}/skills/{skill}', [\App\Http\Controllers\Settings\SubjectController::class, 'updateSkill'])->name('subjects.skills.update');
-    Route::delete('/subjects/{subject}/skills/{skill}', [\App\Http\Controllers\Settings\SubjectController::class, 'destroySkill'])->name('subjects.skills.destroy');
-    Route::post('/subjects/{subject}/skills/bulk-update', [\App\Http\Controllers\Settings\SubjectController::class, 'bulkUpdateSkills'])->name('subjects.skills.bulk-update');
-    Route::resource('/departments', \App\Http\Controllers\Settings\DepartmentController::class)->names('departments')->only('store', 'update', 'destroy');
-    Route::resource('/genders', \App\Http\Controllers\Settings\GenderController::class)->names('genders')->only('store', 'update', 'destroy');
-    Route::resource('/religions', \App\Http\Controllers\Settings\ReligionController::class)->names('religions')->only('store', 'update', 'destroy');
-    Route::resource('/relationships', \App\Http\Controllers\Settings\RelationshipController::class)->names('relationships')->only('store', 'update', 'destroy');
-    Route::resource('/languages', \App\Http\Controllers\Settings\LanguageController::class)->names('languages')->only('store', 'update', 'destroy');
-    Route::resource('/marital-statuses', \App\Http\Controllers\Settings\MaritalStatusController::class)->names('marital.statuses')->only('store', 'update', 'destroy');
-    Route::resource('/honorifics', \App\Http\Controllers\Settings\HonorificController::class)->names('honorifics')->only('store', 'update', 'destroy');
-    Route::resource('/employment-types', \App\Http\Controllers\Settings\EmploymentTypeController::class)->names('employment-types')->only('store', 'update', 'destroy');
-    Route::resource('/employment-statuses', \App\Http\Controllers\Settings\EmploymentStatusController::class)->names('employment-statuses')->only('store', 'update', 'destroy');
-    Route::resource('/job-titles', \App\Http\Controllers\Settings\JobTitleController::class)->names('job-titles')->only('store', 'update', 'destroy');
-    Route::resource('/specializations', \App\Http\Controllers\Settings\SpecializationController::class)->names('specializations')->only('store', 'update', 'destroy');
-    Route::resource('/qualification-types', \App\Http\Controllers\Settings\QualificationTypeController::class)->names('qualification-types')->only('store', 'update', 'destroy');
-    
-    Route::resource('/salary-grades', \App\Http\Controllers\Settings\SalaryGradeController::class)->names('salary-grades')->only('store', 'update', 'destroy');
-    Route::resource('/salary-scales', \App\Http\Controllers\Settings\SalaryScaleController::class)->names('salary-scales')->only('store', 'update', 'destroy');
-    
-    Route::resource('academic-years', AcademicYearController::class);
-    Route::resource('allowances', \App\Http\Controllers\Settings\AllowanceController::class)->names('settings.allowances')->only('store', 'update', 'destroy');
-    Route::resource('deductions', \App\Http\Controllers\Settings\DeductionController::class)->names('settings.deductions')->only('store', 'update', 'destroy');
-    Route::resource('income', \App\Http\Controllers\Settings\IncomeController::class)->names('settings.income')->only('store', 'update', 'destroy');
-});
+      /********************************
+       * SYSTEM SETTINGS ROUTES
+       *******************************/
+      Route::group([
+         'prefix' => 'settings',
+      ], function () {
+         Route::get('/',  [\App\Http\Controllers\Settings\SettingController::class, 'index'])->name('settings.index');
+         Route::resource('/guardians', \App\Http\Controllers\GuardianController::class)->names('guardians')->only('store', 'update', 'destroy');
+         Route::resource('/blog_categories', \App\Http\Controllers\Website\BlogCategoryController::class)->names('blog_categories')->only('store', 'update', 'destroy');
+         Route::resource('/divisions', \App\Http\Controllers\Settings\DivisionController::class)->names('divisions')->only('store', 'update', 'destroy');
+         Route::resource('/streams', \App\Http\Controllers\Settings\StreamController::class)->names('streams')->only('store', 'update', 'destroy');
+         Route::resource('/subjects', \App\Http\Controllers\Settings\SubjectController::class)->names('subjects');
+         Route::get('/subjects/{subject}/skills', [\App\Http\Controllers\Settings\SubjectController::class, 'getSkills'])->name('subjects.skills');
+         Route::post('/subjects/{subject}/skills', [\App\Http\Controllers\Settings\SubjectController::class, 'storeSkill'])->name('subjects.skills.store');
+         Route::put('/subjects/{subject}/skills/{skill}', [\App\Http\Controllers\Settings\SubjectController::class, 'updateSkill'])->name('subjects.skills.update');
+         Route::delete('/subjects/{subject}/skills/{skill}', [\App\Http\Controllers\Settings\SubjectController::class, 'destroySkill'])->name('subjects.skills.destroy');
+         Route::post('/subjects/{subject}/skills/bulk-update', [\App\Http\Controllers\Settings\SubjectController::class, 'bulkUpdateSkills'])->name('subjects.skills.bulk-update');
+         Route::resource('/departments', \App\Http\Controllers\Settings\DepartmentController::class)->names('departments')->only('store', 'update', 'destroy');
+         Route::resource('/genders', \App\Http\Controllers\Settings\GenderController::class)->names('genders')->only('store', 'update', 'destroy');
+         Route::resource('/religions', \App\Http\Controllers\Settings\ReligionController::class)->names('religions')->only('store', 'update', 'destroy');
+         Route::resource('/relationships', \App\Http\Controllers\Settings\RelationshipController::class)->names('relationships')->only('store', 'update', 'destroy');
+         Route::resource('/languages', \App\Http\Controllers\Settings\LanguageController::class)->names('languages')->only('store', 'update', 'destroy');
+         Route::resource('/marital-statuses', \App\Http\Controllers\Settings\MaritalStatusController::class)->names('marital.statuses')->only('store', 'update', 'destroy');
+         Route::resource('/honorifics', \App\Http\Controllers\Settings\HonorificController::class)->names('honorifics')->only('store', 'update', 'destroy');
+         Route::resource('/employment-types', \App\Http\Controllers\Settings\EmploymentTypeController::class)->names('employment-types')->only('store', 'update', 'destroy');
+         Route::resource('/employment-statuses', \App\Http\Controllers\Settings\EmploymentStatusController::class)->names('employment-statuses')->only('store', 'update', 'destroy');
+         Route::resource('/job-titles', \App\Http\Controllers\Settings\JobTitleController::class)->names('job-titles')->only('store', 'update', 'destroy');
+         Route::resource('/specializations', \App\Http\Controllers\Settings\SpecializationController::class)->names('specializations')->only('store', 'update', 'destroy');
+         Route::resource('/qualification-types', \App\Http\Controllers\Settings\QualificationTypeController::class)->names('qualification-types')->only('store', 'update', 'destroy');
+
+         Route::resource('/salary-grades', \App\Http\Controllers\Settings\SalaryGradeController::class)->names('salary-grades')->only('store', 'update', 'destroy');
+         Route::resource('/salary-scales', \App\Http\Controllers\Settings\SalaryScaleController::class)->names('salary-scales')->only('store', 'update', 'destroy');
+
+         Route::resource('academic-years', AcademicYearController::class);
+         Route::resource('allowances', \App\Http\Controllers\Settings\AllowanceController::class)->names('settings.allowances')->only('store', 'update', 'destroy');
+         Route::resource('deductions', \App\Http\Controllers\Settings\DeductionController::class)->names('settings.deductions')->only('store', 'update', 'destroy');
+         Route::resource('income', \App\Http\Controllers\Settings\IncomeController::class)->names('settings.income')->only('store', 'update', 'destroy');
+      });
       Route::resource('/institutions', \App\Http\Controllers\InstitutionController::class)->names('institutions');
       Route::resource('/users', \App\Http\Controllers\UserController::class)->names('users');
       Route::resource('/roles', \App\Http\Controllers\Settings\RoleController::class)->names('roles');
@@ -473,8 +482,8 @@ Route::group([
       Route::group([
          'prefix' => 'exams',
          'as' => 'exams.'
-      ], function(){
-         Route::resource('manage',\App\Http\Controllers\Exams\ExamManageController::class);
+      ], function () {
+         Route::resource('manage', \App\Http\Controllers\Exams\ExamManageController::class);
          Route::resource('exam-students', \App\Http\Controllers\Exams\ExamStudentController::class);
          Route::resource('upload-results', \App\Http\Controllers\Exams\UploadExamResultController::class);
          Route::resource('results', ExamResultController::class);
@@ -484,22 +493,23 @@ Route::group([
           *******************************/
          Route::prefix('approval-queue')->name('approval-queue.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Exam/UploadExamResult/ApprovalQueue');
+               return Inertia::render('Exam/UploadExamResult/ApprovalQueue');
             })->name('index');
-            
+
             // API routes for Vue component
             Route::get('/pending-submissions', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'getPendingSubmissions'])->name('pending-submissions');
+            Route::get('/approved-submissions', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'getApprovedSubmissions'])->name('approved-submissions');
             Route::get('/stats', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'getStats'])->name('stats');
             Route::get('/{submissionId}/details', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'getSubmissionDetails'])->name('details');
             Route::post('/approve-marks', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'approveMarks'])->name('approve');
             Route::post('/reject-marks', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'rejectMarks'])->name('reject');
-            
+
             // Individual student approval
             Route::post('/approve-student-marks', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'approveStudentMarks'])->name('approve-student-marks');
             Route::post('/reject-student-marks', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'rejectStudentMarks'])->name('reject-student-marks');
             Route::post('/bulk-approve-exam-class', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'bulkApproveExamClass'])->name('bulk-approve-exam-class');
             Route::post('/fix-missing-grades', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'fixMissingGrades'])->name('fix-missing-grades');
-            
+
             // Additional API routes
             Route::get('/submission-history', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'getSubmissionHistory'])->name('submission-history');
             Route::get('/analytics', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'getAnalytics'])->name('analytics');
@@ -515,6 +525,9 @@ Route::group([
          Route::get('/marks-statistics', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'getStatistics'])->name('marks-statistics');
          Route::get('/available-students', [ExamResultController::class, 'getReportStudents'])->name('available-students');
          Route::get('/reports/student/{student}', [ExamResultController::class, 'generateStudentReport'])->name('reports.student');
+
+         // Admin mark editing route
+         Route::put('/marks/{mark}/admin-update', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'adminUpdateMark'])->name('marks.admin-update');
       });
 
       /********************************
@@ -535,7 +548,7 @@ Route::group([
          Route::post('/pages', [\App\Http\Controllers\Website\PageController::class, 'store'])->name('pages.store');
          Route::patch('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'update'])->name('pages.update');
          Route::delete('/pages/{page}', [\App\Http\Controllers\Website\PageController::class, 'destroy'])->name('pages.destroy');
-         
+
          // PAGE_SECTION ROUTES
          Route::get('/pages/{page}/manage-sections', [\App\Http\Controllers\Website\PageController::class, 'manageSections'])->name('pages.manage-sections');
          Route::post('/sections', [\App\Http\Controllers\Website\SectionController::class, 'store'])->name('pages.sections.store');
@@ -568,3 +581,5 @@ Route::get('/{slug}', [\App\Http\Controllers\Website\PageController::class, 'sho
 Route::get('/sitemap.xml', function () {
    return response()->file(public_path('sitemap.xml'));
 });
+
+require __DIR__ . '/timetable.php';

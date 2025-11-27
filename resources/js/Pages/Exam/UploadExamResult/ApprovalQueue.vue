@@ -74,10 +74,40 @@
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
             <div>
-              <h5 class="card-title mb-1">Pending Approval</h5>
-              <p class="text-muted mb-0">Review and approve submitted exam marks</p>
+              <h5 class="card-title mb-1">
+                {{ activeTab === 'pending' ? 'Pending Approval' : 'Approved History' }}
+              </h5>
+              <p class="text-muted mb-0">
+                {{ activeTab === 'pending' ? 'Review and approve submitted exam marks' : 'View history of approved exam submissions' }}
+              </p>
             </div>
             <div class="d-flex gap-2">
+              <div class="btn-group me-2">
+                <button 
+                  class="btn btn-sm" 
+                  :class="activeTab === 'pending' ? 'btn-primary' : 'btn-outline-primary'"
+                  @click="switchTab('pending')"
+                >
+                  Pending
+                </button>
+                <button 
+                  class="btn btn-sm" 
+                  :class="activeTab === 'approved' ? 'btn-primary' : 'btn-outline-primary'"
+                  @click="switchTab('approved')"
+                >
+                  Approved
+                </button>
+              </div>
+              <div class="input-group input-group-sm me-2" style="width: 250px;" v-if="activeTab === 'approved'">
+                <span class="input-group-text bg-white"><i class="bx bx-search"></i></span>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  placeholder="Search student, exam..." 
+                  v-model="searchQuery"
+                  @input="handleSearch"
+                >
+              </div>
               <button class="btn btn-outline-primary btn-sm" @click="loadApprovalQueue" :disabled="loading">
                 <i class="bx bx-refresh me-1" :class="{ 'bx-spin': loading }"></i>
                 Refresh
@@ -119,7 +149,7 @@
               <table class="table table-bordered table-hover align-middle">
                 <thead class="table-light">
                   <tr>
-                    <th width="50">
+                    <th width="50" v-if="activeTab === 'pending'">
                       <input type="checkbox" v-model="selectAll" @change="toggleSelectAll">
                     </th>
                     <th>Exam</th>
@@ -127,14 +157,14 @@
                     <th>Subject</th>
                     <th>Teacher</th>
                     <th class="text-center">Students</th>
-                    <th class="text-center">Submitted Date</th>
+                    <th class="text-center">{{ activeTab === 'pending' ? 'Submitted Date' : 'Approved Date' }}</th>
                     <th width="180" class="text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="submission in pendingMarks" :key="submission.id" 
-                      :class="{ 'table-warning': isRecentSubmission(submission.submitted_date) }">
-                    <td>
+                      :class="{ 'table-warning': isRecentSubmission(submission.submitted_date) && activeTab === 'pending' }">
+                    <td v-if="activeTab === 'pending'">
                       <input type="checkbox" v-model="selectedSubmissions" :value="submission.id">
                     </td>
                     <td>
@@ -148,31 +178,45 @@
                       <small class="text-muted">{{ submission.subject_code }}</small>
                     </td>
                     <td>
-                      <div class="fw-medium">{{ submission.teacher_name }}</div>
-                      <small class="text-muted">{{ submission.teacher_email }}</small>
+                      <div class="fw-semibold">{{ submission.teacher_name }}</div>
+                      <div class="small text-muted">{{ submission.teacher_email }}</div>
+                      
+                      <!-- Matched Student Display -->
+                      <div v-if="submission.matched_students && submission.matched_students.length > 0" class="mt-2">
+                        <span class="badge bg-warning text-dark">
+                          <i class="bx bx-search-alt me-1"></i>
+                          Found: {{ submission.matched_students[0] }}
+                          <span v-if="submission.matched_students.length > 1">
+                            + {{ submission.matched_students.length - 1 }} others
+                          </span>
+                        </span>
+                      </div>
                     </td>
                     <td class="text-center">
                       <span class="badge border text-dark">{{ submission.students_count }}</span>
                     </td>
                     <td class="text-center">
-                      <small :class="{ 'text-success fw-bold': isRecentSubmission(submission.submitted_date) }">
-                        {{ formatDateTime(submission.submitted_date) }}
+                      <small :class="{ 'text-success fw-bold': isRecentSubmission(submission.submitted_date) && activeTab === 'pending' }">
+                        {{ activeTab === 'pending' ? formatDateTime(submission.submitted_date) : formatDateTime(submission.approved_date) }}
                       </small>
-                      <div v-if="isRecentSubmission(submission.submitted_date)" class="mt-1">
+                      <div v-if="isRecentSubmission(submission.submitted_date) && activeTab === 'pending'" class="mt-1">
                         <span class="badge bg-success">New</span>
+                      </div>
+                      <div v-if="activeTab === 'approved'" class="mt-1">
+                        <small class="text-muted">by {{ submission.approved_by_name }}</small>
                       </div>
                     </td>
                     <td class="text-center">
                       <div class="btn-group btn-group-sm" role="group">
                         <button class="btn btn-outline-primary" @click="viewSubmission(submission)" 
                                 :disabled="actionLoading" title="Review Details">
-                          <i class="bx bx-show me-1"></i>Review
+                          <i class="bx bx-show me-1"></i>{{ activeTab === 'pending' ? 'Review' : 'View' }}
                         </button>
-                        <button class="btn btn-outline-success" @click="approveSubmission(submission.id)" 
+                        <button v-if="activeTab === 'pending'" class="btn btn-outline-success" @click="approveSubmission(submission.id)" 
                                 :disabled="actionLoading" title="Approve All Students">
                           <i class="bx bx-check me-1"></i>Approve All
                         </button>
-                        <button class="btn btn-outline-danger" @click="rejectSubmission(submission.id)" 
+                        <button v-if="activeTab === 'pending'" class="btn btn-outline-danger" @click="rejectSubmission(submission.id)" 
                                 :disabled="actionLoading" title="Reject All Students">
                           <i class="bx bx-x me-1"></i>Reject All
                         </button>
@@ -204,11 +248,33 @@
               </div>
 
               <!-- Pagination -->
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted">
-                  Showing {{ pendingMarks.length }} of {{ stats.pending }} pending submissions
-                </div>
+              <!-- Pagination -->
+              <div class="d-flex justify-content-between align-items-center mt-3 px-1">
                 <div class="text-muted small">
+                  <span v-if="activeTab === 'pending'">
+                    Showing {{ pendingMarks.length }} of {{ stats.pending }} pending submissions
+                  </span>
+                  <span v-else-if="totalItems > 0">
+                    Showing {{ ((currentPage - 1) * perPage) + 1 }} to {{ Math.min(currentPage * perPage, totalItems) }} of {{ totalItems }} entries
+                  </span>
+                </div>
+                
+                <!-- Pagination Controls for Approved Tab -->
+                <nav aria-label="Page navigation" v-if="activeTab === 'approved' && totalItems > 0">
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                      <button class="page-link" @click="changePage(currentPage - 1)" :disabled="currentPage === 1">Previous</button>
+                    </li>
+                    <li class="page-item" v-for="page in visiblePages" :key="page" :class="{ active: currentPage === page }">
+                      <button class="page-link" @click="changePage(page)">{{ page }}</button>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage === lastPage }">
+                      <button class="page-link" @click="changePage(currentPage + 1)" :disabled="currentPage === lastPage">Next</button>
+                    </li>
+                  </ul>
+                </nav>
+                
+                <div class="text-muted small" v-if="activeTab === 'pending'">
                   Last updated: {{ lastUpdated }}
                 </div>
               </div>
@@ -217,8 +283,10 @@
             <!-- Empty State -->
             <div v-else class="text-center text-muted py-5">
               <i class="bx bx-check-circle display-4 text-muted mb-3"></i>
-              <h5>No Pending Approvals</h5>
-              <p class="mb-4">All submitted marks have been reviewed and processed.</p>
+              <h5>{{ activeTab === 'pending' ? 'No Pending Approvals' : 'No Approved History' }}</h5>
+              <p class="mb-4">
+                {{ activeTab === 'pending' ? 'All submitted marks have been reviewed and processed.' : 'No approved submissions found in history.' }}
+              </p>
               <button class="btn btn-primary" @click="loadApprovalQueue">
                 <i class="bx bx-refresh me-1"></i>Check Again
               </button>
@@ -297,6 +365,16 @@
                 </div>
               </div>
 
+              <!-- Modal Search -->
+              <div class="mb-3">
+                <input 
+                  type="text" 
+                  class="form-control form-control-sm" 
+                  placeholder="Search student in this list..." 
+                  v-model="modalSearchQuery"
+                >
+              </div>
+
               <!-- Marks Table with Checkboxes -->
               <div class="table-responsive" style="max-height: 400px;">
                 <table class="table table-bordered table-sm table-striped">
@@ -315,7 +393,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="mark in submissionDetails.marks" :key="mark.id"
+                    <tr v-for="mark in filteredModalMarks" :key="mark.id"
                         :class="{ 'table-success': mark.status === 'approved', 'table-danger': mark.status === 'rejected' }">
                       <td>
                         <input type="checkbox" v-model="selectedStudentMarks" :value="mark.id" 
@@ -358,7 +436,14 @@
                                   title="Reject this student">
                             <i class="bx bx-x"></i>
                           </button>
-                          <span v-else class="text-muted small">Processed</span>
+                          <button v-if="mark.status === 'approved' && isAdmin" 
+                                  class="btn btn-outline-warning btn-sm" 
+                                  @click="openEditMarkModal(mark)"
+                                  :disabled="actionLoading"
+                                  title="Admin: Edit approved mark">
+                            <i class="bx bx-pencil"></i>
+                          </button>
+                          <span v-if="mark.status !== 'submitted' && mark.status !== 'approved'" class="text-muted small">Processed</span>
                         </div>
                       </td>
                     </tr>
@@ -375,10 +460,10 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-success" @click="approveAllStudents" :disabled="actionLoading || !hasPendingStudents">
+            <button type="button" class="btn btn-success" @click="approveAllStudents" :disabled="actionLoading || !hasPendingMarks">
               <i class="bx bx-check me-1"></i>Approve All Students
             </button>
-            <button type="button" class="btn btn-danger" @click="showRejectReasonModal" :disabled="actionLoading || !hasPendingStudents">
+            <button type="button" class="btn btn-danger" @click="showRejectReasonModal" :disabled="actionLoading || !hasPendingMarks">
               <i class="bx bx-x me-1"></i>Reject All Students
             </button>
           </div>
@@ -449,16 +534,27 @@
         </div>
       </div>
     </div>
+    
+    <!-- Admin Edit Mark Modal -->
+    <AdminEditMarkModal 
+      :show="showEditMarkModal"
+      :mark="selectedMarkForEdit"
+      @close="closeEditMarkModal"
+      @updated="handleMarkUpdated"
+    />
   </DefaultLayout>
 </template>
 
 <script setup>
 import DefaultLayout from "@layouts/DefaultLayout.vue";
+import AdminEditMarkModal from "@/Components/Exams/AdminEditMarkModal.vue";
 import { Head, Link } from "@inertiajs/vue3";
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, inject } from "vue";
 import axios from "axios";
 import { Modal } from 'bootstrap';
-import { toast } from 'vue3-toastify';
+import { usePage } from '@inertiajs/vue3';
+
+const toast = inject('toast');
 
 // Refs
 const loading = ref(false);
@@ -477,6 +573,24 @@ const studentRejectionError = ref('');
 const stats = ref({});
 const error = ref('');
 const debugInfo = ref('');
+const activeTab = ref('pending'); // 'pending' or 'approved'
+const showEditMarkModal = ref(false);
+const selectedMarkForEdit = ref(null);
+
+// Pagination & Search
+const searchQuery = ref('');
+const modalSearchQuery = ref('');
+const currentPage = ref(1);
+const perPage = ref(10);
+const totalItems = ref(0);
+const lastPage = ref(1);
+const searchTimeout = ref(null);
+
+// Check if user is admin
+const page = usePage();
+const isAdmin = computed(() => {
+  return page.props.auth?.user?.roles?.includes('admin') || false;
+});
 
 // Computed properties
 const lastUpdated = computed(() => {
@@ -489,9 +603,37 @@ const lastUpdated = computed(() => {
   });
 });
 
-const hasPendingStudents = computed(() => {
-  if (!submissionDetails.value || !submissionDetails.value.marks) return false;
+const hasPendingMarks = computed(() => {
+  if (!submissionDetails.value) return false;
   return submissionDetails.value.marks.some(mark => mark.status === 'submitted');
+});
+
+const filteredModalMarks = computed(() => {
+  if (!submissionDetails.value || !submissionDetails.value.marks) return [];
+  
+  if (!modalSearchQuery.value) return submissionDetails.value.marks;
+  
+  const query = modalSearchQuery.value.toLowerCase();
+  return submissionDetails.value.marks.filter(mark => 
+    mark.student_name.toLowerCase().includes(query) || 
+    mark.admission_number.toLowerCase().includes(query)
+  );
+});
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const delta = 2;
+  const left = currentPage.value - delta;
+  const right = currentPage.value + delta + 1;
+  
+  for (let i = 1; i <= lastPage.value; i++) {
+    if (i === 1 || i === lastPage.value || (i >= left && i < right)) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== '...') {
+      pages.push('...');
+    }
+  }
+  return pages.filter(p => p !== '...'); // Simplified for now
 });
 
 // Methods
@@ -499,31 +641,53 @@ const loadApprovalQueue = async () => {
   try {
     loading.value = true;
     error.value = '';
-    debugInfo.value = 'Loading approval queue...';
+    debugInfo.value = `Loading ${activeTab.value} queue...`;
     
-    console.log('🔄 Loading approval queue...');
+    console.log(`🔄 Loading ${activeTab.value} queue...`);
     
-    const response = await axios.get('/admin/exams/approval-queue/pending-submissions');
+    const endpoint = activeTab.value === 'pending' 
+      ? '/admin/exams/approval-queue/pending-submissions'
+      : '/admin/exams/approval-queue/approved-submissions';
+      
+    const params = activeTab.value === 'approved' ? {
+      search: searchQuery.value,
+      page: currentPage.value,
+      per_page: perPage.value
+    } : {};
+
+    const response = await axios.get(endpoint, { params });
     console.log('✅ Response:', response.data);
     
-    if (response.data && Array.isArray(response.data.data)) {
-      pendingMarks.value = response.data.data;
-      debugInfo.value = `Found ${pendingMarks.value.length} submissions`;
+    if (activeTab.value === 'approved') {
+      // Handle paginated response
+      if (response.data && response.data.data) {
+        pendingMarks.value = response.data.data;
+        if (response.data.meta) {
+          currentPage.value = response.data.meta.current_page;
+          lastPage.value = response.data.meta.last_page;
+          totalItems.value = response.data.meta.total;
+        }
+      } else {
+        pendingMarks.value = [];
+      }
     } else {
-      pendingMarks.value = [];
-      debugInfo.value = 'No data returned from API';
+      // Handle standard response for pending
+      if (response.data && Array.isArray(response.data.data)) {
+        pendingMarks.value = response.data.data;
+      } else {
+        pendingMarks.value = [];
+      }
     }
     
-    await loadStats();
-    
-    selectedSubmissions.value = [];
-    selectAll.value = false;
-    
+    // Update stats if available
+    if (response.data.debug) {
+      debugInfo.value = `Loaded ${pendingMarks.value.length} submissions.`;
+    }
   } catch (err) {
-    console.error('💥 Error loading approval queue:', err);
-    error.value = 'Failed to load approval queue: ' + (err.response?.data?.message || err.message);
+    console.error('❌ Error loading queue:', err);
+    error.value = 'Failed to load approval queue. Please try again.';
     debugInfo.value = `Error: ${err.message}`;
-    pendingMarks.value = [];
+    toast.error('Failed to load data');
   } finally {
     loading.value = false;
   }
@@ -575,7 +739,7 @@ const toggleSelectAll = () => {
 
 const toggleSelectAllStudents = () => {
   if (selectAllStudents.value && submissionDetails.value) {
-    selectedStudentMarks.value = submissionDetails.value.marks
+    selectedStudentMarks.value = filteredModalMarks.value
       .filter(mark => mark.status === 'submitted')
       .map(mark => mark.id);
   } else {
@@ -605,6 +769,7 @@ const viewSubmission = async (submission) => {
     submissionDetails.value = null;
     selectedStudentMarks.value = [];
     selectAllStudents.value = false;
+    modalSearchQuery.value = ''; // Reset modal search query
     
     const modal = new Modal(document.getElementById('reviewModal'));
     modal.show();
@@ -944,6 +1109,61 @@ const exportToExcel = () => {
   toast.info('Export feature coming soon');
 };
 
+const switchTab = (tab) => {
+  if (activeTab.value === tab) return;
+  activeTab.value = tab;
+  // Reset pagination when switching tabs
+  currentPage.value = 1;
+  searchQuery.value = '';
+  loadApprovalQueue();
+};
+
+const handleSearch = () => {
+  if (searchTimeout.value) clearTimeout(searchTimeout.value);
+  searchTimeout.value = setTimeout(() => {
+    currentPage.value = 1; // Reset to first page on search
+    loadApprovalQueue();
+  }, 500); // Debounce search
+};
+
+const changePage = (page) => {
+  if (page < 1 || page > lastPage.value) return;
+  currentPage.value = page;
+  loadApprovalQueue();
+};
+
+// Admin Edit Mark Modal Methods
+const openEditMarkModal = (mark) => {
+  selectedMarkForEdit.value = mark;
+  showEditMarkModal.value = true;
+};
+
+const closeEditMarkModal = () => {
+  showEditMarkModal.value = false;
+  selectedMarkForEdit.value = null;
+};
+
+const handleMarkUpdated = async (updatedData) => {
+  // Update the mark in the local state for immediate feedback
+  if (submissionDetails.value && submissionDetails.value.marks) {
+    const markIndex = submissionDetails.value.marks.findIndex(m => m.id === updatedData.id);
+    if (markIndex !== -1) {
+      submissionDetails.value.marks[markIndex].marks_obtained = updatedData.new_marks;
+      submissionDetails.value.marks[markIndex].grade = updatedData.new_grade;
+      submissionDetails.value.marks[markIndex].percentage = updatedData.percentage;
+    }
+  }
+  
+  // Re-fetch the submission details to ensure we have the full, correct state from server
+  if (selectedSubmission.value) {
+    await viewSubmission(selectedSubmission.value);
+  }
+  
+  // Refresh the approval queue list
+  await loadApprovalQueue();
+  await loadStats();
+};
+
 // Watchers
 watch(selectedSubmissions, (newVal) => {
   selectAll.value = newVal.length === pendingMarks.value.length && pendingMarks.value.length > 0;
@@ -959,6 +1179,7 @@ watch(selectedStudentMarks, (newVal) => {
 // Lifecycle
 onMounted(() => {
   loadApprovalQueue();
+  loadStats();
 });
 </script>
 

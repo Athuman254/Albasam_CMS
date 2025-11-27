@@ -56,9 +56,23 @@ class WorkloadCalculatorService
             $this->calculateTeacherWorkload($teacherId, $academicYearId);
         }
 
+        $limits = config('timetable.limits');
+
         return TimetableTeacherWorkload::where('academic_year_id', $academicYearId)
             ->with('teacher')
-            ->get();
+            ->get()
+            ->map(function ($workload) use ($limits) {
+                return [
+                    'teacher_id' => $workload->teacher_id,
+                    'total_hours_per_week' => $workload->total_hours_per_week,
+                    'total_classes' => $workload->total_classes,
+                    'total_subjects' => $workload->total_subjects,
+                    'classes_per_day_avg' => $workload->classes_per_day_avg,
+                    'max_hours' => $limits['max_hours_per_week'],
+                    'max_classes' => $limits['max_classes_per_teacher'],
+                    'max_subjects' => $limits['max_subjects_per_teacher'],
+                ];
+            });
     }
 
     /**

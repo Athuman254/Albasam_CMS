@@ -8,14 +8,17 @@ return [
     |
     | These limits define the maximum workload for teachers to prevent
     | overloading and ensure fair distribution of teaching responsibilities.
+    | Configured for Kenyan education system standards.
     |
     */
     'limits' => [
-        'max_classes_per_teacher' => env('TIMETABLE_MAX_CLASSES', 5),
-        'max_subjects_per_teacher' => env('TIMETABLE_MAX_SUBJECTS', 3),
-        'max_hours_per_week' => env('TIMETABLE_MAX_HOURS', 30),
-        'max_consecutive_periods' => env('TIMETABLE_MAX_CONSECUTIVE', 3),
-        'min_break_between_classes' => env('TIMETABLE_MIN_BREAK', 0), // periods
+        // Kenyan secondary school teachers typically handle 25-35 lessons per week
+        // Each lesson is typically 40-45 minutes
+        'max_classes_per_teacher' => env('TIMETABLE_MAX_CLASSES', 8), // Maximum number of different classes
+        'max_subjects_per_teacher' => env('TIMETABLE_MAX_SUBJECTS', 4), // Maximum different subjects
+        'max_hours_per_week' => env('TIMETABLE_MAX_HOURS', 35), // Maximum teaching hours per week
+        'max_consecutive_periods' => env('TIMETABLE_MAX_CONSECUTIVE', 4), // Maximum consecutive lessons
+        'min_break_between_classes' => env('TIMETABLE_MIN_BREAK', 0), // Minimum break periods
     ],
 
     /*

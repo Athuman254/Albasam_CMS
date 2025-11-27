@@ -1,189 +1,30 @@
 <template>
   <DefaultLayout>
-    <div class="py-6">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-6">
-          <h1 class="text-2xl font-bold text-gray-900">Assign Subjects to Employee</h1>
-          <p class="mt-1 text-sm text-gray-600">
-            Assign subjects to {{ employee.first_name }} {{ employee.last_name }}
-          </p>
-        </div>
-
-        <!-- Employee Info -->
-        <div class="bg-white shadow rounded-lg p-6 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Staff Number</label>
-              <p class="mt-1 text-sm text-gray-900">{{ employee.staff_number }}</p>
+    <div class="py-12">
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+          <div class="p-6 bg-white border-b border-gray-200 text-center">
+            <div class="mb-4">
+              <i class="fas fa-exchange-alt text-4xl text-blue-500"></i>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Employment Type</label>
-              <p class="mt-1 text-sm text-gray-900">{{ employee.employment_type?.name }}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Gender</label>
-              <p class="mt-1 text-sm text-gray-900">{{ employee.gender?.name }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Assignment Form -->
-        <div class="bg-white shadow rounded-lg p-6">
-          <form @submit.prevent="submitAssignments">
-            <!-- Academic Year Selection -->
-            <div class="mb-6">
-              <label for="academic_year_id" class="block text-sm font-medium text-gray-700">
-                Academic Year *
-              </label>
-              <select
-                id="academic_year_id"
-                v-model="form.academic_year_id"
-                required
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            <h2 class="text-2xl font-bold mb-4">Page Moved</h2>
+            <p class="text-gray-600 mb-6">
+              Subject allocation has been moved to the new Timetable module for better management.
+            </p>
+            <div class="flex justify-center gap-4">
+              <a 
+                :href="route('timetable.allocations.index')" 
+                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
               >
-                <option value="">Select Academic Year</option>
-                <option
-                  v-for="year in academicYears"
-                  :key="year.id"
-                  :value="year.id"
-                >
-                  {{ year.name }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Assignments -->
-            <div class="mb-6">
-              <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Subject Assignments</h3>
-                <button
-                  type="button"
-                  @click="addAssignment"
-                  class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Add Subject
-                </button>
-              </div>
-
-              <div
-                v-for="(assignment, index) in form.assignments"
-                :key="index"
-                class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-lg"
-              >
-                <!-- Subject Selection -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Subject *</label>
-                  <select
-                    v-model="assignment.subject_id"
-                    required
-                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                  >
-                    <option value="">Select Subject</option>
-                    <option
-                      v-for="subject in subjects"
-                      :key="subject.id"
-                      :value="subject.id"
-                    >
-                      {{ subject.name }}
-                    </option>
-                  </select>
-                </div>
-
-                <!-- Class Selection -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Class</label>
-                  <select
-                    v-model="assignment.class_id"
-                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                  >
-                    <option :value="null">All Classes</option>
-                    <option
-                      v-for="classItem in classes"
-                      :key="classItem.id"
-                      :value="classItem.id"
-                    >
-                      {{ classItem.name }}
-                    </option>
-                  </select>
-                </div>
-
-                <!-- Remove Button -->
-                <div class="flex items-center">
-                  <button
-                    type="button"
-                    @click="removeAssignment(index)"
-                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Submit Buttons -->
-            <div class="flex justify-end space-x-3">
-              <Link
+                Go to Subject Allocation
+              </a>
+              <Link 
                 :href="route('admin.employees.show', employee.id)"
-                class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 active:bg-gray-400 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150"
               >
-                Cancel
+                Back to Employee Profile
               </Link>
-              <button
-                type="submit"
-                :disabled="form.processing"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <span v-if="form.processing">Saving...</span>
-                <span v-else>Save Assignments</span>
-              </button>
             </div>
-          </form>
-        </div>
-
-        <!-- Current Assignments -->
-        <div class="bg-white shadow rounded-lg p-6 mt-6" v-if="assignedSubjects.length > 0">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Current Subject Assignments</h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Subject
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Class
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Academic Year
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="assignment in assignedSubjects" :key="assignment.id">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {{ assignment.name }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {{ assignment.pivot.class_id ? getClassName(assignment.pivot.class_id) : 'All Classes' }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {{ getAcademicYearName(assignment.pivot.academic_year_id) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      @click="removeSubjectAssignment(assignment)"
-                      class="text-red-600 hover:text-red-900"
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>

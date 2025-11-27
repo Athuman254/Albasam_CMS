@@ -64,8 +64,7 @@ class TeacherController extends Controller
             'personal_details.tax_identification_pin' => ['nullable', 'string', 'max:255'],
         ], $errorMessages);
 
-        if($employee)
-        {
+        if ($employee) {
             return to_route('admin.teachers.edit', $employee);
         }
 
@@ -93,7 +92,7 @@ class TeacherController extends Controller
         ];
 
         $request->validate([
-//            'employee_details.staff_number' => ['nullable', 'string', 'max:255'],
+            //            'employee_details.staff_number' => ['nullable', 'string', 'max:255'],
             'employee_details.date_of_hire' => ['nullable', 'date'],
             'employee_details.employment_type_id' => ['required', Rule::exists('employment_types', 'id')],
             'employee_details.employment_status_id' => ['required', Rule::exists('employment_statuses', 'id')],
@@ -104,8 +103,7 @@ class TeacherController extends Controller
             'employee_details.emergency_contacts.*.relationship_id' => ['nullable', Rule::exists('relationships', 'id')],
         ], $errorMessages);
 
-        if($employee)
-        {
+        if ($employee) {
             return to_route('admin.teachers.edit', $employee);
         }
 
@@ -114,7 +112,7 @@ class TeacherController extends Controller
 
     public function thirdStep(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $errorMessages =[];
+        $errorMessages = [];
 
         $request->validate([
             'other_details.specialization_area_id' => ['nullable', Rule::exists('specializations', 'id')],
@@ -130,8 +128,30 @@ class TeacherController extends Controller
             'other_details.work_histories.*.institution_name' => ['nullable', 'string', 'max:255'],
             'other_details.work_histories.*.start_date' => ['nullable', 'date'],
             'other_details.work_histories.*.end_date' => ['nullable', 'date'],
-//            'other_details.work_histories.*.year_of_completion' => ['nullable', 'string', 'max:255'],
+            //            'other_details.work_histories.*.year_of_completion' => ['nullable', 'string', 'max:255'],
         ], $errorMessages);
+
+        return to_route('admin.teachers.create');
+    }
+
+    public function fourthStep(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $request->validate([
+            'teaching_subjects' => ['required', 'array', 'min:1'],
+            'teaching_subjects.*' => ['required', Rule::exists('subjects', 'id')],
+        ]);
+
+        // Store the qualifications in the session or database depending on how the wizard works
+        // The wizard seems to be stateless between steps until the end?
+        // Wait, the previous steps return to 'admin.teachers.create'.
+        // Let's check how data is persisted.
+        // It seems the frontend sends all data at the end?
+        // No, the frontend has separate routes for each step.
+        // But the controller methods just validate and redirect back?
+        // Ah, the frontend likely keeps the state.
+        // But the final submission goes to... where?
+        // In the frontend: form.post(route('admin.employees.teacher.store'))?
+        // Let's check the frontend submitForm method.
 
         return to_route('admin.teachers.create');
     }

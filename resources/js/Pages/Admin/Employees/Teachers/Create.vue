@@ -601,6 +601,34 @@
                               </div>
                            </div>
                         </transition>
+
+                        <transition name="fade">
+                           <div v-if="currentStep === 4" class="step">
+                              <div class="row">
+                                 <div class="mb-4">
+                                    <h5 class="mb-0">Teaching Subjects <span class="text-danger">*</span></h5>
+                                    <small>Select the subjects this teacher is qualified to teach (minimum 1 required)</small>
+                                 </div>
+                                 <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                       <label class="form-label" for="teachingSubjects">Subjects <span class="text-danger ms-1">*</span></label>
+                                       <v-select
+                                          multiple
+                                          id="teachingSubjects"
+                                          v-model="form.teaching_subjects"
+                                          :options="subjects"
+                                          label="name"
+                                          :reduce="(option) => option.id"
+                                          placeholder="Select subjects..."
+                                       ></v-select>
+                                       <div v-if="form.errors['teaching_subjects']" class="text-danger">
+                                          {{ form.errors['teaching_subjects'] }}
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </transition>
    
                         <!-- Navigation Start -->
                         <div class="form-footer px-0">
@@ -610,7 +638,7 @@
                                  Previous
                               </button>
                            </div>
-                           <div v-if="currentStep !== 3" class="col-auto">
+                           <div v-if="currentStep !== 4" class="col-auto">
                               <button
                                  type="button"
                                  class="btn btn-primary"
@@ -651,6 +679,12 @@ import {Inertia} from "@inertiajs/inertia";
 
 export default {
    components: {DefaultLayout, Head, Link},
+   props: {
+      subjects: {
+         type: Array,
+         default: () => []
+      }
+   },
    data() {
       return {
          form: useForm({
@@ -706,6 +740,7 @@ export default {
                   // }
                ],
             },
+            teaching_subjects: [],
          }),
 
          employmentTypes: [],
@@ -723,8 +758,8 @@ export default {
          routes: {
             1: "/admin/employees/teacher-registration/first-step",
             2: "/admin/employees/teacher-registration/second-step",
-            3: "/admin/employees/teachers",
-            // 4: "/admin/employees/teacher-registration/fourth-step",
+            3: "/admin/employees/teacher-registration/third-step",
+            4: "/admin/employees/teacher-registration/fourth-step",
          },
 
          dataFetched: false,

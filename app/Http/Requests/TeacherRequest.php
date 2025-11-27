@@ -25,7 +25,7 @@ class TeacherRequest extends FormRequest
             'personal_details.postal_address' => ['nullable', 'string'],
             'personal_details.identification_number' => ['required', 'string', 'max:255'],
             'personal_details.tax_identification_pin' => ['nullable', 'string', 'max:255'],
-//            'employee_details.staff_number' => ['nullable', 'string', 'max:255'],
+            //            'employee_details.staff_number' => ['nullable', 'string', 'max:255'],
             'employee_details.date_of_hire' => ['nullable', 'date'],
             'employee_details.employment_type_id' => ['required', Rule::exists('employment_types', 'id')],
             'employee_details.employment_status_id' => ['required', Rule::exists('employment_statuses', 'id')],
@@ -47,13 +47,15 @@ class TeacherRequest extends FormRequest
             'other_details.work_histories.*.institution_name' => ['nullable', 'string', 'max:255'],
             'other_details.work_histories.*.start_date' => ['nullable', 'date'],
             'other_details.work_histories.*.end_date' => ['nullable', 'date'],
-            'other_details.in_payroll' => ['nullable','boolean'],
+            'other_details.in_payroll' => ['nullable', 'boolean'],
             'other_details.pays_paye' => ['nullable'],
             'other_details.pays_sha' => ['nullable'],
             'other_details.sha_no' => ['nullable'],
             'other_details.pays_nssf' => ['nullable'],
             'other_details.nssf_no' => ['nullable'],
-            'other_details.pays_housing_levy' => ['nullable']
+            'other_details.pays_housing_levy' => ['nullable'],
+            'teaching_subjects' => 'required|array|min:1',
+            'teaching_subjects.*' => 'exists:subjects,id',
         ];
     }
 

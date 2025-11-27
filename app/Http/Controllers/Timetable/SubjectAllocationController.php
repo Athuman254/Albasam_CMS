@@ -10,6 +10,7 @@ use App\Models\Timetable\TimetableSubjectAllocation;
 use App\Models\User;
 use App\Services\Timetable\WorkloadCalculatorService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class SubjectAllocationController extends Controller
@@ -36,13 +37,18 @@ class SubjectAllocationController extends Controller
             ->groupBy('teacher.name');
 
         $teachers = User::has('teacher')
+            ->with(['teacher.employee', 'teacher.teachingSubjects'])
             ->where('activated', true)
-            ->select('id', 'name', 'email')
-            ->orderBy('name')
             ->get()
-            ->map(function ($teacher) {
-                $teacher->full_name = $teacher->name; // Add full_name attribute
-                return $teacher;
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'full_name' => $user->name,
+                    'email' => $user->email,
+                    'employee_id' => $user->teacher?->employee?->hashid,
+                    'teacher_hashid' => $user->teacher?->hashid,
+                    'qualified_subject_ids' => $user->teacher?->teachingSubjects->pluck('id')->toArray() ?? [],
+                ];
             });
 
         $subjects = Subject::where('activated', 1)->orderBy('name')->get();
@@ -135,7 +141,7 @@ class SubjectAllocationController extends Controller
                     'hours_per_week' => $allocation['hours_per_week'],
                     'priority' => $allocation['priority'] ?? 'medium',
                     'status' => 'active',
-                    'created_by' => auth()->id(),
+                    'created_by' => Auth::id(),
                 ]);
 
                 $created++;
@@ -210,7 +216,7 @@ class SubjectAllocationController extends Controller
      */
     public function getTeacherSubjects(User $teacher)
     {
-        $subjects = $teacher->subjects()->where('activated', 1)->get();
+        $subjects = $teacher->teacher ? $teacher->teacher->teachingSubjects()->where('activated', 1)->get() : collect();
 
         return response()->json([
             'subjects' => $subjects,

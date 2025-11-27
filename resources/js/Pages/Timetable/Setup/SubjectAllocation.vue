@@ -12,7 +12,7 @@ import DangerButton from '@/Components/DangerButton.vue';
 import WorkloadMeter from '@/Components/Timetable/WorkloadMeter.vue';
 
 const props = defineProps({
-    allocations: Object, // Grouped by teacher name
+    allocations: Object, 
     teachers: Array,
     subjects: Array,
     classes: Array,
@@ -33,11 +33,13 @@ const teacherSubjects = ref([]);
 const teacherWorkloadStatus = ref(null);
 const teacherSuggestions = ref([]);
 const showWorkloadWarning = ref(false);
+const successMessage = ref('');
+const showSuccessMessage = ref(false);
 
 const form = useForm({
     academic_year_id: props.currentAcademicYearId,
-    teacher_id: '',
-    allocations: [], // Array of {subject_id, class_ids[], hours_per_week, priority}
+    teacher_id: null,
+    allocations: [], 
 });
 
 const editForm = useForm({
@@ -90,8 +92,14 @@ const isOverloaded = computed(() => {
 });
 
 // Methods
+const getTeacherEmployeeId = (teacherId) => {
+    const teacher = props.teachers.find(t => t.id === teacherId);
+    return teacher ? teacher.employee_id : null;
+};
+
 const openCreateModal = (teacherId = null) => {
     form.reset();
+    form.clearErrors(); // Clear any previous errors
     form.academic_year_id = props.currentAcademicYearId;
     if (teacherId) {
         form.teacher_id = teacherId;
@@ -99,12 +107,20 @@ const openCreateModal = (teacherId = null) => {
     showCreateModal.value = true;
 };
 
+const closeCreateModal = () => {
+    showCreateModal.value = false;
+    // Clear errors after a short delay to allow modal animation
+    setTimeout(() => {
+        form.clearErrors();
+    }, 300);
+};
+
 // Initialize allocations when teacher is selected and subjects are loaded
 const initializeAllocations = () => {
     if (teacherSubjects.value.length > 0) {
         form.allocations = teacherSubjects.value.map(subject => ({
             subject_id: subject.id,
-            subject_name: subject.subject_name,
+            subject_name: subject.name,
             class_ids: [],
             hours_per_week: 5,
             priority: 'medium'
@@ -144,9 +160,24 @@ const createAllocation = () => {
     form.post(route('timetable.allocations.store'), {
         data: payload,
         onSuccess: () => {
-            showCreateModal.value = false;
+            closeCreateModal();
             form.reset();
             form.allocations = [];
+            
+            // Show success message
+            successMessage.value = 'Subject allocation created successfully!';
+            showSuccessMessage.value = true;
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                showSuccessMessage.value = false;
+            }, 5000);
+        },
+        onError: () => {
+            // Auto-dismiss errors after 5 seconds
+            setTimeout(() => {
+                form.clearErrors();
+            }, 5000);
         },
     });
 };
@@ -222,12 +253,27 @@ const availableSubjects = computed(() => {
     return teacherSubjects.value;
 });
 
+// Accordion state for subject cards
+const expandedSubjectIndex = ref(0); // First subject expanded by default
+
+// Toggle subject card expansion
+const toggleSubjectCard = (index) => {
+    expandedSubjectIndex.value = expandedSubjectIndex.value === index ? -1 : index;
+};
+
 // Open edit modal
 const openEditModal = (allocation) => {
     editingAllocation.value = allocation;
     editForm.hours_per_week = allocation.hours_per_week;
     editForm.priority = allocation.priority;
     showEditModal.value = true;
+};
+
+// Auto-dismiss errors after 5 seconds
+const autoDismissErrors = () => {
+    setTimeout(() => {
+        editForm.clearErrors();
+    }, 5000); // 5 seconds
 };
 
 // Update allocation
@@ -237,7 +283,22 @@ const updateAllocation = () => {
             showEditModal.value = false;
             editForm.reset();
         },
+        onError: () => {
+            autoDismissErrors();
+        }
     });
+};
+
+// Navigate to teacher edit page
+const editTeacher = () => {
+    if (!form.teacher_id) return;
+    
+    // Find the selected teacher to get their teacher_hashid
+    const selectedTeacher = props.teachers.find(t => t.id === form.teacher_id);
+    if (selectedTeacher && selectedTeacher.teacher_hashid) {
+        // Use Inertia to navigate to the edit page without full page reload
+        router.visit(route('admin.teachers.edit', selectedTeacher.teacher_hashid));
+    }
 };
 </script>
 
@@ -245,25 +306,36 @@ const updateAllocation = () => {
     <Head title="Subject Allocation" />
 
     <DefaultLayout>
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold py-3 mb-0">
-                <span class="text-muted fw-light">Timetable /</span> Subject Allocation
-            </h4>
-            <div class="d-flex gap-3">
-                <select 
-                    :value="currentAcademicYearId" 
-                    @change="onAcademicYearChange"
-                    class="form-select"
-                    style="width: 200px;"
-                >
-                    <option v-for="year in academicYears" :key="year.id" :value="year.id">
-                        {{ year.name }}
-                    </option>
-                </select>
-                <button @click="openCreateModal" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i> New Allocation
-                </button>
+        <div class="container-fluid py-4">
+            <!-- Success Message -->
+            <transition name="fade">
+                <div v-if="showSuccessMessage" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Success!</strong> {{ successMessage }}
+                    <button type="button" class="btn-close" @click="showSuccessMessage = false" aria-label="Close"></button>
+                </div>
+            </transition>
+
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold py-3 mb-0">
+                    <span class="text-muted fw-light">Timetable /</span> Subject Allocation
+                </h4>
+                <div class="d-flex gap-3">
+                    <select 
+                        :value="currentAcademicYearId" 
+                        @change="onAcademicYearChange"
+                        class="form-select"
+                        style="width: 200px;"
+                    >
+                        <option v-for="year in academicYears" :key="year.id" :value="year.id">
+                            {{ year.name }}
+                        </option>
+                    </select>
+                    <button @click="openCreateModal" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> New Allocation
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -409,8 +481,10 @@ const updateAllocation = () => {
                                                     <i class="fas fa-book"></i>
                                                 </div>
                                                 <div>
-                                                    <h5 class="fw-bold mb-0">{{ allocation.subject.subject_name }}</h5>
-                                                    <div class="text-muted small">{{ allocation.class.name }}</div>
+                                                    <h5 class="fw-bold mb-0">{{ allocation.class.name }} - {{ allocation.subject.name }}</h5>
+                                                    <div class="text-muted small">
+                                                        <i class="fas fa-user me-1"></i> {{ teachers.find(t => t.id === selectedTeacherId)?.full_name }}
+                                                    </div>
                                                 </div>
                                             </div>
                                             
@@ -440,16 +514,19 @@ const updateAllocation = () => {
         </div>
 
         <!-- Create Modal -->
-        <Modal :show="showCreateModal" @close="showCreateModal = false">
-            <div class="modal-body">
-                <h3 class="mb-4">New Allocation</h3>
+        <Modal :show="showCreateModal" @close="showCreateModal = false" maxWidth="2xl">
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                    <h4 class="mb-0 fw-bold">New Allocation</h4>
+                    <button @click="showCreateModal = false" class="btn-close" aria-label="Close"></button>
+                </div>
                 
-                <div>
+                <div class="modal-content-wrapper" style="max-width: 900px; margin: 0 auto;">
                     <!-- Teacher Selection -->
-                    <div>
-                        <InputLabel for="teacher_id" value="Teacher" />
-                        <select id="teacher_id" v-model="form.teacher_id" class="form-select mt-2">
-                            <option value="" disabled>Select Teacher</option>
+                    <div class="mb-4">
+                        <InputLabel for="teacher_id" value="Teacher" class="mb-2" />
+                        <select id="teacher_id" v-model="form.teacher_id" class="form-select">
+                            <option :value="null" disabled selected style="color: #6c757d;">Select Teacher</option>
                             <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
                                 {{ teacher.full_name }}
                             </option>
@@ -457,23 +534,73 @@ const updateAllocation = () => {
                         <div v-if="form.errors.teacher_id" class="text-danger small mt-1">{{ form.errors.teacher_id }}</div>
                     </div>
 
-                    <!-- Workload Preview -->
-                    <div v-if="form.teacher_id" class="alert alert-info mb-3">
-                        <h6 class="fw-bold mb-2">Projected Workload</h6>
-                        <div class="d-flex justify-content-between small mb-2">
-                            <span>Hours: {{ projectedWorkload?.total_hours_per_week }} / {{ workloadLimits.max_hours_per_week }}</span>
-                            <span v-if="isOverloaded" class="text-danger fw-bold">OVERLOAD WARNING</span>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar" 
-                                 :class="isOverloaded ? 'bg-danger' : 'bg-info'" 
-                                 :style="{ width: Math.min(100, (projectedWorkload?.total_hours_per_week / workloadLimits.max_hours_per_week) * 100) + '%' }">
+                    <!-- Projected Workload Display -->
+                    <div v-if="form.teacher_id && teacherWorkload" class="mb-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3 fw-bold text-dark">
+                                    <i class="fas fa-chart-line me-2 text-primary"></i>
+                                    Projected Workload
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="d-flex flex-column">
+                                            <small class="text-muted mb-1">Hours/Week</small>
+                                            <div class="d-flex align-items-center">
+                                                <strong class="fs-5 me-2">{{ teacherWorkload.total_hours_per_week }}</strong>
+                                                <span class="text-muted small">/ {{ teacherWorkload.max_hours }}</span>
+                                            </div>
+                                            <div class="progress mt-2" style="height: 6px;">
+                                                <div class="progress-bar" :class="{
+                                                    'bg-success': (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) < 70,
+                                                    'bg-warning': (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) >= 70 && (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) < 90,
+                                                    'bg-danger': (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) >= 90
+                                                }" :style="{ width: (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex flex-column">
+                                            <small class="text-muted mb-1">Total Classes</small>
+                                            <div class="d-flex align-items-center">
+                                                <strong class="fs-5 me-2">{{ teacherWorkload.total_classes }}</strong>
+                                                <span class="text-muted small">/ {{ teacherWorkload.max_classes }}</span>
+                                            </div>
+                                            <div class="progress mt-2" style="height: 6px;">
+                                                <div class="progress-bar" :class="{
+                                                    'bg-success': (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) < 70,
+                                                    'bg-warning': (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) >= 70 && (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) < 90,
+                                                    'bg-danger': (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) >= 90
+                                                }" :style="{ width: (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex flex-column">
+                                            <small class="text-muted mb-1">Total Subjects</small>
+                                            <div class="d-flex align-items-center">
+                                                <strong class="fs-5 me-2">{{ teacherWorkload.total_subjects }}</strong>
+                                                <span class="text-muted small">/ {{ teacherWorkload.max_subjects }}</span>
+                                            </div>
+                                            <div class="progress mt-2" style="height: 6px;">
+                                                <div class="progress-bar" :class="{
+                                                    'bg-success': (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) < 70,
+                                                    'bg-warning': (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) >= 70 && (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) < 90,
+                                                    'bg-danger': (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) >= 90
+                                                }" :style="{ width: (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="(teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) >= 90" class="alert alert-danger mt-3 mb-0 py-2">
+                                    <small><i class="fas fa-exclamation-triangle me-2"></i><strong>OVERLOAD WARNING</strong></small>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Workload Status Warning -->
-                    <div v-if="showWorkloadWarning && teacherWorkloadStatus" class="alert" :class="{
+                    <div v-if="showWorkloadWarning && teacherWorkloadStatus" class="alert mb-4" :class="{
                         'alert-danger': teacherWorkloadStatus.status === 'at_limit',
                         'alert-warning': teacherWorkloadStatus.status === 'near_limit'
                     }">
@@ -487,7 +614,7 @@ const updateAllocation = () => {
                     </div>
 
                     <!-- Teacher Suggestions (when at limit) -->
-                    <div v-if="teacherSuggestions.length > 0" class="alert alert-info">
+                    <div v-if="teacherSuggestions.length > 0" class="alert alert-info mb-4">
                         <strong>Alternative Teachers Available:</strong>
                         <div class="mt-2">
                             <div v-for="suggestion in teacherSuggestions" :key="suggestion.id" class="d-flex justify-content-between align-items-center mb-1">
@@ -500,37 +627,69 @@ const updateAllocation = () => {
                     <!-- Subject Allocations - Show teacher's subjects with class selection -->
                     <div v-if="form.teacher_id">
                         <div v-if="teacherSubjects.length === 0" class="alert alert-warning">
-                            <i class="fas fa-info-circle me-2"></i>
-                            This teacher has no subject combinations set. Please configure teacher subjects first.
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <div>
+                                        <strong>No Subject Qualifications Found</strong>
+                                        <p class="mb-0 small">This teacher has no subject qualifications configured. Please add subjects to enable allocation.</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    type="button"
+                                    class="btn btn-sm btn-warning ms-3"
+                                    @click="editTeacher"
+                                >
+                                    <i class="fas fa-edit me-1"></i>
+                                    Edit Teacher
+                                </button>
+                            </div>
                         </div>
                         
                         <div v-else>
-                            <h6 class="mb-3">Allocate Subjects to Classes</h6>
+                            <h6 class="mb-3 fw-bold text-dark">
+                                <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>
+                                Allocate Subjects to Classes
+                            </h6>
                             <p class="small text-muted mb-3">Select classes for each subject this teacher will teach:</p>
                             
                             <!-- Loop through each subject the teacher teaches -->
-                            <div v-for="(allocation, index) in form.allocations" :key="allocation.subject_id" class="card mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-book text-primary me-2"></i>
-                                            {{ allocation.subject_name }}
-                                        </h6>
-                                        <span class="badge" :class="{
-                                            'bg-success': calculateAllocationWorkload(allocation) === 0,
-                                            'bg-info': calculateAllocationWorkload(allocation) > 0 && calculateAllocationWorkload(allocation) <= 10,
-                                            'bg-warning': calculateAllocationWorkload(allocation) > 10 && calculateAllocationWorkload(allocation) <= 20,
-                                            'bg-danger': calculateAllocationWorkload(allocation) > 20
-                                        }">
-                                            {{ calculateAllocationWorkload(allocation) }} hrs/week
-                                        </span>
+                            <div v-for="(allocation, index) in form.allocations" :key="allocation.subject_id" class="card mb-3 border shadow-sm">
+                                <div class="card-body bg-white p-0">
+                                    <!-- Clickable Header -->
+                                    <div class="d-flex justify-content-between align-items-center p-3">
+                                        <div class="d-flex align-items-center">
+                                            <h6 class="mb-0 fw-bold text-dark">
+                                                <i class="fas fa-book text-primary me-2"></i>
+                                                {{ allocation.subject_name }}
+                                            </h6>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge" :class="{
+                                                'bg-success': calculateAllocationWorkload(allocation) === 0,
+                                                'bg-info': calculateAllocationWorkload(allocation) > 0 && calculateAllocationWorkload(allocation) <= 10,
+                                                'bg-warning': calculateAllocationWorkload(allocation) > 10 && calculateAllocationWorkload(allocation) <= 20,
+                                                'bg-danger': calculateAllocationWorkload(allocation) > 20
+                                            }">
+                                                {{ calculateAllocationWorkload(allocation) }} hrs/week
+                                            </span>
+                                            <button 
+                                                type="button"
+                                                class="btn btn-sm btn-outline-primary"
+                                                @click="toggleSubjectCard(index)"
+                                            >
+                                                <i class="fas" :class="expandedSubjectIndex === index ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                                {{ expandedSubjectIndex === index ? 'Hide Classes' : 'Show Classes' }}
+                                            </button>
+                                        </div>
                                     </div>
                                     
-                                    <!-- Class Selection for this subject -->
-                                    <div class="mb-2">
-                                        <label class="form-label small">Select Classes:</label>
-                                        <div class="border rounded p-2 row g-2" style="max-height: 150px; overflow-y: auto;">
-                                            <div v-for="cls in classes" :key="cls.id" class="col-4">
+                                    <!-- Collapsible Class Selection -->
+                                    <div v-show="expandedSubjectIndex === index" class="border-top">
+                                        <div class="p-3">
+                                            <label class="form-label small fw-semibold text-dark mb-2">Select Classes:</label>
+                                        <div class="border rounded p-3 bg-white row g-2" style="max-height: 150px; overflow-y: auto;">
+                                            <div v-for="cls in classes" :key="cls.id" class="col-md-4 col-sm-6">
                                                 <div class="form-check">
                                                     <input 
                                                         type="checkbox" 
@@ -544,43 +703,39 @@ const updateAllocation = () => {
                                                     </label>
                                                 </div>
                                             </div>
+                                            </div>
+                                            
+                                            <!-- Hours per week and Priority for this subject -->
+                                            <div class="row g-3 mt-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Hours/Week per Class:</label>
+                                                    <input 
+                                                        type="number" 
+                                                        class="form-control form-control-sm" 
+                                                        v-model.number="allocation.hours_per_week" 
+                                                        min="1" 
+                                                        max="10"
+                                                        placeholder="e.g., 5"
+                                                    />
+                                                    <small class="text-muted">Typical: 3-5 hours</small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Priority:</label>
+                                                    <select class="form-select form-select-sm" v-model="allocation.priority">
+                                                        <option value="low">Low</option>
+                                                        <option value="medium" selected>Medium</option>
+                                                        <option value="high">High</option>
+                                                    </select>
+                                                    <small class="text-muted">Affects scheduling order</small>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    
-                                    <!-- Hours and Priority for this subject -->
-                                    <div class="row g-2">
-                                        <div class="col-6">
-                                            <label class="form-label small">Hours/Week per Class:</label>
-                                            <input 
-                                                type="number" 
-                                                v-model="allocation.hours_per_week" 
-                                                min="1" 
-                                                max="10" 
-                                                class="form-control form-control-sm"
-                                            >
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label small">Priority:</label>
-                                            <select v-model="allocation.priority" class="form-select form-select-sm">
-                                                <option value="high">High</option>
-                                                <option value="medium">Medium</option>
-                                                <option value="low">Low</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Show selected classes count -->
-                                    <div v-if="allocation.class_ids.length > 0" class="mt-2">
-                                        <small class="text-muted">
-                                            <i class="fas fa-check-circle text-success me-1"></i>
-                                            {{ allocation.class_ids.length }} class(es) selected
-                                        </small>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- Total Workload Summary -->
-                            <div class="alert alert-secondary">
+                            <div class="alert alert-secondary mb-0">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fw-bold">Total New Workload:</span>
                                     <span class="badge bg-primary fs-6">{{ getTotalProjectedHours() }} hours/week</span>
@@ -594,15 +749,28 @@ const updateAllocation = () => {
                         Please select a teacher to view their subjects and create allocations.
                     </div>
                     
-                    <div v-if="form.errors.workload" class="alert alert-danger" role="alert">
+                    <div v-if="form.errors.workload" class="alert alert-danger mt-3" role="alert">
                         {{ form.errors.workload }}
                     </div>
-
                 </div>
 
-                <div class="modal-footer">
-                    <SecondaryButton @click="showCreateModal = false">Cancel</SecondaryButton>
-                    <PrimaryButton @click="createAllocation" :disabled="form.processing">Create Allocation</PrimaryButton>
+                <!-- Modal Footer -->
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <button @click="showCreateModal = false" class="btn btn-secondary">
+                        Cancel
+                    </button>
+                    <button 
+                        @click="createAllocation" 
+                        class="btn btn-primary" 
+                        :disabled="form.processing"
+                    >
+                        <span v-if="form.processing">
+                            <i class="fas fa-spinner fa-spin me-1"></i> Creating...
+                        </span>
+                        <span v-else>
+                            <i class="fas fa-plus me-1"></i> Create Allocation
+                        </span>
+                    </button>
                 </div>
             </div>
         </Modal>

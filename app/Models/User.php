@@ -89,10 +89,18 @@ class User extends Authenticatable implements LaratrustUser
     {
         return $this->belongsToMany(
             \App\Models\Subject::class,
-            'teacher_subjects',
+            'teacher_qualifications',
             'teacher_id',
             'subject_id'
         )->withTimestamps();
+    }
+
+    /**
+     * Alias for subjects relationship to be more semantic
+     */
+    public function qualifications(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->subjects();
     }
 
     /**

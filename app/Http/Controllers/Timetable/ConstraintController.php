@@ -27,9 +27,10 @@ class ConstraintController extends Controller
             ->get()
             ->groupBy('constraint_type');
 
-        $teachers = User::whereHas('roles', function ($query) {
-            $query->where('name', 'Teacher');
-        })->orderBy('name')->get();
+        $teachers = User::has('teacher')
+            ->where('activated', true)
+            ->orderBy('name')
+            ->get();
 
         $classes = Rank::where('activated', 1)->orderBy('name')->get();
         $subjects = Subject::where('activated', 1)->orderBy('name')->get();
@@ -78,6 +79,37 @@ class ConstraintController extends Controller
         TimetableConstraint::create($validated);
 
         return back()->with('success', 'Constraint added successfully.');
+    }
+
+    /**
+     * Update a constraint.
+     */
+    public function update(Request $request, TimetableConstraint $constraint)
+    {
+        $validated = $request->validate([
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'constraint_type' => 'required|string',
+            'teacher_id' => 'nullable|exists:users,id',
+            'class_id' => 'nullable|exists:ranks,id',
+            'subject_id' => 'nullable|exists:subjects,id',
+            'room_id' => 'nullable|exists:timetable_rooms,id',
+            'day_of_week' => 'nullable|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
+            'period_number' => 'nullable|integer',
+            'constraint_value' => 'required|in:available,unavailable,preferred,not_preferred,required',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Validate required fields based on constraint type
+        if ($validated['constraint_type'] === 'teacher_availability' && empty($validated['teacher_id'])) {
+            return back()->withErrors(['teacher_id' => 'Teacher is required for teacher availability constraint.']);
+        }
+        if ($validated['constraint_type'] === 'room_availability' && empty($validated['room_id'])) {
+            return back()->withErrors(['room_id' => 'Room is required for room availability constraint.']);
+        }
+
+        $constraint->update($validated);
+
+        return back()->with('success', 'Constraint updated successfully.');
     }
 
     /**

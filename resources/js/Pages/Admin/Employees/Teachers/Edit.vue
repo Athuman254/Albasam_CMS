@@ -35,6 +35,10 @@
                         <div class="square">3</div>
                         <span :class="{ 'text-primary': currentStep > 3 }">Other Details</span>
                      </div>
+                     <div class="stepIndicator" :class="{ 'active': currentStep === 4, 'finish': currentStep > 4 }">
+                        <div class="square">4</div>
+                        <span :class="{ 'text-primary': currentStep > 4 }">Teaching Subjects</span>
+                     </div>
                   </div>
                   <div class="progress-bar">
                      <div class="progress" :style="{ width: progressPercentage + '%' }"></div>
@@ -655,6 +659,33 @@
                            </div>
                         </transition>
 
+                        <transition name="fade">
+                           <div v-if="currentStep === 4" class="step">
+                              <div class="row">
+                                 <div class="mb-4">
+                                    <h5 class="mb-0">Teaching Subjects <span class="text-danger">*</span></h5>
+                                    <small>Select the subjects this teacher is qualified to teach (minimum 1 required)</small>
+                                 </div>
+                                 <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                       <label class="form-label">Subjects <span class="text-danger">*</span></label>
+                                       <v-select
+                                          v-model="form.teaching_subjects"
+                                          :options="subjects"
+                                          label="name"
+                                          :reduce="(option) => option.id"
+                                          multiple
+                                          placeholder="Select subjects this teacher can teach"
+                                       ></v-select>
+                                       <div v-if="form.errors.teaching_subjects" class="text-danger">
+                                          {{ form.errors.teaching_subjects }}
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </transition>
+
                         <!-- Navigation Start -->
                         <div class="form-footer px-0">
                            <div class="col-md-6">
@@ -663,7 +694,7 @@
                                  Previous
                               </button>
                            </div>
-                           <div v-if="currentStep !== 3" class="col-auto">
+                           <div v-if="currentStep !== 4" class="col-auto">
                               <button type="button" class="btn btn-primary" @click="nextStep">
                                  Next
                               </button>
@@ -696,7 +727,18 @@ import { Inertia } from "@inertiajs/inertia";
 
 export default {
    components: { DefaultLayout, Head, Link },
-   props: ['teacher', 'employee'],
+   props: {
+      teacher: Object,
+      employee: Object,
+      subjects: {
+         type: Array,
+         default: () => []
+      },
+      currentSubjects: {
+         type: Array,
+         default: () => []
+      }
+   },
    data() {
       return {
          form: useForm({
@@ -760,6 +802,7 @@ export default {
                   // }
                ],
             },
+            teaching_subjects: [],
          }),
 
          employmentTypes: [],
@@ -778,11 +821,12 @@ export default {
          workHistories: [],
 
          currentStep: 1,
-         routes: {
-            1: "/admin/employees/teacher-registration/first-step/" + this.employee.hashid,
-            2: "/admin/employees/teacher-registration/second-step/" + this.employee.hashid,
-            3: "/admin/employees/teachers",
-         },
+          routes: {
+             1: "/admin/employees/teacher-registration/first-step/" + this.employee.hashid,
+             2: "/admin/employees/teacher-registration/second-step/" + this.employee.hashid,
+             3: "/admin/employees/teacher-registration/third-step/" + this.employee.hashid,
+             4: "/admin/employees/teachers",
+          },
 
          dataFetched: false,
       }
@@ -821,6 +865,9 @@ export default {
          this.form.other_details.job_title_id = this.teacher.job_title_id;
          this.form.other_details.tsc_number = this.teacher.tsc_number;
          this.form.other_details.years_of_experience = this.teacher.years_of_experience;
+         
+         // Initialize teaching subjects with current values
+         this.form.teaching_subjects = this.currentSubjects || [];
       }
    },
    beforeDestroy() {
@@ -1127,19 +1174,10 @@ export default {
          });
       },
       nextStep() {
-         const currentRoute = this.routes[this.currentStep];
-         if (!currentRoute) {
-            console.error("Invalid step");
-            return;
+         // In edit mode, just move to the next step without making API calls
+         if (this.currentStep < 4) {
+            this.currentStep++;
          }
-         this.form.post(
-            currentRoute,
-            {
-               onSuccess: () => {
-                  this.currentStep++;
-               },
-            }
-         );
       },
       prevStep() {
          if (this.currentStep > 1) {

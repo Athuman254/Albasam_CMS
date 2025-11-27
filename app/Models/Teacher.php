@@ -17,10 +17,29 @@ class Teacher extends Model
     protected $primaryKey = 'id';
     protected $appends = ['hashid', 'is_class_teacher'];
     protected $fillable = [
-        'user_id', 'employee_id', 'first_name', 'middle_name', 'last_name',
-        'honorific_id', 'job_title_id', 'specialization_area_id',
-        'tsc_number', 'years_of_experience',
+        'employee_id',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'honorific_id',
+        'job_title_id',
+        'specialization_area_id',
+        'tsc_number',
+        'years_of_experience',
     ];
+
+    /**
+     * Get the subjects this teacher is qualified to teach
+     */
+    public function teachingSubjects(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Models\Subject::class,
+            'teacher_qualifications',
+            'teacher_id',
+            'subject_id'
+        )->withTimestamps();
+    }
 
     public function user(): BelongsTo
     {
@@ -31,7 +50,7 @@ class Teacher extends Model
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'id');
     }
-    
+
     public function honorific(): BelongsTo
     {
         return $this->belongsTo(Honorific::class, 'honorific_id', 'id');
@@ -46,12 +65,12 @@ class Teacher extends Model
     {
         return $this->belongsTo(JobTitle::class, 'job_title_id', 'id');
     }
-    
+
     public function rank(): HasOne
     {
         return $this->hasOne(Rank::class, 'teacher_id', 'id');
     }
-    
+
     /**
      * Get the employee class assignments for this teacher
      */
@@ -72,20 +91,20 @@ class Teacher extends Model
     {
         return $this->classTeacherAssignments()->exists();
     }
-    
+
     public function scopeIsAClassTeacher($query)
     {
         return $query->whereHas('classTeacherAssignments');
     }
-    
+
     public function scopeSearch($query, string $terms = null)
     {
         collect(explode(' ', $terms))->filter()->each(function ($term) use ($query) {
-            $term = '%'.$term.'%';
-            
+            $term = '%' . $term . '%';
+
             $query->where('first_name', 'like', $term)
                 ->orwhere('last_name', 'like', $term)
-                ->orWhereHas('employee', function($q) use ($term) {
+                ->orWhereHas('employee', function ($q) use ($term) {
                     $q->where('staff_number', 'like', $term);
                 });
         });

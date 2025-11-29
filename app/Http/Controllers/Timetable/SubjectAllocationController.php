@@ -8,6 +8,7 @@ use App\Models\Rank;
 use App\Models\Subject;
 use App\Models\Timetable\TimetableSubjectAllocation;
 use App\Models\User;
+use App\Services\Timetable\TeacherDivisionService;
 use App\Services\Timetable\WorkloadCalculatorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,10 +17,14 @@ use Inertia\Inertia;
 class SubjectAllocationController extends Controller
 {
     protected $workloadCalculator;
+    protected $divisionService;
 
-    public function __construct(WorkloadCalculatorService $workloadCalculator)
-    {
+    public function __construct(
+        WorkloadCalculatorService $workloadCalculator,
+        TeacherDivisionService $divisionService
+    ) {
         $this->workloadCalculator = $workloadCalculator;
+        $this->divisionService = $divisionService;
     }
 
     /**
@@ -52,7 +57,7 @@ class SubjectAllocationController extends Controller
             });
 
         $subjects = Subject::where('activated', 1)->orderBy('name')->get();
-        $classes = Rank::where('activated', 1)->orderBy('name')->get();
+        $classes = Rank::with('stream')->where('activated', 1)->orderBy('name')->get();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
 
         // Get workload for all teachers
@@ -116,6 +121,28 @@ class SubjectAllocationController extends Controller
 
         $created = 0;
         $existing = 0;
+
+        // Validate division compatibility for each class
+        $divisionErrors = [];
+        foreach ($validated['allocations'] as $allocation) {
+            foreach ($allocation['class_ids'] as $classId) {
+                $divisionCheck = $this->divisionService->canTeacherTeachClass(
+                    $validated['teacher_id'],
+                    $classId
+                );
+
+                if (!$divisionCheck['allowed']) {
+                    $class = Rank::find($classId);
+                    $divisionErrors[] = $class->name . ': ' . $divisionCheck['reason'];
+                }
+            }
+        }
+
+        if (!empty($divisionErrors)) {
+            return back()->withErrors([
+                'division' => 'Division compatibility issues: ' . implode(' | ', $divisionErrors)
+            ]);
+        }
 
         // Create allocations for each subject-class combination
         foreach ($validated['allocations'] as $allocation) {
@@ -342,6 +369,20 @@ class SubjectAllocationController extends Controller
         return response()->json([
             'coverage' => $coverage,
             'classes_with_gaps' => collect($coverage)->where('is_complete', false)->count(),
+        ]);
+    }
+
+    /**
+     * Get teacher division information.
+     */
+    public function getTeacherDivision(User $teacher)
+    {
+        $division = $this->divisionService->getTeacherDivision($teacher->id);
+        $divisionLabel = $this->divisionService->getDivisionLabel($division);
+
+        return response()->json([
+            'division' => $division,
+            'division_label' => $divisionLabel,
         ]);
     }
 

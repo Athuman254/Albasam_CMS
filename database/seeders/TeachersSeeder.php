@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Employee;
 use App\Models\Teacher;
 use App\Models\EmployeeClass;
@@ -75,6 +76,11 @@ class TeachersSeeder extends Seeder
             ['first_name' => 'Samuel', 'middle_name' => 'Kimani', 'last_name' => 'Ndung\'u', 'gender' => $maleGender, 'honorific' => $mrHonorific, 'religion' => $christianReligion, 'experience' => 6],
             ['first_name' => 'Elizabeth', 'middle_name' => 'Nyambura', 'last_name' => 'Githinji', 'gender' => $femaleGender, 'honorific' => $mrsHonorific, 'religion' => $christianReligion, 'experience' => 9],
             ['first_name' => 'Patrick', 'middle_name' => 'Mutua', 'last_name' => 'Musyoka', 'gender' => $maleGender, 'honorific' => $mrHonorific, 'religion' => $christianReligion, 'experience' => 8],
+            ['first_name' => 'Alice', 'middle_name' => 'Muthoni', 'last_name' => 'Kibera', 'gender' => $femaleGender, 'honorific' => $mrsHonorific, 'religion' => $christianReligion, 'experience' => 5],
+            ['first_name' => 'George', 'middle_name' => 'Odhiambo', 'last_name' => 'Ouma', 'gender' => $maleGender, 'honorific' => $mrHonorific, 'religion' => $christianReligion, 'experience' => 12],
+            ['first_name' => 'Hellen', 'middle_name' => 'Wangari', 'last_name' => 'Njoroge', 'gender' => $femaleGender, 'honorific' => $msHonorific, 'religion' => $christianReligion, 'experience' => 4],
+            ['first_name' => 'Kevin', 'middle_name' => 'Kiptoo', 'last_name' => 'Cheruiyot', 'gender' => $maleGender, 'honorific' => $mrHonorific, 'religion' => $christianReligion, 'experience' => 6],
+            ['first_name' => 'Brenda', 'middle_name' => 'Achieng', 'last_name' => 'Okoth', 'gender' => $femaleGender, 'honorific' => $msHonorific, 'religion' => $christianReligion, 'experience' => 7],
         ];
 
         $tscCounter = 100001;
@@ -87,7 +93,7 @@ class TeachersSeeder extends Seeder
                 [
                     'name' => $teacherData['first_name'] . ' ' . $teacherData['last_name'],
                     'username' => strtolower($teacherData['first_name'] . '.' . $teacherData['last_name']),
-                    'password' => \Hash::make('password'),
+                    'password' => Hash::make('password'),
                 ]
             );
 
@@ -102,7 +108,7 @@ class TeachersSeeder extends Seeder
                     'last_name' => $teacherData['last_name'],
                     'gender_id' => $teacherData['gender']->id,
                     'religion_id' => $teacherData['religion']->id,
-                    'honorific_id' => $teacherData['honorific']->id,
+                    'honorific_id' => $teacherData['honorific']?->id,
                     'employment_type_id' => $employmentType->id,
                     'employment_status_id' => $employmentStatus->id,
                     'primary_phone' => '07' . rand(10000000, 99999999),
@@ -127,7 +133,7 @@ class TeachersSeeder extends Seeder
                     'first_name' => $teacherData['first_name'],
                     'middle_name' => $teacherData['middle_name'],
                     'last_name' => $teacherData['last_name'],
-                    'honorific_id' => $teacherData['honorific']->id,
+                    'honorific_id' => $teacherData['honorific']?->id,
                     'job_title_id' => $jobTitle->id,
                     'specialization_area_id' => $specialization->id,
                     'tsc_number' => 'TSC-' . $tscCounter++,
@@ -146,7 +152,7 @@ class TeachersSeeder extends Seeder
                     $subject = $subjects->random();
 
                     // First class assignment makes them a class teacher
-                    $isClassTeacher = ($classIndex == 0 && $index < 8); // First 8 teachers are class teachers
+                    $isClassTeacher = ($classIndex == 0 && $index < 8); 
 
                     EmployeeClass::firstOrCreate(
                         [

@@ -10,6 +10,7 @@ use App\Models\Timetable\TimetablePeriod;
 use App\Models\Timetable\TimetableVersion;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class TimetableViewController extends Controller
@@ -26,7 +27,7 @@ class TimetableViewController extends Controller
             ->where('is_active', true)
             ->first();
 
-        $classes = Rank::where('activated', 1)->orderBy('name')->get();
+        $classes = Rank::with('stream')->where('activated', 1)->orderBy('name')->get();
 
         if (!$classId && $classes->isNotEmpty()) {
             $classId = $classes->first()->id;
@@ -77,7 +78,9 @@ class TimetableViewController extends Controller
         })->orderBy('name')->get();
 
         if (!$teacherId && $teachers->isNotEmpty()) {
-            $teacherId = auth()->user()->hasRole('Teacher') ? auth()->id() : $teachers->first()->id;
+            /** @var \App\Models\User|null $user */
+            $user = Auth::user();
+            $teacherId = $user && $user->hasRole('Teacher') ? $user->id : $teachers->first()->id;
         }
 
         $allocations = [];

@@ -38,6 +38,7 @@ Route::middleware(['auth', 'verified'])->prefix('timetable')->name('timetable.')
         Route::get('/api/teacher-workload/{teacher}', [SubjectAllocationController::class, 'getTeacherWorkload'])->name('api.teacher-workload');
         Route::get('/api/teacher-subjects/{teacher}', [SubjectAllocationController::class, 'getTeacherSubjects'])->name('api.teacher-subjects');
         Route::get('/api/teacher-workload-status/{teacher}', [SubjectAllocationController::class, 'getTeacherWorkloadStatus'])->name('api.teacher-workload-status');
+        Route::get('/api/teacher-division/{teacher}', [SubjectAllocationController::class, 'getTeacherDivision'])->name('api.teacher-division');
         Route::get('/api/suggest-teachers', [SubjectAllocationController::class, 'suggestAlternativeTeachers'])->name('api.suggest-teachers');
         Route::get('/api/class-coverage', [SubjectAllocationController::class, 'analyzeClassCoverage'])->name('api.class-coverage');
 
@@ -46,11 +47,18 @@ Route::middleware(['auth', 'verified'])->prefix('timetable')->name('timetable.')
         Route::post('/setup/constraints', [ConstraintController::class, 'store'])->name('constraints.store');
         Route::delete('/setup/constraints/{constraint}', [ConstraintController::class, 'destroy'])->name('constraints.destroy');
 
+
         // Generation
         Route::get('/generate', [TimetableGenerationController::class, 'index'])->name('generate.index');
+        Route::post('/generate/validate', [TimetableGenerationController::class, 'validateData'])->name('generate.validate');
         Route::post('/generate', [TimetableGenerationController::class, 'store'])->name('generate.store');
         Route::post('/versions/{version}/publish', [TimetableGenerationController::class, 'publish'])->name('versions.publish');
         Route::delete('/versions/{version}', [TimetableGenerationController::class, 'destroy'])->name('versions.destroy');
+
+        // PDF Export Routes
+        Route::get('/versions/{version}/export/class/{class}', [TimetableGenerationController::class, 'exportClassPdf'])->name('versions.export.class');
+        Route::get('/versions/{version}/export/teacher/{teacher}', [TimetableGenerationController::class, 'exportTeacherPdf'])->name('versions.export.teacher');
+        Route::get('/versions/{version}/export/all-classes', [TimetableGenerationController::class, 'exportAllClassesPdf'])->name('versions.export.all');
     });
 
     // Viewing Routes (Accessible to Teachers/Students too, but we'll restrict editing)

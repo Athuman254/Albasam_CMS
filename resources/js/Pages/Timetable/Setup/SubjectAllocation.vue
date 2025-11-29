@@ -1,7 +1,7 @@
 <script setup>
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref, computed, watch } from 'vue';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted } from 'vue';
 import axios from 'axios';
 import Modal from '@/Components/Modal.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -141,14 +141,31 @@ const getTotalProjectedHours = () => {
     }, 0);
 };
 
+const submissionError = ref(null);
+
 const createAllocation = () => {
+    console.log('🚀 Create Allocation Called');
+    console.log('Form allocations:', form.allocations);
+    
+    submissionError.value = null;
+    
     // Filter out allocations with no classes selected
     const validAllocations = form.allocations.filter(a => a.class_ids.length > 0);
     
+    console.log('Valid allocations:', validAllocations);
+    console.log('Valid allocations count:', validAllocations.length);
+    
     if (validAllocations.length === 0) {
-        alert('Please select at least one class for a subject');
+        console.log('❌ No valid allocations - showing error');
+        submissionError.value = 'Please select at least one class for at least one subject.';
+        // Auto-expand the first subject if none are selected
+        if (expandedSubjectIndex.value === -1 && form.allocations.length > 0) {
+            expandedSubjectIndex.value = 0;
+        }
         return;
     }
+    
+    console.log('✅ Proceeding with submission');
     
     // Transform to backend format
     const payload = {
@@ -157,12 +174,17 @@ const createAllocation = () => {
         allocations: validAllocations
     };
     
+    console.log('📦 Payload:', payload);
+    console.log('🔗 Route:', route('timetable.allocations.store'));
+    
     form.post(route('timetable.allocations.store'), {
         data: payload,
-        onSuccess: () => {
+        onSuccess: (response) => {
+            console.log('✅ Success response:', response);
             closeCreateModal();
             form.reset();
             form.allocations = [];
+            submissionError.value = null;
             
             // Show success message
             successMessage.value = 'Subject allocation created successfully!';
@@ -173,11 +195,19 @@ const createAllocation = () => {
                 showSuccessMessage.value = false;
             }, 5000);
         },
-        onError: () => {
+        onError: (errors) => {
+            console.error('❌ Error response:', errors);
+            console.error('Form errors:', form.errors);
             // Auto-dismiss errors after 5 seconds
             setTimeout(() => {
                 form.clearErrors();
             }, 5000);
+        },
+        onFinish: () => {
+            console.log('🏁 Request finished');
+        },
+        onBefore: () => {
+            console.log('🚦 Request starting...');
         },
     });
 };
@@ -215,17 +245,17 @@ const getTeacherWorkload = (teacherId) => {
 
 // Watch for teacher selection to load their subjects
 watch(() => form.teacher_id, async (newTeacherId) => {
-    if (newTeacherId) {
+    if (newTeacherId && newTeacherId !== null && newTeacherId !== undefined) {
         try {
             // Fetch teacher's subjects
-            const subjectsResponse = await axios.get(route('timetable.api.teacher-subjects', newTeacherId));
+            const subjectsResponse = await axios.get(route('timetable.api.teacher-subjects', { teacher: newTeacherId }));
             teacherSubjects.value = subjectsResponse.data.subjects;
             
             // Initialize allocations for each subject
             initializeAllocations();
             
             // Fetch teacher's workload status
-            const statusResponse = await axios.get(route('timetable.api.teacher-workload-status', newTeacherId), {
+            const statusResponse = await axios.get(route('timetable.api.teacher-workload-status', { teacher: newTeacherId }), {
                 params: { academic_year_id: props.currentAcademicYearId }
             });
             teacherWorkloadStatus.value = statusResponse.data;
@@ -300,6 +330,52 @@ const editTeacher = () => {
         router.visit(route('admin.teachers.edit', selectedTeacher.teacher_hashid));
     }
 };
+
+const fixingClassId = ref(null);
+const fixingClassName = ref('');
+const fixingSubjectId = ref(null);
+const fixingSubjectName = ref('');
+
+// Auto-select teacher from URL query parameter or handle class fix
+onMounted(() => {
+    const page = usePage();
+    const urlParams = new URLSearchParams(window.location.search);
+    const teacherIdFromUrl = urlParams.get('teacher_id');
+    const classIdFromUrl = urlParams.get('class_id');
+    const subjectIdFromUrl = urlParams.get('subject_id');
+    
+    if (teacherIdFromUrl) {
+        const teacherId = parseInt(teacherIdFromUrl);
+        const teacher = props.teachers.find(t => t.id === teacherId);
+        
+        if (teacher) {
+            // Pre-select the teacher
+            selectedTeacherId.value = teacherId;
+            form.teacher_id = teacherId;
+            
+            // Auto-open the modal after a short delay to ensure data is loaded
+            setTimeout(() => {
+                openCreateModal(teacherId);
+            }, 300);
+        }
+    } else if (classIdFromUrl) {
+        const classId = parseInt(classIdFromUrl);
+        const cls = props.classes.find(c => c.id === classId);
+        
+        if (cls) {
+            fixingClassId.value = classId;
+            fixingClassName.value = cls.name;
+        }
+    } else if (subjectIdFromUrl) {
+        const subjectId = parseInt(subjectIdFromUrl);
+        const subject = props.subjects.find(s => s.id === subjectId);
+
+        if (subject) {
+            fixingSubjectId.value = subjectId;
+            fixingSubjectName.value = subject.name;
+        }
+    }
+});
 </script>
 
 <template>
@@ -332,8 +408,26 @@ const editTeacher = () => {
                             {{ year.name }}
                         </option>
                     </select>
-                    <button @click="openCreateModal" class="btn btn-primary">
+                    <button @click="openCreateModal()" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i> New Allocation
+                    </button>
+                </div>
+            </div>
+
+            <!-- Class Fix Mode Banner -->
+            <div v-if="fixingClassId" class="alert alert-warning border-start border-5 border-warning shadow-sm mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-25 p-2 rounded-circle me-3">
+                            <i class="fas fa-wrench text-warning fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Fixing Allocation for {{ fixingClassName }}</h5>
+                            <p class="mb-0 text-muted small">Select a teacher below to assign subjects to this class.</p>
+                        </div>
+                    </div>
+                    <button @click="fixingClassId = null" class="btn btn-sm btn-outline-secondary">
+                        Exit Fix Mode
                     </button>
                 </div>
             </div>
@@ -535,7 +629,7 @@ const editTeacher = () => {
                     </div>
 
                     <!-- Projected Workload Display -->
-                    <div v-if="form.teacher_id && teacherWorkload" class="mb-4">
+                    <div v-if="form.teacher_id && currentTeacherWorkload" class="mb-4">
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
                                 <h6 class="card-title mb-3 fw-bold text-dark">
@@ -547,15 +641,15 @@ const editTeacher = () => {
                                         <div class="d-flex flex-column">
                                             <small class="text-muted mb-1">Hours/Week</small>
                                             <div class="d-flex align-items-center">
-                                                <strong class="fs-5 me-2">{{ teacherWorkload.total_hours_per_week }}</strong>
-                                                <span class="text-muted small">/ {{ teacherWorkload.max_hours }}</span>
+                                                <strong class="fs-5 me-2">{{ currentTeacherWorkload.total_hours_per_week }}</strong>
+                                                <span class="text-muted small">/ {{ currentTeacherWorkload.max_hours }}</span>
                                             </div>
                                             <div class="progress mt-2" style="height: 6px;">
                                                 <div class="progress-bar" :class="{
-                                                    'bg-success': (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) < 70,
-                                                    'bg-warning': (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) >= 70 && (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) < 90,
-                                                    'bg-danger': (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) >= 90
-                                                }" :style="{ width: (teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) + '%' }"></div>
+                                                    'bg-success': (currentTeacherWorkload.total_hours_per_week / currentTeacherWorkload.max_hours * 100) < 70,
+                                                    'bg-warning': (currentTeacherWorkload.total_hours_per_week / currentTeacherWorkload.max_hours * 100) >= 70 && (currentTeacherWorkload.total_hours_per_week / currentTeacherWorkload.max_hours * 100) < 90,
+                                                    'bg-danger': (currentTeacherWorkload.total_hours_per_week / currentTeacherWorkload.max_hours * 100) >= 90
+                                                }" :style="{ width: (currentTeacherWorkload.total_hours_per_week / currentTeacherWorkload.max_hours * 100) + '%' }"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -563,15 +657,15 @@ const editTeacher = () => {
                                         <div class="d-flex flex-column">
                                             <small class="text-muted mb-1">Total Classes</small>
                                             <div class="d-flex align-items-center">
-                                                <strong class="fs-5 me-2">{{ teacherWorkload.total_classes }}</strong>
-                                                <span class="text-muted small">/ {{ teacherWorkload.max_classes }}</span>
+                                                <strong class="fs-5 me-2">{{ currentTeacherWorkload.total_classes }}</strong>
+                                                <span class="text-muted small">/ {{ currentTeacherWorkload.max_classes }}</span>
                                             </div>
                                             <div class="progress mt-2" style="height: 6px;">
                                                 <div class="progress-bar" :class="{
-                                                    'bg-success': (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) < 70,
-                                                    'bg-warning': (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) >= 70 && (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) < 90,
-                                                    'bg-danger': (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) >= 90
-                                                }" :style="{ width: (teacherWorkload.total_classes / teacherWorkload.max_classes * 100) + '%' }"></div>
+                                                    'bg-success': (currentTeacherWorkload.total_classes / currentTeacherWorkload.max_classes * 100) < 70,
+                                                    'bg-warning': (currentTeacherWorkload.total_classes / currentTeacherWorkload.max_classes * 100) >= 70 && (currentTeacherWorkload.total_classes / currentTeacherWorkload.max_classes * 100) < 90,
+                                                    'bg-danger': (currentTeacherWorkload.total_classes / currentTeacherWorkload.max_classes * 100) >= 90
+                                                }" :style="{ width: (currentTeacherWorkload.total_classes / currentTeacherWorkload.max_classes * 100) + '%' }"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -579,20 +673,20 @@ const editTeacher = () => {
                                         <div class="d-flex flex-column">
                                             <small class="text-muted mb-1">Total Subjects</small>
                                             <div class="d-flex align-items-center">
-                                                <strong class="fs-5 me-2">{{ teacherWorkload.total_subjects }}</strong>
-                                                <span class="text-muted small">/ {{ teacherWorkload.max_subjects }}</span>
+                                                <strong class="fs-5 me-2">{{ currentTeacherWorkload.total_subjects }}</strong>
+                                                <span class="text-muted small">/ {{ currentTeacherWorkload.max_subjects }}</span>
                                             </div>
                                             <div class="progress mt-2" style="height: 6px;">
                                                 <div class="progress-bar" :class="{
-                                                    'bg-success': (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) < 70,
-                                                    'bg-warning': (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) >= 70 && (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) < 90,
-                                                    'bg-danger': (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) >= 90
-                                                }" :style="{ width: (teacherWorkload.total_subjects / teacherWorkload.max_subjects * 100) + '%' }"></div>
+                                                    'bg-success': (currentTeacherWorkload.total_subjects / currentTeacherWorkload.max_subjects * 100) < 70,
+                                                    'bg-warning': (currentTeacherWorkload.total_subjects / currentTeacherWorkload.max_subjects * 100) >= 70 && (currentTeacherWorkload.total_subjects / currentTeacherWorkload.max_subjects * 100) < 90,
+                                                    'bg-danger': (currentTeacherWorkload.total_subjects / currentTeacherWorkload.max_subjects * 100) >= 90
+                                                }" :style="{ width: (currentTeacherWorkload.total_subjects / currentTeacherWorkload.max_subjects * 100) + '%' }"></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div v-if="(teacherWorkload.total_hours_per_week / teacherWorkload.max_hours * 100) >= 90" class="alert alert-danger mt-3 mb-0 py-2">
+                                <div v-if="(currentTeacherWorkload.total_hours_per_week / currentTeacherWorkload.max_hours * 100) >= 90" class="alert alert-danger mt-3 mb-0 py-2">
                                     <small><i class="fas fa-exclamation-triangle me-2"></i><strong>OVERLOAD WARNING</strong></small>
                                 </div>
                             </div>
@@ -654,7 +748,10 @@ const editTeacher = () => {
                             <p class="small text-muted mb-3">Select classes for each subject this teacher will teach:</p>
                             
                             <!-- Loop through each subject the teacher teaches -->
-                            <div v-for="(allocation, index) in form.allocations" :key="allocation.subject_id" class="card mb-3 border shadow-sm">
+                            <div v-for="(allocation, index) in form.allocations" :key="allocation.subject_id" 
+                                class="card mb-3 border shadow-sm"
+                                :class="{'border-danger': submissionError && allocation.class_ids.length === 0}"
+                            >
                                 <div class="card-body bg-white p-0">
                                     <!-- Clickable Header -->
                                     <div class="d-flex justify-content-between align-items-center p-3">
@@ -690,16 +787,18 @@ const editTeacher = () => {
                                             <label class="form-label small fw-semibold text-dark mb-2">Select Classes:</label>
                                         <div class="border rounded p-3 bg-white row g-2" style="max-height: 150px; overflow-y: auto;">
                                             <div v-for="cls in classes" :key="cls.id" class="col-md-4 col-sm-6">
-                                                <div class="form-check">
+                                                <div class="form-check p-2 rounded" :class="{'bg-warning bg-opacity-10 border border-warning': fixingClassId === cls.id}">
                                                     <input 
                                                         type="checkbox" 
                                                         :id="`alloc_${index}_cls_${cls.id}`" 
                                                         :value="cls.id" 
                                                         v-model="allocation.class_ids" 
                                                         class="form-check-input"
+                                                        @change="console.log('Checkbox changed:', cls.id, 'Array now:', allocation.class_ids)"
                                                     >
-                                                    <label :for="`alloc_${index}_cls_${cls.id}`" class="form-check-label small">
+                                                    <label :for="`alloc_${index}_cls_${cls.id}`" class="form-check-label small" :class="{'fw-bold text-dark': fixingClassId === cls.id}">
                                                         {{ cls.name }}
+                                                        <span v-if="fixingClassId === cls.id" class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">FIX ME</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -752,6 +851,12 @@ const editTeacher = () => {
                     <div v-if="form.errors.workload" class="alert alert-danger mt-3" role="alert">
                         {{ form.errors.workload }}
                     </div>
+                </div>
+
+                <!-- Error Message -->
+                <div v-if="submissionError" class="alert alert-danger mt-3 mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    {{ submissionError }}
                 </div>
 
                 <!-- Modal Footer -->

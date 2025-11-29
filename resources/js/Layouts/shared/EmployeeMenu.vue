@@ -70,6 +70,16 @@
     </ul>
 </li>
 
+   <!-- My Timetable Menu -->
+   <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/teacher/my-timetable') }">
+      <Link :href="route('teacher.timetable')" class="menu-link">
+         <span>
+            <i class="menu-icon tf-icons bx bx-calendar"></i>
+         </span>
+         My Timetable
+      </Link>
+   </li>
+
    <!-- Remove or comment out the admin exams menu from employee sidebar -->
    <!--
    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/exams')  }">

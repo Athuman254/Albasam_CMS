@@ -21,7 +21,7 @@ class ConstraintController extends Controller
     {
         $academicYearId = $request->input('academic_year_id', AcademicYear::where('is_active', true)->first()?->id);
 
-        $constraints = TimetableConstraint::with(['teacher', 'class', 'subject', 'room', 'academicYear'])
+        $constraints = TimetableConstraint::with(['teacher', 'class.stream', 'subject', 'room', 'academicYear'])
             ->where('academic_year_id', $academicYearId)
             ->orderBy('constraint_type')
             ->get()
@@ -32,7 +32,7 @@ class ConstraintController extends Controller
             ->orderBy('name')
             ->get();
 
-        $classes = Rank::where('activated', 1)->orderBy('name')->get();
+        $classes = Rank::with('stream')->where('activated', 1)->orderBy('name')->get();
         $subjects = Subject::where('activated', 1)->orderBy('name')->get();
         $rooms = TimetableRoom::where('status', 'available')->orderBy('room_name')->get();
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();

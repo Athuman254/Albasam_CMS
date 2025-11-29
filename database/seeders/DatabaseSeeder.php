@@ -57,7 +57,7 @@ class DatabaseSeeder extends Seeder
 
         $this->streams();
 
-        $this->ranks();
+        // $this->ranks(); // Skip secondary classes for now
 
         $this->maritalStatuses();
 
@@ -108,6 +108,9 @@ class DatabaseSeeder extends Seeder
 
         // Seed teachers with qualifications and assignments
         $this->call(TeachersSeeder::class);
+
+        // Seed teacher qualifications (subject assignments)
+        $this->call(TeacherQualificationsSeeder::class);
 
         // Seed exams with subjects and marks
         $this->call(ExamsSeeder::class);

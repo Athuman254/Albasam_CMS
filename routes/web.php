@@ -568,6 +568,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          Route::resource('/seo-metas', \App\Http\Controllers\Website\SeoMetaController::class)->names('seo-metas')->except('create', 'edit', 'show');
       });
    });
+
+   /********************************
+    * TEACHER ROUTES
+    *******************************/
+   Route::group([
+      'prefix' => 'teacher',
+      'as' => 'teacher.'
+   ], function () {
+      Route::get('/my-timetable', [\App\Http\Controllers\Teacher\TeacherTimetableController::class, 'index'])->name('timetable');
+   });
 });
 
 require __DIR__ . '/auth.php';

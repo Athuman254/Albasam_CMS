@@ -28,7 +28,7 @@ return new class extends Migration
             $table->foreignId('room_id')->nullable()->constrained('timetable_rooms')->onDelete('cascade');
             $table->enum('day_of_week', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])->nullable();
             $table->integer('period_number')->nullable();
-            $table->enum('constraint_value', ['available', 'unavailable', 'preferred', 'not_preferred', 'required']);
+            $table->string('constraint_value')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
 

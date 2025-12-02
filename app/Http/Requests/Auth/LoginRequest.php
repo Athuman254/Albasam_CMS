@@ -27,7 +27,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'login_id' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -41,15 +41,29 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        $login_id = $this->input('login_id');
+        $password = $this->input('password');
+        $remember = $this->boolean('remember');
 
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
-            ]);
+        // Check if input is an email -> Admin/Teacher
+        if (filter_var($login_id, FILTER_VALIDATE_EMAIL)) {
+            if (Auth::guard('web')->attempt(['email' => $login_id, 'password' => $password], $remember)) {
+                RateLimiter::clear($this->throttleKey());
+                return;
+            }
+        } else {
+            // Assume Student Admission Number
+            if (Auth::guard('student')->attempt(['username' => $login_id, 'password' => $password], $remember)) {
+                RateLimiter::clear($this->throttleKey());
+                return;
+            }
         }
 
-        RateLimiter::clear($this->throttleKey());
+        RateLimiter::hit($this->throttleKey());
+
+        throw ValidationException::withMessages([
+            'login_id' => trans('auth.failed'),
+        ]);
     }
 
     /**
@@ -80,6 +94,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
     }
 }

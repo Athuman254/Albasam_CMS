@@ -9,17 +9,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use App\Models\Settings\AcademicYear;
 
-class Student extends Model implements HasMedia
+class Student extends Authenticatable implements HasMedia
 {
     use SoftDeletes, HasHashid, HashidRouting, InteractsWithMedia;
 
     protected $table = 'students';
     protected $primaryKey = 'id';
-    
+
     // Add this method to use hashid for route binding
     public function getRouteKeyName()
     {
@@ -27,9 +28,9 @@ class Student extends Model implements HasMedia
     }
 
     protected $appends = [
-        'hashid', 
-        'photo_url', 
-        'full_name', 
+        'hashid',
+        'photo_url',
+        'full_name',
         // 'fee_summary', 
         'was_promoted_this_year',
         'age',
@@ -42,35 +43,45 @@ class Student extends Model implements HasMedia
         'adm_no',
         'name'
     ];
-    
+
     protected $fillable = [
         'user_id',
-        'student_admission_id', 
-        'admission_number', 
-        'rank_id', 
-        'first_name', 
-        'middle_name', 
-        'last_name', 
-        'date_of_birth', 
-        'birth_certificate_number', 
-        'gender_id', 
+        'student_admission_id',
+        'admission_number',
+        'rank_id',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'date_of_birth',
+        'birth_certificate_number',
+        'gender_id',
         'religion_id',
-        'citizenship', 
-        'county', 
-        'ward', 
-        'permanent_address', 
-        'previous_school', 
-        'kcpe_score', 
-        'physical_disability', 
-        'hobby', 
-        'medical_details', 
+        'citizenship',
+        'county',
+        'ward',
+        'permanent_address',
+        'previous_school',
+        'kcpe_score',
+        'physical_disability',
+        'hobby',
+        'medical_details',
         'character_book',
+        'username',
+        'password',
+        'user_type',
+        'password_changed_at',
+        'force_password_change',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     protected $casts = [
-    'date_of_birth' => 'date',
-    
-];
+        'date_of_birth' => 'date',
+
+    ];
     /**
      * Resolve the binding using hashid
      * This method is called when using route model binding
@@ -84,7 +95,7 @@ class Student extends Model implements HasMedia
 
         // Otherwise, treat it as a hashid
         $decoded = app('hashid')->decode($value);
-        
+
         if (empty($decoded)) {
             abort(404, 'Invalid student ID');
         }
@@ -140,7 +151,7 @@ class Student extends Model implements HasMedia
             'female' => '/images/default-female-student.png',
             'default' => '/images/default-student.png'
         ];
-        
+
         return asset($defaultPhotos[strtolower($gender)] ?? $defaultPhotos['default']);
     }
 
@@ -181,14 +192,14 @@ class Student extends Model implements HasMedia
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-/**
- * Relationship with admission - CORRECT: BelongsTo relationship
- */
-public function admission(): BelongsTo
-{
-    return $this->belongsTo(StudentAdmission::class, 'student_admission_id', 'id');
-}
-    
+    /**
+     * Relationship with admission - CORRECT: BelongsTo relationship
+     */
+    public function admission(): BelongsTo
+    {
+        return $this->belongsTo(StudentAdmission::class, 'student_admission_id', 'id');
+    }
+
     /**
      * Relationship with rank/class
      */
@@ -274,7 +285,7 @@ public function admission(): BelongsTo
     /**
      * FEE RELATIONSHIPS
      */
-    
+
     /**
      * Relationship with fees
      */
@@ -308,7 +319,7 @@ public function admission(): BelongsTo
      */
     public function getTotalFeesAttribute(): float
     {
-        return (float) $this->fees()->sum('amount');
+        return (float) $this->fees()->where('status', '!=', 'carried_over')->sum('amount');
     }
 
     /**
@@ -366,7 +377,7 @@ public function admission(): BelongsTo
     {
         $currentTerm = \App\Models\Fee::getCurrentTerm();
         $currentYear = now()->year;
-        
+
         return $this->fees()
             ->where('academic_year', $currentYear)
             ->where('term', $currentTerm)
@@ -380,18 +391,18 @@ public function admission(): BelongsTo
     {
         $currentTerm = \App\Models\Fee::getCurrentTerm();
         $currentYear = now()->year;
-        
+
         $currentTermFees = $this->fees()
             ->where('academic_year', $currentYear)
             ->where('term', $currentTerm)
             ->sum('amount');
-            
+
         $currentTermPayments = $this->feePayments()
             // ->where('academic_year', $currentYear)
             // ->where('term', $currentTerm)
             ->where('status', 'completed')
             ->sum('amount');
-            
+
         return $currentTermFees - $currentTermPayments;
     }
 
@@ -412,11 +423,11 @@ public function admission(): BelongsTo
     public function currentAcademicYearPromotion()
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         if (!$currentAcademicYear) {
             return null;
         }
-        
+
         return $this->promotions()
             ->where('academic_year_id', $currentAcademicYear->id)
             ->first();
@@ -514,12 +525,12 @@ public function admission(): BelongsTo
     public function scopeNotPromotedThisYear($query)
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         if (!$currentAcademicYear) {
             return $query;
         }
-        
-        return $query->whereDoesntHave('promotions', function($q) use ($currentAcademicYear) {
+
+        return $query->whereDoesntHave('promotions', function ($q) use ($currentAcademicYear) {
             $q->where('academic_year_id', $currentAcademicYear->id);
         });
     }
@@ -530,12 +541,12 @@ public function admission(): BelongsTo
     public function scopePromotedThisYear($query)
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         if (!$currentAcademicYear) {
             return $query;
         }
-        
-        return $query->whereHas('promotions', function($q) use ($currentAcademicYear) {
+
+        return $query->whereHas('promotions', function ($q) use ($currentAcademicYear) {
             $q->where('academic_year_id', $currentAcademicYear->id);
         });
     }
@@ -546,13 +557,13 @@ public function admission(): BelongsTo
     public function scopeEligibleForPromotion($query)
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         if (!$currentAcademicYear) {
             return $query;
         }
-        
-        return $query->whereHas('examMarks', function($q) use ($currentAcademicYear) {
-            $q->whereHas('examSubject.exam', function($q2) use ($currentAcademicYear) {
+
+        return $query->whereHas('examMarks', function ($q) use ($currentAcademicYear) {
+            $q->whereHas('examSubject.exam', function ($q2) use ($currentAcademicYear) {
                 $q2->where('academic_year_id', $currentAcademicYear->id);
             });
         });
@@ -566,9 +577,9 @@ public function admission(): BelongsTo
         if (empty($terms)) {
             return $query;
         }
-        
+
         collect(explode(' ', $terms))->filter()->each(function ($term) use ($query) {
-            $term = '%'.$term.'%';
+            $term = '%' . $term . '%';
             $query->whereHas('rank', function ($q) use ($term) {
                 $q->where('name', 'like', $term);
             });
@@ -583,19 +594,19 @@ public function admission(): BelongsTo
         if (empty($search)) {
             return $query;
         }
-        
+
         return $query->where(function ($q) use ($search) {
             $q->where('first_name', 'like', "%{$search}%")
-              ->orWhere('middle_name', 'like', "%{$search}%")
-              ->orWhere('last_name', 'like', "%{$search}%")
-              ->orWhere('admission_number', 'like', "%{$search}%")
-              ->orWhereHas('rank', function ($q) use ($search) {
-                  $q->where('name', 'like', "%{$search}%");
-              })
-              ->orWhereHas('user', function ($q) use ($search) {
-                  $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-              });
+                ->orWhere('middle_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('admission_number', 'like', "%{$search}%")
+                ->orWhereHas('rank', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
         });
     }
 
@@ -658,7 +669,7 @@ public function admission(): BelongsTo
     {
         return $query->whereHas('fees', function ($q) {
             $q->where('due_date', '<', now())
-              ->where('balance', '>', 0);
+                ->where('balance', '>', 0);
         });
     }
 
@@ -705,12 +716,12 @@ public function admission(): BelongsTo
     {
         $prefix = 'STD';
         $year = date('Y');
-        
+
         do {
             $number = mt_rand(1000, 9999);
             $admissionNumber = "{$prefix}{$year}{$number}";
         } while (static::where('admission_number', $admissionNumber)->exists());
-        
+
         return $admissionNumber;
     }
 
@@ -724,7 +735,7 @@ public function admission(): BelongsTo
     public function promoteTo($newRankId, $academicYearId, $promotedById = null)
     {
         $currentRankId = $this->rank_id;
-        
+
         $promotion = StudentPromotion::create([
             'student_id' => $this->id,
             'from_class_id' => $currentRankId,
@@ -757,7 +768,7 @@ public function admission(): BelongsTo
         }
 
         return $this->examMarks()
-            ->whereHas('examSubject.exam', function($q) use ($academicYearId) {
+            ->whereHas('examSubject.exam', function ($q) use ($academicYearId) {
                 $q->where('academic_year_id', $academicYearId);
             })
             ->exists();
@@ -809,7 +820,7 @@ public function admission(): BelongsTo
     public function toArray()
     {
         $array = parent::toArray();
-        
+
         // Ensure all appended attributes are included
         $array['photo_url'] = $this->photo_url;
         $array['full_name'] = $this->full_name;
@@ -824,7 +835,7 @@ public function admission(): BelongsTo
         $array['is_fully_paid'] = $this->is_fully_paid;
         $array['adm_no'] = $this->adm_no;
         $array['name'] = $this->name;
-        
+
         return $array;
     }
 }

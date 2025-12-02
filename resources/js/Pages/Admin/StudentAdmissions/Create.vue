@@ -292,17 +292,7 @@
                                  </div>
 
                                  <!-- Academic Information -->
-                                 <div class="col-md-3">
-                                    <div class="form-group mb-3">
-                                       <label class="form-label-md mb-1" for="kcpeScore">KCPE Score</label>
-                                       <input type="text" id="kcpeScore" class="form-control"
-                                              v-model="form.student.kcpe_score" placeholder="Enter KCPE score"/>
-                                       <div v-if="form.errors['student.kcpe_score']" class="text-danger">
-                                          {{ form.errors['student.kcpe_score'] }}
-                                       </div>
-                                    </div>
-                                 </div>
-                                 <div class="col-md-3">
+                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                        <label class="form-label-md mb-1" for="previousSchool">Previous School</label>
                                        <input type="text" id="previousSchool" class="form-control"
@@ -410,6 +400,13 @@
                                              <label class="form-label-md mb-1">Profession</label>
                                              <input type="text" class="form-control" v-model="guardian.profession" placeholder="Enter profession"/>
                                              <div v-if="getGuardianError(index, 'profession')" class="text-danger">{{ getGuardianError(index, 'profession') }}</div>
+                                          </div>
+                                       </div>
+                                       <div class="col-md-4">
+                                          <div class="form-group mb-3">
+                                             <label class="form-label-md mb-1">Place of Work</label>
+                                             <input type="text" class="form-control" v-model="guardian.place_of_work" placeholder="Enter place of work"/>
+                                             <div v-if="getGuardianError(index, 'place_of_work')" class="text-danger">{{ getGuardianError(index, 'place_of_work') }}</div>
                                           </div>
                                        </div>
                                     </div>
@@ -598,7 +595,6 @@ export default {
                county: '',
                ward: '',
                permanent_address: '',
-               kcpe_score: '',
                previous_school: '',
             },
             guardians: [
@@ -611,6 +607,7 @@ export default {
                   phone: '',
                   identification_number: '',
                   profession: '',
+                  place_of_work: '',
                },
             ],
             other_details: {
@@ -831,6 +828,7 @@ export default {
             phone: '',
             identification_number: '',
             profession: '',
+            place_of_work: '',
          });
       },
       removeGuardian(index) {

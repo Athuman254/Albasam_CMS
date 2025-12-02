@@ -2,6 +2,7 @@
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\PdfController;
 use Illuminate\Support\Facades\Artisan;
@@ -154,6 +155,36 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
       Route::get('/reports/promotions', [\App\Http\Controllers\Admin\PromotionReportController::class, 'index'])->name('reports.promotions');
       Route::get('/reports/promotions/data', [\App\Http\Controllers\Admin\PromotionReportController::class, 'data'])->name('reports.promotions.data');
       Route::post('/reports/promotions/generate', [\App\Http\Controllers\Admin\PromotionReportController::class, 'generate'])->name('reports.promotions.generate');
+
+      /********************************
+       * STAFF ATTENDANCE REPORT ROUTES
+       *******************************/
+      Route::prefix('reports')->name('reports.')->group(function () {
+         Route::get('/staff-attendance', [\App\Http\Controllers\Admin\StaffAttendanceReportController::class, 'index'])->name('staff-attendance');
+         Route::get('/staff-attendance/data', [\App\Http\Controllers\Admin\StaffAttendanceReportController::class, 'getData'])->name('staff-attendance.data');
+         Route::get('/staff-attendance/summary', [\App\Http\Controllers\Admin\StaffAttendanceReportController::class, 'getSummary'])->name('staff-attendance.summary');
+         Route::post('/staff-attendance/export', [\App\Http\Controllers\Admin\StaffAttendanceReportController::class, 'export'])->name('staff-attendance.export');
+
+         // All Students Report
+         Route::get('/all-students', [\App\Http\Controllers\Admin\StudentReportController::class, 'index'])->name('all-students');
+         Route::post('/all-students/export', [\App\Http\Controllers\Admin\StudentReportController::class, 'export'])->name('all-students.export');
+
+         // All Staff Report
+         Route::get('/all-staff', [\App\Http\Controllers\Admin\EmployeeReportController::class, 'index'])->name('all-staff');
+         Route::post('/all-staff/export', [\App\Http\Controllers\Admin\EmployeeReportController::class, 'export'])->name('all-staff.export');
+      });
+
+      /********************************
+       * STAFF ATTENDANCE MARKING ROUTES (for admin staff)
+       *******************************/
+      Route::prefix('attendance')->name('attendance.')->group(function () {
+         Route::get('/mark', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'index'])->name('mark');
+         Route::post('/clock-in', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'clockIn'])->name('clock-in');
+         Route::post('/clock-out', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'clockOut'])->name('clock-out');
+         Route::get('/status', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'getTodayStatus'])->name('status');
+         Route::get('/history', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'getHistory'])->name('history');
+      });
+
 
       /********************************
        * FEE MANAGEMENT ROUTES - COMPLETE FIXED STRUCTURE WITH IMPROVEMENTS
@@ -593,3 +624,47 @@ Route::get('/sitemap.xml', function () {
 });
 
 require __DIR__ . '/timetable.php';
+
+// Student Routes
+Route::group([
+   'prefix' => 'student',
+   'as' => 'student.',
+   'middleware' => \App\Http\Middleware\EnsureStudentIsAuthenticated::class
+], function () {
+   Route::get('/dashboard', [\App\Http\Controllers\Student\StudentDashboardController::class, 'index'])->name('dashboard');
+
+   // Exam Results
+   Route::get('/results', [\App\Http\Controllers\Student\StudentResultController::class, 'index'])->name('results.index');
+   Route::get('/results/{exam}', [\App\Http\Controllers\Student\StudentResultController::class, 'show'])->name('results.show');
+   Route::get('/results/{exam}/download', [\App\Http\Controllers\Student\StudentResultController::class, 'download'])->name('results.download');
+
+   // Fee Routes
+   Route::get('/fees', [\App\Http\Controllers\Student\StudentFeeController::class, 'index'])->name('fees.index');
+   Route::get('/fees/download', [\App\Http\Controllers\Student\StudentFeeController::class, 'downloadStatement'])->name('fees.download');
+
+   // Attendance
+   Route::get('/attendance', [\App\Http\Controllers\Student\StudentAttendanceController::class, 'index'])->name('attendance.index');
+
+   // Notices
+   Route::get('/notices', [\App\Http\Controllers\Student\StudentNoticeController::class, 'index'])->name('notices.index');
+
+   // Profile
+   Route::get('/profile', [\App\Http\Controllers\Student\StudentProfileController::class, 'edit'])->name('profile.edit');
+   Route::put('/profile', [\App\Http\Controllers\Student\StudentProfileController::class, 'update'])->name('profile.update');
+   Route::put('/profile/password', [\App\Http\Controllers\Student\StudentProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+   // Password Change Routes
+   Route::get('/change-password', [\App\Http\Controllers\Student\Auth\StudentPasswordChangeController::class, 'show'])
+      ->name('password.change.form');
+
+   Route::put('/change-password', [\App\Http\Controllers\Student\Auth\StudentPasswordChangeController::class, 'update'])
+      ->name('password.update');
+});
+
+// Student Logout (outside middleware to allow logout)
+Route::post('/student/logout', function (\Illuminate\Http\Request $request) {
+   Auth::guard('student')->logout();
+   $request->session()->invalidate();
+   $request->session()->regenerateToken();
+   return redirect()->route('homepage');
+})->name('student.logout');

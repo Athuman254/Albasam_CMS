@@ -181,7 +181,7 @@ const getCoveragePercentage = (stats) => {
                         style="width: 200px;"
                     >
                         <option v-for="year in academicYears" :key="year.id" :value="year.id">
-                            {{ year.name }}
+                            {{ year.display_name }}
                         </option>
                     </select>
                     <button @click="validateData" :disabled="isValidating" class="btn btn-outline-primary">

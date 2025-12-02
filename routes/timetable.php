@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->prefix('timetable')->name('timetable.')->group(function () {
 
     // Setup Routes (Admin/Academic)
-    Route::middleware(['role:admin|Academic Teacher'])->group(function () {
+    Route::middleware(['role:admin|academic-coordinator'])->group(function () {
         // Periods
         Route::get('/setup/periods', [TimetablePeriodController::class, 'index'])->name('periods.index');
         Route::post('/setup/periods', [TimetablePeriodController::class, 'store'])->name('periods.store');

@@ -8,10 +8,10 @@ class Menu {
 		this._accordion = config.accordion !== false
 		this._closeChildren = Boolean(config.closeChildren)
 
-		this._onOpen = config.onOpen || (() => {})
-		this._onOpened = config.onOpened || (() => {})
-		this._onClose = config.onClose || (() => {})
-		this._onClosed = config.onClosed || (() => {})
+		this._onOpen = config.onOpen || (() => { })
+		this._onOpened = config.onOpened || (() => { })
+		this._onClose = config.onClose || (() => { })
+		this._onClosed = config.onClosed || (() => { })
 
 		this._psScroll = null
 		this._topParent = null
@@ -74,7 +74,8 @@ class Menu {
 				}
 			}
 		}
-		if (window.Helpers.isMobileDevice) this._el.addEventListener('click', this._evntElClick)
+		// if (window.Helpers.isMobileDevice) this._el.addEventListener('click', this._evntElClick)
+		this._el.addEventListener('click', this._evntElClick)
 
 		this._evntWindowResize = () => {
 			this.update()
@@ -224,7 +225,7 @@ class Menu {
 					this._onOpened && this._onOpened(this, item, toggleLink, Menu._findMenu(item))
 				}
 			})
-			.catch(() => {})
+			.catch(() => { })
 	}
 
 	close(el, closeChildren = this._closeChildren, _autoClose = false) {
@@ -254,7 +255,7 @@ class Menu {
 					this._onClosed && this._onClosed(this, item, toggleLink, Menu._findMenu(item))
 				}
 			})
-			.catch(() => {})
+			.catch(() => { })
 	}
 
 	_closeOther(item, closeChildren) {
@@ -515,7 +516,7 @@ class Menu {
 		const menuInner = document.querySelector('.menu-inner')
 
 		if (window.innerWidth < window.Helpers.LAYOUT_BREAKPOINT) {
-			if (this._scrollbar !== null) {
+			if (this._scrollbar) {
 				// window.Helpers.menuPsScroll.destroy()
 				this._scrollbar.destroy()
 				this._scrollbar = null

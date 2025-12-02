@@ -307,9 +307,68 @@
                                     <div v-if="form.errors.vision" class="text-danger">{{ form.errors.vision }}</div>
                                  </div>
                               </div>
-                              <div class="divider">
-                                 <div class="divider-text">SOCIAL MEDIA HANDLES</div>
+                           <div class="divider">
+                              <div class="divider-text">GPS SETTINGS FOR ATTENDANCE</div>
+                           </div>
+                           <div class="col-md-4">
+                              <div class="mb-6">
+                                 <label for="latitude" class="form-label">Latitude</label>
+                                 <div class="input-group input-group-merge">
+                                            <span class="input-group-text">
+                                                <i class="bx bx-map"></i>
+                                            </span>
+                                    <input
+                                       v-model="form.latitude"
+                                       id="latitude"
+                                       type="number"
+                                       step="any"
+                                       class="form-control"
+                                       placeholder="-1.286389"/>
+                                 </div>
+                                 <small class="text-muted">School's GPS latitude coordinate</small>
+                                 <div v-if="form.errors.latitude" class="text-danger">{{ form.errors.latitude }}</div>
                               </div>
+                           </div>
+                           <div class="col-md-4">
+                              <div class="mb-6">
+                                 <label for="longitude" class="form-label">Longitude</label>
+                                 <div class="input-group input-group-merge">
+                                            <span class="input-group-text">
+                                                <i class="bx bx-map"></i>
+                                            </span>
+                                    <input
+                                       v-model="form.longitude"
+                                       id="longitude"
+                                       type="number"
+                                       step="any"
+                                       class="form-control"
+                                       placeholder="36.817223"/>
+                                 </div>
+                                 <small class="text-muted">School's GPS longitude coordinate</small>
+                                 <div v-if="form.errors.longitude" class="text-danger">{{ form.errors.longitude }}</div>
+                              </div>
+                           </div>
+                           <div class="col-md-4">
+                              <div class="mb-6">
+                                 <label for="geofence_radius" class="form-label">Geofence Radius (meters)</label>
+                                 <div class="input-group input-group-merge">
+                                            <span class="input-group-text">
+                                                <i class="bx bx-radar"></i>
+                                            </span>
+                                    <input
+                                       v-model="form.geofence_radius"
+                                       id="geofence_radius"
+                                       type="number"
+                                       class="form-control"
+                                       placeholder="100"/>
+                                 </div>
+                                 <small class="text-muted">Maximum distance from school to mark attendance (default: 100m)</small>
+                                 <div v-if="form.errors.geofence_radius" class="text-danger">{{ form.errors.geofence_radius }}</div>
+                              </div>
+                           </div>
+                           <div class="divider">
+                              <div class="divider-text">SOCIAL MEDIA HANDLES</div>
+                           </div>
                               <div class="col-md-6">
                                  <div class="mb-6">
                                     <label for="twitter" class="form-label">Twitter</label>
@@ -549,6 +608,9 @@ export default {
             tax_identification_pin: '',
             mission: '',
             vision: '',
+            latitude: '',
+            longitude: '',
+            geofence_radius: 100,
             x_profile: '',
             fb_profile: '',
             ig_profile: '',
@@ -615,6 +677,9 @@ export default {
          this.form.tax_identification_pin = this.institution.tax_identification_pin || '';
          this.form.mission = this.institution.mission || '';
          this.form.vision = this.institution.vision || '';
+         this.form.latitude = this.institution.latitude || '';
+         this.form.longitude = this.institution.longitude || '';
+         this.form.geofence_radius = this.institution.geofence_radius || 100;
          this.form.x_profile = this.institution.x_profile || '';
          this.form.fb_profile = this.institution.fb_profile || '';
          this.form.ig_profile = this.institution.ig_profile || '';

@@ -16,7 +16,9 @@ class RankController extends Controller
     public function dataTable()
     {
         $classes = QueryBuilder::for(
-            Rank::with(['division', 'stream', 'teacher.honorific'])->orderBy('name')
+            Rank::with(['division', 'stream', 'teacher.honorific'])
+                ->withCount('students')
+                ->orderBy('name')
         )->allowedFilters([
             AllowedFilter::exact('activated'),
             AllowedFilter::exact('division_id'),
@@ -41,23 +43,25 @@ class RankController extends Controller
             'stream_id' => ['nullable', Rule::exists('streams', 'id')],
             'teacher_id' => ['nullable', Rule::exists('teachers', 'id')],
             'activated' => ['boolean'],
+            'capacity' => ['nullable', 'integer', 'min:1', 'max:1000'],
         ]);
-        
+
         Rank::create([
             'name' => $validated['name'],
             'division_id' => $validated['division_id'],
             'stream_id' => $validated['stream_id'],
             'teacher_id' => $validated['teacher_id'],
             'activated' => $validated['activated'],
+            'capacity' => $validated['capacity'] ?? null,
         ]);
 
         return back(303)->with('success', 'Class created.');
     }
-    
+
     public function show(Rank $rank)
     {
         $rank->load('division', 'stream', 'teacher.honorific');
-        
+
         return Inertia::render('Admin/Classes/Show', [
             'rank' => $rank,
         ]);
@@ -71,6 +75,7 @@ class RankController extends Controller
             'stream_id' => ['nullable', Rule::exists('streams', 'id')],
             'teacher_id' => ['nullable', Rule::exists('teachers', 'id')],
             'activated' => ['boolean'],
+            'capacity' => ['nullable', 'integer', 'min:1', 'max:1000'],
         ]);
 
         $rank->update([
@@ -79,6 +84,7 @@ class RankController extends Controller
             'stream_id' => $validated['stream_id'],
             'teacher_id' => $validated['teacher_id'],
             'activated' => $validated['activated'],
+            'capacity' => $validated['capacity'] ?? null,
         ]);
 
         return back(303)->with('success', 'Class details updated.');

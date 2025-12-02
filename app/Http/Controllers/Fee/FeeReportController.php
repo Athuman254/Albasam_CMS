@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Fee;
 
 use App\Http\Controllers\Controller;
@@ -37,7 +38,7 @@ class FeeReportController extends Controller
             });
 
         $terms = $this->getAvailableTerms();
-        
+
         return Inertia::render('Admin/Fees/FeeReport', [
             'classes' => $classes,
             'terms' => $terms
@@ -66,7 +67,8 @@ class FeeReportController extends Controller
 
             // Build query for fees
             $feeQuery = Fee::where('rank_id', $classId)
-                ->with(['student' => function($query) {
+                ->where('status', '!=', 'carried_over')
+                ->with(['student' => function ($query) {
                     $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
                 }, 'rank.stream']);
 
@@ -87,11 +89,11 @@ class FeeReportController extends Controller
 
             foreach ($fees as $fee) {
                 $studentId = $fee->student_id;
-                
+
                 if (!isset($studentFees[$studentId])) {
                     // Get student full name by combining first, middle, and last names
                     $studentFullName = $this->getStudentFullName($fee->student);
-                    
+
                     $studentFees[$studentId] = [
                         'admission_number' => $fee->student->admission_number,
                         'student_name' => $studentFullName,
@@ -116,8 +118,8 @@ class FeeReportController extends Controller
                 }
 
                 // Calculate individual student collection rate
-                $studentFee['collection_rate'] = $studentFee['total_amount'] > 0 
-                    ? round(($studentFee['paid_amount'] / $studentFee['total_amount']) * 100, 2) 
+                $studentFee['collection_rate'] = $studentFee['total_amount'] > 0
+                    ? round(($studentFee['paid_amount'] / $studentFee['total_amount']) * 100, 2)
                     : 0;
 
                 // Add collection rate class for styling
@@ -155,10 +157,9 @@ class FeeReportController extends Controller
                 'reportData' => $reportData,
                 'summary' => $summary
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Fee Report Error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error generating report: ' . $e->getMessage(),
@@ -182,17 +183,17 @@ class FeeReportController extends Controller
         if (is_numeric($term)) {
             return $term;
         }
-        
+
         // Handle "Term 1", "Term 2", etc.
         if (preg_match('/Term\s+(\d+)/i', $term, $matches)) {
             return $matches[1];
         }
-        
+
         // Handle "1", "2", etc.
         if (is_numeric(trim($term))) {
             return trim($term);
         }
-        
+
         return $term;
     }
 
@@ -202,19 +203,19 @@ class FeeReportController extends Controller
     private function getStudentFullName($student)
     {
         $names = [];
-        
+
         if (!empty($student->first_name)) {
             $names[] = $student->first_name;
         }
-        
+
         if (!empty($student->middle_name)) {
             $names[] = $student->middle_name;
         }
-        
+
         if (!empty($student->last_name)) {
             $names[] = $student->last_name;
         }
-        
+
         return implode(' ', $names) ?: 'N/A';
     }
 
@@ -291,7 +292,7 @@ class FeeReportController extends Controller
         foreach ($terms as $term) {
             $numericTerm = $this->extractTermValue($term);
             $formattedTerm = 'Term ' . $numericTerm;
-            
+
             // Avoid duplicates
             if (!in_array($formattedTerm, $formattedTerms)) {
                 $formattedTerms[] = $formattedTerm;
@@ -299,7 +300,7 @@ class FeeReportController extends Controller
         }
 
         // Sort terms numerically
-        usort($formattedTerms, function($a, $b) {
+        usort($formattedTerms, function ($a, $b) {
             $aNum = $this->extractTermValue($a);
             $bNum = $this->extractTermValue($b);
             return $aNum - $bNum;
@@ -314,7 +315,7 @@ class FeeReportController extends Controller
     public function overview()
     {
         $currentYear = now()->year;
-        
+
         // Basic statistics
         $totalExpected = Fee::sum('amount');
         $totalCollected = FeePayment::where('status', 'completed')->sum('amount');
@@ -346,16 +347,16 @@ class FeeReportController extends Controller
         }
 
         // Recent payments with proper student names
-        $recentPayments = FeePayment::with(['student' => function($query) {
-                $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
-            }, 'verifiedBy'])
+        $recentPayments = FeePayment::with(['student' => function ($query) {
+            $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
+        }, 'verifiedBy'])
             ->where('status', 'completed')
             ->latest()
             ->limit(10)
             ->get()
-            ->map(function($payment) {
+            ->map(function ($payment) {
                 $studentFullName = $this->getStudentFullName($payment->student);
-                
+
                 return [
                     'id' => $payment->id,
                     'student_name' => $studentFullName,
@@ -398,7 +399,7 @@ class FeeReportController extends Controller
             ->get();
 
         $totalPaid = $payments->where('status', 'completed')->sum('amount');
-        $totalBalance = $fees->sum('balance');
+        $totalBalance = $fees->where('status', '!=', 'carried_over')->sum('balance');
 
         return Inertia::render('Admin/Fees/Reports/StudentReport', [
             'student' => $student,
@@ -414,9 +415,9 @@ class FeeReportController extends Controller
      */
     public function collectionReport(Request $request)
     {
-        $query = FeePayment::with(['student' => function($query) {
-                $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
-            }, 'fee.rank', 'verifiedBy'])
+        $query = FeePayment::with(['student' => function ($query) {
+            $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
+        }, 'fee.rank', 'verifiedBy'])
             ->where('status', 'completed');
 
         // Apply filters
@@ -466,9 +467,9 @@ class FeeReportController extends Controller
                 ];
             });
 
-        $query = Fee::with(['student' => function($query) {
-                $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
-            }, 'rank.stream'])
+        $query = Fee::with(['student' => function ($query) {
+            $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
+        }, 'rank.stream'])
             ->where('balance', '>', 0);
 
         // Apply filters
@@ -496,8 +497,8 @@ class FeeReportController extends Controller
                     'admission_number' => $student->admission_number,
                 ],
                 'admission_number' => $student->admission_number,
-                'class' => $fees->first()->rank->stream ? 
-                    $fees->first()->rank->name . ' ' . $fees->first()->rank->stream->name : 
+                'class' => $fees->first()->rank->stream ?
+                    $fees->first()->rank->name . ' ' . $fees->first()->rank->stream->name :
                     $fees->first()->rank->name,
                 'total_expected' => $totalExpected,
                 'total_balance' => $totalBalance,
@@ -507,7 +508,7 @@ class FeeReportController extends Controller
         }
 
         // Sort by balance descending
-        usort($studentReports, function($a, $b) {
+        usort($studentReports, function ($a, $b) {
             return $b['total_balance'] <=> $a['total_balance'];
         });
 
@@ -524,9 +525,9 @@ class FeeReportController extends Controller
      */
     public function exportCollectionReport(Request $request)
     {
-        $query = FeePayment::with(['student' => function($query) {
-                $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
-            }, 'fee.rank.stream', 'verifiedBy'])
+        $query = FeePayment::with(['student' => function ($query) {
+            $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
+        }, 'fee.rank.stream', 'verifiedBy'])
             ->where('status', 'completed');
 
         // Apply filters
@@ -554,12 +555,12 @@ class FeeReportController extends Controller
             'Expires' => '0'
         ];
 
-        $callback = function() use ($collections) {
+        $callback = function () use ($collections) {
             $file = fopen('php://output', 'w');
-            
+
             // Add BOM for UTF-8
             fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
-            
+
             // Headers
             fputcsv($file, [
                 'Payment Date',
@@ -575,8 +576,8 @@ class FeeReportController extends Controller
 
             // Data
             foreach ($collections as $payment) {
-                $className = $payment->fee->rank->stream ? 
-                    $payment->fee->rank->name . ' ' . $payment->fee->rank->stream->name : 
+                $className = $payment->fee->rank->stream ?
+                    $payment->fee->rank->name . ' ' . $payment->fee->rank->stream->name :
                     $payment->fee->rank->name;
 
                 $studentFullName = $this->getStudentFullName($payment->student);
@@ -620,10 +621,11 @@ class FeeReportController extends Controller
      */
     public function exportOutstandingReport(Request $request)
     {
-        $query = Fee::with(['student' => function($query) {
-                $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
-            }, 'rank.stream'])
-            ->where('balance', '>', 0);
+        $query = Fee::with(['student' => function ($query) {
+            $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
+        }, 'rank.stream'])
+            ->where('balance', '>', 0)
+            ->where('status', '!=', 'carried_over');
 
         // Apply filters
         if ($request->has('class_id') && $request->class_id) {
@@ -646,8 +648,8 @@ class FeeReportController extends Controller
             $studentReports[] = [
                 'student' => $student,
                 'admission_number' => $student->admission_number,
-                'class' => $fees->first()->rank->stream ? 
-                    $fees->first()->rank->name . ' ' . $fees->first()->rank->stream->name : 
+                'class' => $fees->first()->rank->stream ?
+                    $fees->first()->rank->name . ' ' . $fees->first()->rank->stream->name :
                     $fees->first()->rank->name,
                 'total_expected' => $totalExpected,
                 'total_balance' => $totalBalance,
@@ -657,7 +659,7 @@ class FeeReportController extends Controller
         }
 
         // Sort by balance descending
-        usort($studentReports, function($a, $b) {
+        usort($studentReports, function ($a, $b) {
             return $b['total_balance'] <=> $a['total_balance'];
         });
 
@@ -671,12 +673,12 @@ class FeeReportController extends Controller
             'Expires' => '0'
         ];
 
-        $callback = function() use ($studentReports) {
+        $callback = function () use ($studentReports) {
             $file = fopen('php://output', 'w');
-            
+
             // Add BOM for UTF-8
             fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
-            
+
             // Headers
             fputcsv($file, [
                 'Student Name',
@@ -694,11 +696,11 @@ class FeeReportController extends Controller
 
             // Data
             foreach ($studentReports as $report) {
-                $progress = $report['total_expected'] > 0 ? 
+                $progress = $report['total_expected'] > 0 ?
                     (($report['amount_paid'] / $report['total_expected']) * 100) : 0;
-                
+
                 $studentFullName = $this->getStudentFullName($report['student']);
-                
+
                 fputcsv($file, [
                     $studentFullName,
                     $report['admission_number'],
@@ -762,8 +764,8 @@ class FeeReportController extends Controller
             ->get();
 
         $totalPaid = $payments->sum('amount');
-        $totalBalance = $fees->sum('balance');
-        $totalExpected = $fees->sum('amount');
+        $totalBalance = $fees->where('status', '!=', 'carried_over')->sum('balance');
+        $totalExpected = $fees->where('status', '!=', 'carried_over')->sum('amount');
 
         $fileName = 'student_fee_report_' . $student->admission_number . '_' . now()->format('Y_m_d_His') . '.csv';
 
@@ -775,25 +777,25 @@ class FeeReportController extends Controller
             'Expires' => '0'
         ];
 
-        $callback = function() use ($student, $fees, $payments, $totalPaid, $totalBalance, $totalExpected) {
+        $callback = function () use ($student, $fees, $payments, $totalPaid, $totalBalance, $totalExpected) {
             $file = fopen('php://output', 'w');
-            
+
             // Add BOM for UTF-8
             fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
-            
+
             // Student Information
             fputcsv($file, ['STUDENT FEE REPORT']);
             fputcsv($file, []);
             fputcsv($file, ['Student Information']);
-            
+
             $studentFullName = $this->getStudentFullName($student);
             fputcsv($file, ['Name:', $studentFullName]);
             fputcsv($file, ['Admission Number:', $student->admission_number]);
-            
-            $className = $student->currentRank->stream ? 
-                $student->currentRank->name . ' ' . $student->currentRank->stream->name : 
+
+            $className = $student->currentRank->stream ?
+                $student->currentRank->name . ' ' . $student->currentRank->stream->name :
                 $student->currentRank->name;
-                
+
             fputcsv($file, ['Class:', $className]);
             fputcsv($file, ['Report Date:', now()->format('Y-m-d H:i:s')]);
             fputcsv($file, []);
@@ -821,8 +823,8 @@ class FeeReportController extends Controller
             ]);
 
             foreach ($fees as $fee) {
-                $feeClassName = $fee->rank->stream ? 
-                    $fee->rank->name . ' ' . $fee->rank->stream->name : 
+                $feeClassName = $fee->rank->stream ?
+                    $fee->rank->name . ' ' . $fee->rank->stream->name :
                     $fee->rank->name;
 
                 fputcsv($file, [
@@ -874,7 +876,7 @@ class FeeReportController extends Controller
     public function exportOverviewReport()
     {
         $currentYear = now()->year;
-        
+
         // Basic statistics
         $totalExpected = Fee::sum('amount');
         $totalCollected = FeePayment::where('status', 'completed')->sum('amount');
@@ -907,12 +909,12 @@ class FeeReportController extends Controller
             'Expires' => '0'
         ];
 
-        $callback = function() use ($totalExpected, $totalCollected, $totalBalance, $collectionRate, $paymentMethods, $monthlyCollection) {
+        $callback = function () use ($totalExpected, $totalCollected, $totalBalance, $collectionRate, $paymentMethods, $monthlyCollection) {
             $file = fopen('php://output', 'w');
-            
+
             // Add BOM for UTF-8
             fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
-            
+
             // Report Header
             fputcsv($file, ['FEE MANAGEMENT OVERVIEW REPORT']);
             fputcsv($file, ['Generated on:', now()->format('Y-m-d H:i:s')]);
@@ -929,7 +931,7 @@ class FeeReportController extends Controller
             // Payment Methods Breakdown
             fputcsv($file, ['PAYMENT METHODS BREAKDOWN']);
             fputcsv($file, ['Payment Method', 'Amount (KSh)', 'Percentage']);
-            
+
             foreach ($paymentMethods as $method) {
                 $percentage = $totalCollected > 0 ? ($method->total / $totalCollected) * 100 : 0;
                 fputcsv($file, [
@@ -943,12 +945,12 @@ class FeeReportController extends Controller
             // Monthly Collection
             fputcsv($file, ['MONTHLY COLLECTION FOR ' . $currentYear]);
             fputcsv($file, ['Month', 'Amount (KSh)']);
-            
+
             for ($month = 1; $month <= 12; $month++) {
                 $monthData = $monthlyCollection->firstWhere('month', $month);
                 $monthName = Carbon::create()->month($month)->format('F');
                 $amount = $monthData ? $monthData->total : 0;
-                
+
                 fputcsv($file, [
                     $monthName,
                     number_format($amount, 2)

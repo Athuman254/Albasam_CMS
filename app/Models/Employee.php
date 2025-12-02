@@ -82,13 +82,19 @@ class Employee extends Authenticatable
         'nssf_no',
         'pays_housing_levy',
         'username',
-        'remember_token'
     ];
 
     protected $hidden = [
         'password',
-        'remember_token',
     ];
+
+    /**
+     * Disable remember token for employees
+     */
+    public function getRememberTokenName()
+    {
+        return null;
+    }
 
     /**
      * Get the user associated with the employee
@@ -297,6 +303,15 @@ class Employee extends Authenticatable
             return $q->where('name', 'like', '%basic%');
         });
     }
+
+    /**
+     * Get the staff attendances for the employee
+     */
+    public function staffAttendances(): HasMany
+    {
+        return $this->hasMany(StaffAttendance::class);
+    }
+
 
     /**
      * Get current academic year assignments

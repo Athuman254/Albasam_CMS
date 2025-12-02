@@ -1001,4 +1001,98 @@ class UploadExamResultController extends Controller
             ]
         ]);
     }
+    /**
+     * Get existing marks for a specific exam, class, and subject
+     * Used in EnterMarks.vue
+     */
+    public function existingMarks(Request $request)
+    {
+        $request->validate([
+            'exam_id' => 'required|exists:exams,id',
+            'class_id' => 'required|exists:ranks,id',
+            'subject_id' => 'required|exists:subjects,id',
+        ]);
+
+        $examId = $request->exam_id;
+        $classId = $request->class_id;
+        $subjectId = $request->subject_id;
+
+        // Get the exam subject ID
+        $examSubject = ExamSubject::where('exam_id', $examId)
+            ->where('class_id', $classId)
+            ->where('subject_id', $subjectId)
+            ->first();
+
+        if (!$examSubject) {
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
+        }
+
+        $marks = ExamMark::with(['skillMarks'])
+            ->where('exam_subject_id', $examSubject->id)
+            ->get()
+            ->map(function ($mark) {
+                return [
+                    'id' => $mark->id,
+                    'student_id' => $mark->student_id,
+                    'overall_marks' => $mark->marks_obtained,
+                    'status' => $mark->status,
+                    'remarks' => $mark->remarks,
+                    'skill_marks' => $mark->skillMarks->map(function ($skillMark) {
+                        return [
+                            'id' => $skillMark->id,
+                            'exam_subject_skill_id' => $skillMark->exam_subject_skill_id,
+                            'marks_obtained' => $skillMark->marks_obtained
+                        ];
+                    })
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $marks
+        ]);
+    }
+
+    /**
+     * Get subject skills for a specific exam, class, and subject
+     * Used in EnterMarks.vue
+     */
+    public function examSubjectSkills(Request $request)
+    {
+        $request->validate([
+            'exam_id' => 'required|exists:exams,id',
+            'class_id' => 'required|exists:ranks,id',
+            'subject_id' => 'required|exists:subjects,id',
+        ]);
+
+        $examId = $request->exam_id;
+        $classId = $request->class_id;
+        $subjectId = $request->subject_id;
+
+        // Get the exam subject
+        $examSubject = ExamSubject::where('exam_id', $examId)
+            ->where('class_id', $classId)
+            ->where('subject_id', $subjectId)
+            ->first();
+
+        if (!$examSubject) {
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
+        }
+
+        // Get skills for this exam subject
+        $skills = \App\Models\ExamSubjectSkill::where('exam_subject_id', $examSubject->id)
+            ->orderBy('order')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $skills
+        ]);
+    }
 }

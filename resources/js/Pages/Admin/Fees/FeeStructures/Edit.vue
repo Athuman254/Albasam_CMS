@@ -78,7 +78,7 @@
                           :key="year.id" 
                           :value="year.name"
                         >
-                          {{ year.name }}
+                          {{ year.display_name }}
                         </option>
                       </select>
                       <div v-if="form.errors.academic_year" class="invalid-feedback">

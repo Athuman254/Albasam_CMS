@@ -44,6 +44,10 @@ return [
          'driver' => 'session',
          'provider' => 'employees',
       ],
+      'student' => [
+         'driver' => 'session',
+         'provider' => 'students',
+      ],
       'api' => [
          'driver' => 'sanctum',
          'provider' => 'users',
@@ -75,6 +79,10 @@ return [
       'employees' => [
          'driver' => 'eloquent',
          'model' => env('AUTH_MODEL', App\Models\Employee::class),
+      ],
+      'students' => [
+         'driver' => 'eloquent',
+         'model' => App\Models\Student::class,
       ],
 
       // 'users' => [

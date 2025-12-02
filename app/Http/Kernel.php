@@ -67,6 +67,10 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'employee' => \App\Http\Middleware\EmployeeMiddleware::class,
         'admin' => \App\Http\Middleware\AdminRouteGuard::class,
-       
+        'student.auth' => \App\Http\Middleware\EnsureStudentIsAuthenticated::class,
+        'student.force_password_change' => \App\Http\Middleware\ForcePasswordChange::class,
+        'role' => \Laratrust\Middleware\Role::class,
+        'permission' => \Laratrust\Middleware\Permission::class,
+        'ability' => \Laratrust\Middleware\Ability::class,
     ];
 }

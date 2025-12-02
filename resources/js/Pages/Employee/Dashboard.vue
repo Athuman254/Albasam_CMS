@@ -16,6 +16,14 @@
 
             <!-- Dashboard Content -->
             <div v-else>
+               <!-- Greeting Card -->
+               <div class="mb-4">
+                  <GreetingCard 
+                     :user-name="$page.props.auth.employee?.name || 'User'" 
+                     user-type="employee" 
+                  />
+               </div>
+
                <!-- Quick Stats -->
                <div class="row mb-4">
                   <div class="col-md-3">
@@ -225,6 +233,7 @@
 
 <script setup>
 import DefaultLayout from "@layouts/DefaultLayout.vue";
+import GreetingCard from '@/Components/GreetingCard.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';

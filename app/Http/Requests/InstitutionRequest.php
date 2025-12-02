@@ -52,6 +52,9 @@ class InstitutionRequest extends FormRequest
             'tax_identification_pin' => ['nullable'],
             'mission' => ['nullable'],
             'vision' => ['nullable'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'geofence_radius' => ['nullable', 'integer', 'min:10', 'max:1000'],
             'x_profile' => ['nullable', 'url'],
             'fb_profile' => ['nullable'],
             'ig_profile' => ['nullable'],
@@ -63,7 +66,7 @@ class InstitutionRequest extends FormRequest
     public function prepareForValidation(): void
     {
         $this->merge([
-//            'name' => strtoupper($this->input('name')),
+            //            'name' => strtoupper($this->input('name')),
             'email' => strtolower($this->input('email')),
             'country' => strtoupper($this->input('country')),
             'state' => strtoupper($this->input('state')),

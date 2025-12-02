@@ -10,6 +10,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import WorkloadMeter from '@/Components/Timetable/WorkloadMeter.vue';
+import EmployeeFormModal from '@/Components/Employees/EmployeeFormModal.vue';
 
 const props = defineProps({
     allocations: Object, 
@@ -20,11 +21,15 @@ const props = defineProps({
     currentAcademicYearId: Number,
     teacherWorkloads: Array,
     workloadLimits: Object,
+    roles: Array,
+    options: Object,
+    nextStaffNumber: String,
 });
 
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
+const showEmployeeModal = ref(false);
 const deletingAllocation = ref(null);
 const editingAllocation = ref(null);
 const selectedTeacherId = ref('');
@@ -319,15 +324,29 @@ const updateAllocation = () => {
     });
 };
 
-// Navigate to teacher edit page
+// Open Employee Modal
 const editTeacher = () => {
     if (!form.teacher_id) return;
+    showEmployeeModal.value = true;
+};
+
+const closeEmployeeModal = () => {
+    showEmployeeModal.value = false;
+};
+
+const handleEmployeeSuccess = () => {
+    // Reload current page data to reflect changes
+    router.reload({ only: ['teachers', 'teacherWorkloads'] });
     
-    // Find the selected teacher to get their teacher_hashid
-    const selectedTeacher = props.teachers.find(t => t.id === form.teacher_id);
-    if (selectedTeacher && selectedTeacher.teacher_hashid) {
-        // Use Inertia to navigate to the edit page without full page reload
-        router.visit(route('admin.teachers.edit', selectedTeacher.teacher_hashid));
+    // Re-fetch teacher data if a teacher is selected
+    if (form.teacher_id) {
+        // Trigger the watcher logic manually or just let the reload handle it if props update
+        // But since we need to refresh the subjects list specifically:
+        const currentId = form.teacher_id;
+        form.teacher_id = null; // Reset to trigger watcher
+        setTimeout(() => {
+            form.teacher_id = currentId; // Restore to re-trigger watcher
+        }, 100);
     }
 };
 
@@ -405,7 +424,7 @@ onMounted(() => {
                         style="width: 200px;"
                     >
                         <option v-for="year in academicYears" :key="year.id" :value="year.id">
-                            {{ year.name }}
+                            {{ year.display_name }}
                         </option>
                     </select>
                     <button @click="openCreateModal()" class="btn btn-primary">

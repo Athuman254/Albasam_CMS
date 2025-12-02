@@ -88,7 +88,7 @@
 
                      <div class="mb-3">
                         <label for="divisionId" class="form-label">Session</label>
-                        <v-select id="divisionId" v-model="form.academic_year_id" :options="academicYears" label="name"
+                        <v-select id="divisionId" v-model="form.academic_year_id" :options="academicYears" label="display_name"
                            :reduce="option => option.id"></v-select>
                         <div v-if="form.errors.academic_year_id" class="text-danger">{{ form.errors.academic_year_id }}
                         </div>
@@ -166,7 +166,7 @@ const fields = [
       title: 'NAME',
    },
    {
-      name: 'academic_year.name',
+      name: 'academic_year.display_name',
       title: 'ACADEMIC YEAR',
    },
    {

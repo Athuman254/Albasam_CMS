@@ -151,15 +151,15 @@ export default {
             {id: 2, name: 'Sales Follow-up'},
             {id: 3, name: 'Meeting Reminder'},
             {id: 4, name: 'Custom Template'}
-         ]
+         ],
+         loading: false,
+         status: {
+            message: '',
+            type: 'success'
+         }
       }
    },
    methods: {
-      loading: false,
-      status: {
-         message: '',
-         type: 'success'
-      },
       validateForm() {
          if (!this.recipients.trim() && !this.selectedGroup.trim()) {
             this.status = {

@@ -56,7 +56,7 @@ class FeeController extends Controller
 
             // Get all students in the selected class
             $students = Student::where('rank_id', $request->rank_id)->get();
-            
+
             Log::info("Students found in class {$request->rank_id}: " . $students->count());
 
             $createdCount = 0;
@@ -97,7 +97,7 @@ class FeeController extends Controller
                         } else {
                             // Update existing fee regardless of payments
                             $newBalance = $request->amount - $existingFee->paid_amount;
-                            
+
                             $existingFee->update([
                                 'amount' => $request->amount,
                                 'balance' => max(0, $newBalance),
@@ -163,7 +163,6 @@ class FeeController extends Controller
             Log::info('Fee creation completed successfully: ' . $successMessage);
             return redirect()->route('admin.fees.index')
                 ->with('success', $successMessage);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Fee creation error: ' . $e->getMessage());
@@ -175,7 +174,7 @@ class FeeController extends Controller
 
     public function show(Fee $fee)
     {
-        $fee->load(['student', 'rank', 'payments' => function($query) {
+        $fee->load(['student', 'rank', 'payments' => function ($query) {
             $query->latest();
         }]);
 
@@ -214,7 +213,7 @@ class FeeController extends Controller
 
             // Recalculate balance if amount changes
             $newBalance = $request->amount - $fee->paid_amount;
-            
+
             $fee->update([
                 'student_id' => $request->student_id,
                 'rank_id' => $request->rank_id,
@@ -262,9 +261,9 @@ class FeeController extends Controller
 
         try {
             DB::beginTransaction();
-            
+
             $deletedCount = Fee::whereIn('id', $request->fee_ids)->delete();
-            
+
             DB::commit();
 
             Log::info("Bulk deleted {$deletedCount} fees");
@@ -306,7 +305,7 @@ class FeeController extends Controller
             DB::beginTransaction();
 
             $fee = Fee::findOrFail($request->fee_id);
-            
+
             if ($request->amount > $fee->balance) {
                 throw new \Exception('Payment amount cannot exceed outstanding balance.');
             }
@@ -346,7 +345,7 @@ class FeeController extends Controller
     public function searchStudent($admissionNumber)
     {
         $student = Student::where('admission_number', $admissionNumber)
-            ->with(['rank', 'fees' => function($query) {
+            ->with(['rank', 'fees' => function ($query) {
                 $query->where('balance', '>', 0);
             }])
             ->first();
@@ -394,44 +393,44 @@ class FeeController extends Controller
     public function dataTable(Request $request)
     {
         $fees = Fee::with(['student', 'rank'])
-            ->when($request->has('academic_year') && $request->academic_year, function($query) use ($request) {
+            ->when($request->has('academic_year') && $request->academic_year, function ($query) use ($request) {
                 $query->where('academic_year', $request->academic_year);
             })
-            ->when($request->has('term') && $request->term, function($query) use ($request) {
+            ->when($request->has('term') && $request->term, function ($query) use ($request) {
                 $query->where('term', $request->term);
             })
-            ->when($request->has('status') && $request->status, function($query) use ($request) {
+            ->when($request->has('status') && $request->status, function ($query) use ($request) {
                 $query->where('status', $request->status);
             })
-            ->when($request->has('fee_type') && $request->fee_type, function($query) use ($request) {
+            ->when($request->has('fee_type') && $request->fee_type, function ($query) use ($request) {
                 $query->where('fee_type', $request->fee_type);
             })
-            ->when($request->has('rank_id') && $request->rank_id, function($query) use ($request) {
+            ->when($request->has('rank_id') && $request->rank_id, function ($query) use ($request) {
                 $query->where('rank_id', $request->rank_id);
             })
             ->latest();
 
         return datatables()->eloquent($fees)
-            ->addColumn('student_name', function($fee) {
+            ->addColumn('student_name', function ($fee) {
                 $name = $fee->student ? $fee->student->first_name . ' ' . $fee->student->last_name : 'N/A';
-                
+
                 // Check if this is a template fee
                 if (strpos($fee->description, '[CLASS TEMPLATE]') !== false) {
                     $name .= ' (Class Template)';
                 }
-                
+
                 return $name;
             })
-            ->addColumn('admission_number', function($fee) {
+            ->addColumn('admission_number', function ($fee) {
                 return $fee->student ? $fee->student->admission_number : 'N/A';
             })
-            ->addColumn('class', function($fee) {
+            ->addColumn('class', function ($fee) {
                 return $fee->rank->name;
             })
-            ->addColumn('fee_type_formatted', function($fee) {
+            ->addColumn('fee_type_formatted', function ($fee) {
                 return $fee->fee_type_formatted;
             })
-            ->addColumn('status_badge', function($fee) {
+            ->addColumn('status_badge', function ($fee) {
                 $badgeClass = [
                     'paid' => 'bg-success',
                     'partial' => 'bg-warning',
@@ -444,21 +443,21 @@ class FeeController extends Controller
                     $badgeClass = 'bg-info';
                 }
 
-                return '<span class="badge '.$badgeClass.'">'.ucfirst($fee->status).'</span>';
+                return '<span class="badge ' . $badgeClass . '">' . ucfirst($fee->status) . '</span>';
             })
-            ->addColumn('amount_formatted', function($fee) {
+            ->addColumn('amount_formatted', function ($fee) {
                 return $fee->formatted_amount;
             })
-            ->addColumn('balance_formatted', function($fee) {
+            ->addColumn('balance_formatted', function ($fee) {
                 return $fee->formatted_balance;
             })
-            ->addColumn('due_date_formatted', function($fee) {
+            ->addColumn('due_date_formatted', function ($fee) {
                 return $fee->due_date->format('M j, Y');
             })
-            ->addColumn('actions', function($fee) {
+            ->addColumn('actions', function ($fee) {
                 return '
-                    <a href="'.route('admin.fees.show', $fee->id).'" class="btn btn-sm btn-primary">View</a>
-                    <a href="'.route('admin.fees.edit', $fee->id).'" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="' . route('admin.fees.show', $fee->id) . '" class="btn btn-sm btn-primary">View</a>
+                    <a href="' . route('admin.fees.edit', $fee->id) . '" class="btn btn-sm btn-warning">Edit</a>
                 ';
             })
             ->rawColumns(['status_badge', 'actions'])
@@ -472,13 +471,13 @@ class FeeController extends Controller
             ->latest();
 
         return datatables()->eloquent($fees)
-            ->addColumn('class', function($fee) {
+            ->addColumn('class', function ($fee) {
                 return $fee->rank->name;
             })
-            ->addColumn('fee_type_formatted', function($fee) {
+            ->addColumn('fee_type_formatted', function ($fee) {
                 return $fee->fee_type_formatted;
             })
-            ->addColumn('status_badge', function($fee) {
+            ->addColumn('status_badge', function ($fee) {
                 $badgeClass = [
                     'paid' => 'bg-success',
                     'partial' => 'bg-warning',
@@ -486,20 +485,20 @@ class FeeController extends Controller
                     'overdue' => 'bg-danger'
                 ][$fee->status] ?? 'bg-secondary';
 
-                return '<span class="badge '.$badgeClass.'">'.ucfirst($fee->status).'</span>';
+                return '<span class="badge ' . $badgeClass . '">' . ucfirst($fee->status) . '</span>';
             })
-            ->addColumn('amount_formatted', function($fee) {
+            ->addColumn('amount_formatted', function ($fee) {
                 return $fee->formatted_amount;
             })
-            ->addColumn('balance_formatted', function($fee) {
+            ->addColumn('balance_formatted', function ($fee) {
                 return $fee->formatted_balance;
             })
-            ->addColumn('due_date_formatted', function($fee) {
+            ->addColumn('due_date_formatted', function ($fee) {
                 return $fee->due_date->format('M j, Y');
             })
-            ->addColumn('actions', function($fee) {
+            ->addColumn('actions', function ($fee) {
                 return '
-                    <a href="'.route('admin.fees.show', $fee->id).'" class="btn btn-sm btn-primary">View</a>
+                    <a href="' . route('admin.fees.show', $fee->id) . '" class="btn btn-sm btn-primary">View</a>
                 ';
             })
             ->rawColumns(['status_badge', 'actions'])
@@ -513,7 +512,7 @@ class FeeController extends Controller
             DB::beginTransaction();
 
             $templateFee = Fee::findOrFail($feeId);
-            
+
             // Check if this is actually a template fee
             if (strpos($templateFee->description, '[CLASS TEMPLATE]') === false) {
                 return response()->json([
@@ -562,7 +561,6 @@ class FeeController extends Controller
                 'message' => "Template fee copied to {$copiedCount} students.",
                 'copied_count' => $copiedCount
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error copying template fee: ' . $e->getMessage());
@@ -595,7 +593,7 @@ class FeeController extends Controller
             foreach ($feeStructures as $feeStructure) {
                 try {
                     $students = Student::where('rank_id', $feeStructure->rank_id)->get();
-                    
+
                     foreach ($students as $student) {
                         // Check if fee already exists
                         $existingFee = Fee::where('student_id', $student->id)
@@ -639,7 +637,6 @@ class FeeController extends Controller
             Log::info($message);
             return redirect()->route('admin.fees.index')
                 ->with('success', $message);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error generating fees from templates: ' . $e->getMessage());
@@ -658,7 +655,7 @@ class FeeController extends Controller
 
             // Get all students in the class
             $students = Student::where('rank_id', $feeStructure->rank_id)->get();
-            
+
             Log::info("Generating/Updating fees for fee structure {$feeStructure->id}, students found: " . $students->count());
 
             $createdCount = 0;
@@ -699,7 +696,7 @@ class FeeController extends Controller
                         // Update existing tuition fee regardless of payments
                         if ($existingTuitionFee->amount != $feeStructure->amount) {
                             $newBalance = $feeStructure->amount - $existingTuitionFee->paid_amount;
-                            
+
                             $existingTuitionFee->update([
                                 'amount' => $feeStructure->amount,
                                 'balance' => max(0, $newBalance),
@@ -718,7 +715,7 @@ class FeeController extends Controller
                     if (!empty($feeStructure->additional_fees)) {
                         foreach ($feeStructure->additional_fees as $additionalFee) {
                             $mappedFeeType = $this->mapFeeType($additionalFee['name']);
-                            
+
                             // Check if this specific additional fee already exists
                             $existingAdditionalFee = Fee::where('student_id', $student->id)
                                 ->where('rank_id', $feeStructure->rank_id)
@@ -751,7 +748,7 @@ class FeeController extends Controller
                                 // Update existing additional fee
                                 if ($existingAdditionalFee->amount != $additionalFee['amount']) {
                                     $newAdditionalBalance = $additionalFee['amount'] - $existingAdditionalFee->paid_amount;
-                                    
+
                                     $existingAdditionalFee->update([
                                         'amount' => $additionalFee['amount'],
                                         'balance' => max(0, $newAdditionalBalance),
@@ -765,7 +762,6 @@ class FeeController extends Controller
                             }
                         }
                     }
-
                 } catch (\Exception $e) {
                     $errorMsg = "Error processing fee for student {$student->id}: " . $e->getMessage();
                     $errors[] = $errorMsg;
@@ -783,7 +779,6 @@ class FeeController extends Controller
             Log::info($message);
             return redirect()->route('admin.fee-structures.index')
                 ->with('success', $message);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error generating fees from fee structure: ' . $e->getMessage());
@@ -819,7 +814,7 @@ class FeeController extends Controller
                     // Update TUITION fee regardless of payments
                     if ($existingFee->amount != $feeStructure->amount) {
                         $newBalance = $feeStructure->amount - $existingFee->paid_amount;
-                        
+
                         $existingFee->update([
                             'amount' => $feeStructure->amount,
                             'balance' => max(0, $newBalance),
@@ -843,7 +838,7 @@ class FeeController extends Controller
             if (!empty($feeStructure->additional_fees)) {
                 foreach ($feeStructure->additional_fees as $additionalFee) {
                     $mappedFeeType = $this->mapFeeType($additionalFee['name']);
-                    
+
                     $existingAdditionalFees = Fee::where('original_fee_structure_id', $feeStructure->id)
                         ->where('academic_year', $feeStructure->academic_year)
                         ->where('term', $feeStructure->term)
@@ -854,7 +849,7 @@ class FeeController extends Controller
                         try {
                             if ($existingAdditionalFee->amount != $additionalFee['amount']) {
                                 $newAdditionalBalance = $additionalFee['amount'] - $existingAdditionalFee->paid_amount;
-                                
+
                                 $existingAdditionalFee->update([
                                     'amount' => $additionalFee['amount'],
                                     'balance' => max(0, $newAdditionalBalance),
@@ -887,7 +882,6 @@ class FeeController extends Controller
                 'message' => $message,
                 'updated_count' => $updatedCount
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating fees from fee structure: ' . $e->getMessage());
@@ -908,7 +902,7 @@ class FeeController extends Controller
 
             // Get all students in the class
             $students = Student::where('rank_id', $feeStructure->rank_id)->get();
-            
+
             Log::info("Smart fee generation for structure {$feeStructure->id}, students: " . $students->count());
 
             $createdCount = 0;
@@ -930,7 +924,7 @@ class FeeController extends Controller
                         // Update existing TUITION fee regardless of payments
                         if ($existingTuitionFee->amount != $feeStructure->amount) {
                             $newBalance = $feeStructure->amount - $existingTuitionFee->paid_amount;
-                            
+
                             $existingTuitionFee->update([
                                 'amount' => $feeStructure->amount,
                                 'balance' => max(0, $newBalance),
@@ -966,7 +960,7 @@ class FeeController extends Controller
                     if (!empty($feeStructure->additional_fees)) {
                         foreach ($feeStructure->additional_fees as $additionalFee) {
                             $mappedFeeType = $this->mapFeeType($additionalFee['name']);
-                            
+
                             $existingAdditionalFee = Fee::where('student_id', $student->id)
                                 ->where('rank_id', $feeStructure->rank_id)
                                 ->where('academic_year', $feeStructure->academic_year)
@@ -979,7 +973,7 @@ class FeeController extends Controller
                                 // Update existing additional fee
                                 if ($existingAdditionalFee->amount != $additionalFee['amount']) {
                                     $newAdditionalBalance = $additionalFee['amount'] - $existingAdditionalFee->paid_amount;
-                                    
+
                                     $existingAdditionalFee->update([
                                         'amount' => $additionalFee['amount'],
                                         'balance' => max(0, $newAdditionalBalance),
@@ -1027,7 +1021,6 @@ class FeeController extends Controller
             Log::info($message);
             return redirect()->route('admin.fee-structures.index')
                 ->with('success', $message);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error in smart fee generation: ' . $e->getMessage());
@@ -1042,11 +1035,11 @@ class FeeController extends Controller
     private function mapFeeType($feeName)
     {
         $feeName = strtolower(trim($feeName));
-        
+
         $mapping = [
             'activity' => 'activity',
             'activity fee' => 'activity',
-            'exam' => 'exam', 
+            'exam' => 'exam',
             'examination' => 'exam',
             'examination fee' => 'exam',
             'transport' => 'transport',
@@ -1065,15 +1058,15 @@ class FeeController extends Controller
         return $mapping[$feeName] ?? 'other';
     }
 
-    
-        /**
+
+    /**
      * Display fee balance checking interface
      */
     public function balances()
     {
         $ranks = Rank::all();
         $academicYears = Fee::distinct()->pluck('academic_year');
-        
+
         // Get initial stats
         $stats = [
             'total_students' => Student::count(),
@@ -1081,7 +1074,7 @@ class FeeController extends Controller
             'total_paid' => Fee::sum('paid_amount'),
             'total_balance' => Fee::sum('balance'),
         ];
-        
+
         return Inertia::render('Admin/Fees/FeeBalance', [
             'ranks' => $ranks,
             'academic_years' => $academicYears,
@@ -1099,74 +1092,74 @@ class FeeController extends Controller
             'academic_year' => 'nullable|string',
             'term' => 'nullable|string',
         ]);
-        
+
         // Extract parameters properly to avoid the InputBag conversion error
         $searchQuery = $request->input('query');
         $academicYear = $request->input('academic_year');
         $term = $request->input('term');
-        
-        \Log::info('Searching student balance', [
+
+        Log::info('Searching student balance', [
             'query' => $searchQuery,
             'academic_year' => $academicYear,
             'term' => $term
         ]);
-        
+
         // Search by admission number first (exact match)
         $student = Student::with(['currentRank'])
             ->where('admission_number', $searchQuery)
             ->first();
-        
+
         // If not found by admission number, search by name
         if (!$student) {
             $student = Student::with(['currentRank'])
-                ->where(function($query) use ($searchQuery) {
+                ->where(function ($query) use ($searchQuery) {
                     $query->where('first_name', 'like', "%{$searchQuery}%")
-                          ->orWhere('last_name', 'like', "%{$searchQuery}%")
-                          ->orWhere('admission_number', 'like', "%{$searchQuery}%");
+                        ->orWhere('last_name', 'like', "%{$searchQuery}%")
+                        ->orWhere('admission_number', 'like', "%{$searchQuery}%");
                 })
                 ->first();
         }
-        
+
         if (!$student) {
-            \Log::warning('Student not found for query: ' . $searchQuery);
+            Log::warning('Student not found for query: ' . $searchQuery);
             return response()->json([
                 'success' => false,
                 'message' => 'Student not found'
             ], 404);
         }
-        
-        \Log::info('Student found:', [
-            'id' => $student->id, 
+
+        Log::info('Student found:', [
+            'id' => $student->id,
             'name' => $student->first_name . ' ' . $student->last_name,
             'admission_number' => $student->admission_number
         ]);
-        
+
         // Calculate fee totals
-        $feeQuery = Fee::where('student_id', $student->id);
-        
+        $feeQuery = Fee::where('student_id', $student->id)->where('status', '!=', 'carried_over');
+
         if ($academicYear) {
             $feeQuery->where('academic_year', $academicYear);
         }
-        
+
         if ($term) {
             $feeQuery->where('term', $term);
         }
-        
+
         $fees = $feeQuery->get();
-        
+
         // Add calculated properties to student object
         $student->total_fees = $fees->sum('amount');
         $student->total_paid = $fees->sum('paid_amount');
         $student->balance = $fees->sum('balance');
         $student->full_name = $student->first_name . ' ' . $student->last_name;
-        
-        \Log::info('Fee totals calculated:', [
+
+        Log::info('Fee totals calculated:', [
             'total_fees' => $student->total_fees,
             'total_paid' => $student->total_paid,
             'balance' => $student->balance,
             'fee_count' => $fees->count()
         ]);
-        
+
         return response()->json([
             'success' => true,
             'student' => $student
@@ -1183,36 +1176,36 @@ class FeeController extends Controller
             'academic_year' => 'nullable|string',
             'term' => 'nullable|string',
         ]);
-        
+
         // Extract parameters properly
         $rankId = $request->input('rank_id');
         $academicYear = $request->input('academic_year');
         $term = $request->input('term');
-        
+
         $students = Student::with(['currentRank'])
             ->where('rank_id', $rankId)
             ->get()
-            ->map(function($student) use ($academicYear, $term) {
-                $feeQuery = Fee::where('student_id', $student->id);
-                
+            ->map(function ($student) use ($academicYear, $term) {
+                $feeQuery = Fee::where('student_id', $student->id)->where('status', '!=', 'carried_over');
+
                 if ($academicYear) {
                     $feeQuery->where('academic_year', $academicYear);
                 }
-                
+
                 if ($term) {
                     $feeQuery->where('term', $term);
                 }
-                
+
                 $fees = $feeQuery->get();
-                
+
                 $student->total_fees = $fees->sum('amount');
                 $student->total_paid = $fees->sum('paid_amount');
                 $student->balance = $fees->sum('balance');
                 $student->full_name = $student->first_name . ' ' . $student->last_name;
-                
+
                 return $student;
             });
-        
+
         // Calculate stats
         $stats = [
             'total_students' => $students->count(),
@@ -1220,7 +1213,7 @@ class FeeController extends Controller
             'total_paid' => $students->sum('total_paid'),
             'total_balance' => $students->sum('balance'),
         ];
-        
+
         return response()->json([
             'success' => true,
             'students' => $students,
@@ -1238,149 +1231,149 @@ class FeeController extends Controller
             'academic_year' => 'nullable|string',
             'term' => 'nullable|string',
         ]);
-        
+
         // Extract parameters properly
         $studentId = $request->input('student_id');
         $academicYear = $request->input('academic_year');
         $term = $request->input('term');
-        
+
         $student = Student::with(['currentRank'])->find($studentId);
-        
+
         if (!$student) {
             return response()->json([
                 'success' => false,
                 'message' => 'Student not found'
             ], 404);
         }
-        
-        $feeQuery = Fee::where('student_id', $student->id);
+
+        $feeQuery = Fee::where('student_id', $student->id)->where('status', '!=', 'carried_over');
         $paymentQuery = FeePayment::where('student_id', $student->id);
-        
+
         if ($academicYear) {
             $feeQuery->where('academic_year', $academicYear);
-            $paymentQuery->whereHas('fee', function($q) use ($academicYear) {
+            $paymentQuery->whereHas('fee', function ($q) use ($academicYear) {
                 $q->where('academic_year', $academicYear);
             });
         }
-        
+
         if ($term) {
             $feeQuery->where('term', $term);
-            $paymentQuery->whereHas('fee', function($q) use ($term) {
+            $paymentQuery->whereHas('fee', function ($q) use ($term) {
                 $q->where('term', $term);
             });
         }
-        
+
         $student->fees = $feeQuery->get();
         $student->payments = $paymentQuery->latest()->take(20)->get();
-        
+
         $student->total_fees = $student->fees->sum('amount');
         $student->total_paid = $student->fees->sum('paid_amount');
         $student->balance = $student->fees->sum('balance');
         $student->full_name = $student->first_name . ' ' . $student->last_name;
-        
+
         return response()->json([
             'success' => true,
             'student' => $student
         ]);
     }
 
-   /**
- * Print student fee statement with detailed breakdown using Blade template
- */
-public function printStudentStatement(Request $request, $studentId)
-{
-    $student = Student::with(['currentRank'])->findOrFail($studentId);
-    
-    // Remove academic year and term filters to show all records
-    $fees = Fee::where('student_id', $student->id)->get();
-    $payments = FeePayment::where('student_id', $student->id)
-        ->with(['fee'])
-        ->latest()
-        ->get();
-    
-    // Extract parameters for display purposes only (not for filtering)
-    $academicYear = $request->input('academic_year');
-    $term = $request->input('term');
-    
-    $totalFees = $fees->sum('amount');
-    $totalPaid = $fees->sum('paid_amount');
-    $balance = $fees->sum('balance');
-    
-    // Fee types mapping
-    $feeTypes = [
-        'tuition' => 'Tuition Fee',
-        'activity' => 'Activity Fee', 
-        'exam' => 'Examination Fee',
-        'library' => 'Library Fee',
-        'sports' => 'Sports Fee',
-        'transport' => 'Transport Fee',
-        'hostel' => 'Hostel Fee',
-        'other' => 'Other Fees'
-    ];
-    
-    // Group fees by type for breakdown
-    $feeBreakdown = [];
-    foreach ($fees as $fee) {
-        $type = $fee->fee_type;
-        if (!isset($feeBreakdown[$type])) {
-            $feeBreakdown[$type] = [
-                'name' => $feeTypes[$type] ?? ucfirst($type),
-                'amount' => 0,
-                'paid' => 0,
-                'balance' => 0
-            ];
+    /**
+     * Print student fee statement with detailed breakdown using Blade template
+     */
+    public function printStudentStatement(Request $request, $studentId)
+    {
+        $student = Student::with(['currentRank'])->findOrFail($studentId);
+
+        // Remove academic year and term filters to show all records
+        $fees = Fee::where('student_id', $student->id)->where('status', '!=', 'carried_over')->get();
+        $payments = FeePayment::where('student_id', $student->id)
+            ->with(['fee'])
+            ->latest()
+            ->get();
+
+        // Extract parameters for display purposes only (not for filtering)
+        $academicYear = $request->input('academic_year');
+        $term = $request->input('term');
+
+        $totalFees = $fees->sum('amount');
+        $totalPaid = $fees->sum('paid_amount');
+        $balance = $fees->sum('balance');
+
+        // Fee types mapping
+        $feeTypes = [
+            'tuition' => 'Tuition Fee',
+            'activity' => 'Activity Fee',
+            'exam' => 'Examination Fee',
+            'library' => 'Library Fee',
+            'sports' => 'Sports Fee',
+            'transport' => 'Transport Fee',
+            'hostel' => 'Hostel Fee',
+            'other' => 'Other Fees'
+        ];
+
+        // Group fees by type for breakdown
+        $feeBreakdown = [];
+        foreach ($fees as $fee) {
+            $type = $fee->fee_type;
+            if (!isset($feeBreakdown[$type])) {
+                $feeBreakdown[$type] = [
+                    'name' => $feeTypes[$type] ?? ucfirst($type),
+                    'amount' => 0,
+                    'paid' => 0,
+                    'balance' => 0
+                ];
+            }
+            $feeBreakdown[$type]['amount'] += $fee->amount;
+            $feeBreakdown[$type]['paid'] += $fee->paid_amount;
+            $feeBreakdown[$type]['balance'] += $fee->balance;
         }
-        $feeBreakdown[$type]['amount'] += $fee->amount;
-        $feeBreakdown[$type]['paid'] += $fee->paid_amount;
-        $feeBreakdown[$type]['balance'] += $fee->balance;
-    }
-    
-    // Get payment allocation details (how payments were applied to fees)
-    $paymentAllocations = [];
-    foreach ($payments as $payment) {
-        if ($payment->fee) {
-            $paymentAllocations[] = [
-                'payment_date' => $payment->payment_date,
-                'amount' => $payment->amount,
-                'payment_method' => $payment->payment_method,
-                'reference_number' => $payment->reference_number,
-                'fee_type' => $payment->fee->fee_type,
-                'fee_type_name' => $feeTypes[$payment->fee->fee_type] ?? ucfirst($payment->fee->fee_type),
-                'academic_year' => $payment->fee->academic_year,
-                'term' => $payment->fee->term,
-                'verified_by' => $payment->verified_by ? \App\Models\User::find($payment->verified_by)->name ?? 'System' : 'N/A'
-            ];
-        } else {
-            // Handle payments without associated fees (orphaned payments)
-            $paymentAllocations[] = [
-                'payment_date' => $payment->payment_date,
-                'amount' => $payment->amount,
-                'payment_method' => $payment->payment_method,
-                'reference_number' => $payment->reference_number,
-                'fee_type' => 'general',
-                'fee_type_name' => 'General Payment',
-                'academic_year' => 'N/A',
-                'term' => 'N/A',
-                'verified_by' => $payment->verified_by ? \App\Models\User::find($payment->verified_by)->name ?? 'System' : 'N/A'
-            ];
+
+        // Get payment allocation details (how payments were applied to fees)
+        $paymentAllocations = [];
+        foreach ($payments as $payment) {
+            if ($payment->fee) {
+                $paymentAllocations[] = [
+                    'payment_date' => $payment->payment_date,
+                    'amount' => $payment->amount,
+                    'payment_method' => $payment->payment_method,
+                    'reference_number' => $payment->reference_number,
+                    'fee_type' => $payment->fee->fee_type,
+                    'fee_type_name' => $feeTypes[$payment->fee->fee_type] ?? ucfirst($payment->fee->fee_type),
+                    'academic_year' => $payment->fee->academic_year,
+                    'term' => $payment->fee->term,
+                    'verified_by' => $payment->verified_by ? \App\Models\User::find($payment->verified_by)->name ?? 'System' : 'N/A'
+                ];
+            } else {
+                // Handle payments without associated fees (orphaned payments)
+                $paymentAllocations[] = [
+                    'payment_date' => $payment->payment_date,
+                    'amount' => $payment->amount,
+                    'payment_method' => $payment->payment_method,
+                    'reference_number' => $payment->reference_number,
+                    'fee_type' => 'general',
+                    'fee_type_name' => 'General Payment',
+                    'academic_year' => 'N/A',
+                    'term' => 'N/A',
+                    'verified_by' => $payment->verified_by ? \App\Models\User::find($payment->verified_by)->name ?? 'System' : 'N/A'
+                ];
+            }
         }
+
+        // Pass academicYear and term to the view (for display only)
+        return view('admin.fees.student-statement', compact(
+            'student',
+            'fees',
+            'payments',
+            'totalFees',
+            'totalPaid',
+            'balance',
+            'feeTypes',
+            'feeBreakdown',
+            'academicYear',
+            'term',
+            'paymentAllocations'
+        ));
     }
-    
-    // Pass academicYear and term to the view (for display only)
-    return view('admin.fees.student-statement', compact(
-        'student',
-        'fees',
-        'payments',
-        'totalFees',
-        'totalPaid',
-        'balance',
-        'feeTypes',
-        'feeBreakdown',
-        'academicYear',
-        'term',
-        'paymentAllocations'
-    ));
-}
 
     /**
      * Print class fee statements - FIXED VERSION
@@ -1392,38 +1385,38 @@ public function printStudentStatement(Request $request, $studentId)
             'academic_year' => 'nullable|string',
             'term' => 'nullable|string',
         ]);
-        
+
         // Extract parameters properly
         $rankId = $request->input('rank_id');
         $academicYear = $request->input('academic_year');
         $term = $request->input('term');
-        
+
         $rank = Rank::findOrFail($rankId);
         $students = Student::with(['currentRank'])
             ->where('rank_id', $rankId)
             ->get()
-            ->map(function($student) use ($academicYear, $term) {
-                $feeQuery = Fee::where('student_id', $student->id);
-                
+            ->map(function ($student) use ($academicYear, $term) {
+                $feeQuery = Fee::where('student_id', $student->id)->where('status', '!=', 'carried_over');
+
                 if ($academicYear) {
                     $feeQuery->where('academic_year', $academicYear);
                 }
-                
+
                 if ($term) {
                     $feeQuery->where('term', $term);
                 }
-                
+
                 $fees = $feeQuery->get();
-                
+
                 $student->total_fees = $fees->sum('amount');
                 $student->total_paid = $fees->sum('paid_amount');
                 $student->balance = $fees->sum('balance');
                 $student->full_name = $student->first_name . ' ' . $student->last_name;
                 $student->fees = $fees;
-                
+
                 return $student;
             });
-        
+
         if ($request->boolean('print')) {
             // Check if students exist
             if ($students->isEmpty()) {
@@ -1438,11 +1431,11 @@ public function printStudentStatement(Request $request, $studentId)
                     </html>
                 ");
             }
-            
+
             // Create HTML response directly instead of using view file
             return $this->generateClassStatementsHtml($students, $rank, $academicYear, $term);
         }
-        
+
         return response()->json([
             'success' => true,
             'students' => $students,
@@ -1459,7 +1452,7 @@ public function printStudentStatement(Request $request, $studentId)
         $totalPaid = $students->sum('total_paid');
         $totalBalance = $students->sum('balance');
         $studentsWithBalance = $students->where('balance', '>', 0)->count();
-        
+
         $html = "
         <!DOCTYPE html>
         <html lang='en'>
@@ -1493,15 +1486,15 @@ public function printStudentStatement(Request $request, $studentId)
                     <p class='text-muted mb-0'>
                         Generated on: " . now()->format('F j, Y g:i A') . "
         ";
-        
+
         if ($academicYear) {
             $html .= " | Academic Year: {$academicYear}";
         }
-        
+
         if ($term) {
             $html .= " | Term: {$term}";
         }
-        
+
         $html .= "
                     </p>
                 </div>
@@ -1559,7 +1552,7 @@ public function printStudentStatement(Request $request, $studentId)
                         </thead>
                         <tbody>
         ";
-        
+
         foreach ($students as $index => $student) {
             $status = '';
             $statusClass = '';
@@ -1576,7 +1569,7 @@ public function printStudentStatement(Request $request, $studentId)
                 $status = 'Overpaid';
                 $statusClass = 'bg-info';
             }
-            
+
             $html .= "
                             <tr>
                                 <td>" . ($index + 1) . "</td>
@@ -1593,7 +1586,7 @@ public function printStudentStatement(Request $request, $studentId)
                             </tr>
             ";
         }
-        
+
         $html .= "
                         </tbody>
                         <tfoot class='table-light'>
@@ -1631,7 +1624,7 @@ public function printStudentStatement(Request $request, $studentId)
         </body>
         </html>
         ";
-        
+
         return response($html);
     }
 
@@ -1644,7 +1637,7 @@ public function printStudentStatement(Request $request, $studentId)
         $totalFeesDue = Fee::sum('amount');
         $totalPaid = Fee::sum('paid_amount');
         $totalBalance = Fee::sum('balance');
-        
+
         // Monthly revenue for current year
         $monthlyRevenue = FeePayment::whereYear('payment_date', date('Y'))
             ->selectRaw('MONTH(payment_date) as month, SUM(amount) as total')
@@ -1652,27 +1645,27 @@ public function printStudentStatement(Request $request, $studentId)
             ->orderBy('month')
             ->get()
             ->pluck('total', 'month');
-        
+
         // Fee status distribution
         $feeStatusDistribution = Fee::select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
             ->get()
             ->pluck('count', 'status');
-        
+
         // Class-wise outstanding balances
         $classBalances = Rank::withCount(['students'])
-            ->with(['fees' => function($query) {
+            ->with(['fees' => function ($query) {
                 $query->select('rank_id', DB::raw('SUM(balance) as total_balance'));
             }])
             ->get()
-            ->map(function($rank) {
+            ->map(function ($rank) {
                 return [
                     'class_name' => $rank->name,
                     'student_count' => $rank->students_count,
                     'total_balance' => $rank->fees->sum('total_balance') ?? 0,
                 ];
             });
-        
+
         return response()->json([
             'success' => true,
             'statistics' => [
@@ -1698,30 +1691,30 @@ public function printStudentStatement(Request $request, $studentId)
             'academic_year' => 'nullable|string',
             'term' => 'nullable|string',
         ]);
-        
+
         // Extract parameters properly
         $rankId = $request->input('rank_id');
         $academicYear = $request->input('academic_year');
         $term = $request->input('term');
-        
+
         $students = Student::with(['currentRank'])
-            ->when($rankId, function($query) use ($rankId) {
+            ->when($rankId, function ($query) use ($rankId) {
                 $query->where('rank_id', $rankId);
             })
             ->get()
-            ->map(function($student) use ($academicYear, $term) {
-                $feeQuery = Fee::where('student_id', $student->id);
-                
+            ->map(function ($student) use ($academicYear, $term) {
+                $feeQuery = Fee::where('student_id', $student->id)->where('is_carry_over', false);
+
                 if ($academicYear) {
                     $feeQuery->where('academic_year', $academicYear);
                 }
-                
+
                 if ($term) {
                     $feeQuery->where('term', $term);
                 }
-                
+
                 $fees = $feeQuery->get();
-                
+
                 return [
                     'admission_number' => $student->admission_number,
                     'student_name' => $student->first_name . ' ' . $student->last_name,
@@ -1732,14 +1725,14 @@ public function printStudentStatement(Request $request, $studentId)
                     'status' => $fees->sum('balance') <= 0 ? 'Paid' : ($fees->sum('paid_amount') > 0 ? 'Partial' : 'Pending'),
                 ];
             });
-        
+
         return response()->json([
             'success' => true,
             'data' => $students,
             'filename' => 'fee-balances-' . date('Y-m-d') . '.xlsx',
         ]);
     }
-    
+
     public function sendFeeReminder(Request $request)
     {
         $request->validate([
@@ -1747,28 +1740,28 @@ public function printStudentStatement(Request $request, $studentId)
             'reminder_type' => 'required|in:sms,email,both',
             'message' => 'nullable|string',
         ]);
-        
+
         $student = Student::with(['currentRank'])->find($request->student_id);
-        
+
         // Calculate outstanding balance
         $outstandingBalance = Fee::where('student_id', $student->id)
             ->where('balance', '>', 0)
             ->sum('balance');
-        
+
         Log::info("Fee reminder sent to student {$student->id}", [
             'student' => $student->admission_number,
             'reminder_type' => $request->reminder_type,
             'outstanding_balance' => $outstandingBalance,
             'custom_message' => $request->message,
         ]);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Fee reminder sent successfully!',
             'outstanding_balance' => $outstandingBalance,
         ]);
     }
-    
+
     public function bulkSendReminders(Request $request)
     {
         $request->validate([
@@ -1777,40 +1770,40 @@ public function printStudentStatement(Request $request, $studentId)
             'send_to' => 'required|in:all,with_balance,overdue',
             'message' => 'nullable|string',
         ]);
-        
+
         $students = Student::where('rank_id', $request->rank_id)->get();
         $sentCount = 0;
-        
+
         foreach ($students as $student) {
             $outstandingBalance = Fee::where('student_id', $student->id)
                 ->where('balance', '>', 0)
                 ->sum('balance');
-            
+
             // Apply filters
             if ($request->send_to === 'with_balance' && $outstandingBalance <= 0) {
                 continue;
             }
-            
+
             if ($request->send_to === 'overdue') {
                 $overdueFees = Fee::where('student_id', $student->id)
                     ->where('balance', '>', 0)
                     ->where('due_date', '<', now())
                     ->exists();
-                
+
                 if (!$overdueFees) {
                     continue;
                 }
             }
-            
+
             Log::info("Bulk fee reminder sent to student {$student->id}", [
                 'student' => $student->admission_number,
                 'reminder_type' => $request->reminder_type,
                 'outstanding_balance' => $outstandingBalance,
             ]);
-            
+
             $sentCount++;
         }
-        
+
         return response()->json([
             'success' => true,
             'message' => "Fee reminders sent to {$sentCount} students!",

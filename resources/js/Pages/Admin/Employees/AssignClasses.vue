@@ -32,7 +32,7 @@
                     :key="year.id" 
                     :value="year.id"
                   >
-                    {{ year.name }} {{ year.is_active ? '(Current)' : '' }}
+                    {{ year.display_name }} {{ year.is_active ? '(Current)' : '' }}
                   </option>
                 </select>
               </div>
@@ -367,7 +367,7 @@ const assignmentForm = reactive({
 // Computed properties
 const selectedAcademicYearName = computed(() => {
   const year = props.academicYears.find(y => y.id == academicYearId.value)
-  return year ? year.name : 'Selected Year'
+  return year ? year.display_name : 'Selected Year'
 })
 
 // Add full_name computed property to classes for v-select

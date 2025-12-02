@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Exam Report - {{ $student->first_name }} {{ $student->last_name }}</title>
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+
         body {
             font-family: Arial, sans-serif;
             line-height: 1.4;
@@ -31,7 +33,7 @@
             height: 96%;
             position: relative;
             background: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             margin-left: 1%;
@@ -136,7 +138,8 @@
             font-size: 10px;
         }
 
-        .student-info-table th, .student-info-table td {
+        .student-info-table th,
+        .student-info-table td {
             border: 1px solid #000;
             padding: 6px 4px;
             text-align: center;
@@ -233,6 +236,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="page-margin">
         <!-- WATERMARK -->
@@ -252,23 +256,23 @@
                         {{ $institution->address ?? '13-80102 MOMBASA' }}<br>
                         {{ $institution->email ?? 'info@albasamcomprehensive.sc.ke' }}<br>
                         @if($institution->phone)
-                            Tel: {{ $institution->phone }}
+                        Tel: {{ $institution->phone }}
                         @endif
                     </div>
                 </div>
                 <div class="logo-container">
                     @if($logoBase64)
-                        <img src="{{ $logoBase64 }}" alt="{{ $institution->name }} Logo" class="institution-logo">
+                    <img src="{{ $logoBase64 }}" alt="{{ $institution->name }} Logo" class="institution-logo">
                     @else
-                        <div class="no-logo">
-                            No Logo<br>Available
-                        </div>
+                    <div class="no-logo">
+                        No Logo<br>Available
+                    </div>
                     @endif
                 </div>
             </div>
 
             <div class="report-title">
-                ACADEMIC REPORT FORM – FORM {{ $class->name }} – END TERM – ({{ $exam->academicYear->name ?? '2024/2025' }} TERM 1)
+                ACADEMIC REPORT FORM – {{ $class->name }} – END TERM – ({{ $exam->academicYear->display_name ?? '2024' }} TERM 1)
             </div>
 
             <!-- STUDENT INFO TABLE -->
@@ -276,31 +280,31 @@
                 <thead>
                     <tr>
                         <th>NAME</th>
-                        <th>G</th>
+                        <th>GENDER</th>
                         <th>CLASS</th>
                         <th>TERM</th>
-                        <th>{{ $exam->academicYear->name ?? '2024/2025' }} CLOSING DATE</th>
-                        <th>{{ $nextTermYear ?? '2025/2026' }} OPENING DATE</th>
+                        <th>{{ $exam->academicYear->display_name ?? '2024' }} CLOSING DATE</th>
+                        <th>{{ $nextTermYear ?? '2025' }} OPENING DATE</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>{{ strtoupper($student->first_name) }} {{ strtoupper($student->last_name) }}</td>
-                        <td>{{ $student->gender == 'Male' ? 'G I' : 'G II' }}</td>
-                        <td>Form {{ $class->name }}</td>
+                        <td>{{ $student->gender == 'Male' ? 'M' : 'F' }}</td>
+                        <td>{{ $class->name }}</td>
                         <td>{{ $exam->term ?? 'Term 1' }}</td>
                         <td>
                             @if($closing_date)
-                                {{ \Carbon\Carbon::parse($closing_date)->format('l d/m/Y') }}
+                            {{ \Carbon\Carbon::parse($closing_date)->format('l d/m/Y') }}
                             @else
-                                {{ $exam->closing_date ?? $exam->end_date ?? 'To be announced' }}
+                            {{ $exam->closing_date ?? $exam->end_date ?? 'To be announced' }}
                             @endif
                         </td>
                         <td>
                             @if($opening_date)
-                                {{ \Carbon\Carbon::parse($opening_date)->format('l d/m/Y') }}
+                            {{ \Carbon\Carbon::parse($opening_date)->format('l d/m/Y') }}
                             @else
-                                {{ $nextTermOpeningDate ?? 'To be announced' }}
+                            {{ $nextTermOpeningDate ?? 'To be announced' }}
                             @endif
                         </td>
                     </tr>
@@ -323,29 +327,29 @@
                     <tbody>
                         <!-- Academic Subjects -->
                         @foreach($marksWithGrades as $mark)
-                            @if(isset($mark['breakdown']) && is_array($mark['breakdown']))
-                                <!-- Subject with skill breakdown -->
-                                @foreach($mark['breakdown'] as $index => $skill)
-                                    <tr>
-                                        @if($index === 0)
-                                            <td class="subject-name" rowspan="{{ count($mark['breakdown']) }}">{{ $mark['subject_name'] }}</td>
-                                        @endif
-                                        <td>{{ $skill['skill_name'] }}</td>
-                                        <td>{{ $skill['marks_obtained'] }}</td>
-                                        <td>{{ $skill['maximum_marks'] }}</td>
-                                        <td>{{ $skill['remarks'] ?? 'You met expectations' }}</td>
-                                    </tr>
-                                @endforeach
-                            @else
-                                <!-- Regular subject without breakdown -->
-                                <tr>
-                                    <td class="subject-name">{{ $mark['subject_name'] }}</td>
-                                    <td>Overall Performance</td>
-                                    <td>{{ $mark['marks_obtained'] }}</td>
-                                    <td>{{ $mark['maximum_marks'] }}</td>
-                                    <td>{{ $mark['remarks'] ?? 'You met expectations' }}</td>
-                                </tr>
+                        @if(isset($mark['breakdown']) && is_array($mark['breakdown']))
+                        <!-- Subject with skill breakdown -->
+                        @foreach($mark['breakdown'] as $index => $skill)
+                        <tr>
+                            @if($index === 0)
+                            <td class="subject-name" rowspan="{{ count($mark['breakdown']) }}">{{ $mark['subject_name'] }}</td>
                             @endif
+                            <td>{{ $skill['skill_name'] }}</td>
+                            <td>{{ $skill['marks_obtained'] }}</td>
+                            <td>{{ $skill['maximum_marks'] }}</td>
+                            <td>{{ $skill['remarks'] ?? 'You met expectations' }}</td>
+                        </tr>
+                        @endforeach
+                        @else
+                        <!-- Regular subject without breakdown -->
+                        <tr>
+                            <td class="subject-name">{{ $mark['subject_name'] }}</td>
+                            <td>Overall Performance</td>
+                            <td>{{ $mark['marks_obtained'] }}</td>
+                            <td>{{ $mark['maximum_marks'] }}</td>
+                            <td>{{ $mark['remarks'] ?? 'You met expectations' }}</td>
+                        </tr>
+                        @endif
                         @endforeach
 
                         <!-- Attendance Data -->
@@ -468,4 +472,5 @@
         </div>
     </div>
 </body>
+
 </html>

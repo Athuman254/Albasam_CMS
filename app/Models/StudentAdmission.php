@@ -24,7 +24,7 @@ class StudentAdmission extends Model
     protected $appends = [
         'hashid',
         'formatted_date',
-        'formatted_exit_date', 
+        'formatted_exit_date',
         'is_active',
         'student_name',
         'admission_number',
@@ -34,16 +34,18 @@ class StudentAdmission extends Model
         'student_details',
         'summary'
     ];
-    
+
     protected $casts = [
         'has_exit_school' => 'boolean',
         'created_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'registered_at' => 'datetime',
     ];
-    
+
     protected $fillable = [
-        'division_id', 
-        'has_exit_school'
+        'division_id',
+        'has_exit_school',
+        'registered_at'
     ];
 
     /**
@@ -160,7 +162,7 @@ class StudentAdmission extends Model
     public function scopeActive($query)
     {
         return $query->where('has_exit_school', false)
-                    ->whereNull('deleted_at');
+            ->whereNull('deleted_at');
     }
 
     /**
@@ -169,7 +171,7 @@ class StudentAdmission extends Model
     public function scopeExited($query)
     {
         return $query->where('has_exit_school', true)
-                    ->orWhereNotNull('deleted_at');
+            ->orWhereNotNull('deleted_at');
     }
 
     /**
@@ -333,7 +335,7 @@ class StudentAdmission extends Model
     public function toArray()
     {
         $array = parent::toArray();
-        
+
         $array['formatted_date'] = $this->formatted_date;
         $array['formatted_exit_date'] = $this->formatted_exit_date;
         $array['is_active'] = $this->is_active;
@@ -347,6 +349,4 @@ class StudentAdmission extends Model
 
         return $array;
     }
-
-    
 }

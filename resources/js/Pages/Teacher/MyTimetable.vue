@@ -50,7 +50,7 @@ const downloadPdf = () => {
                         class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                     >
                         <option v-for="year in academicYears" :key="year.id" :value="year.id">
-                            {{ year.name }}
+                            {{ year.display_name }}
                         </option>
                     </select>
 

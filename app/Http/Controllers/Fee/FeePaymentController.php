@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Fee;
 use App\Models\FeePayment;
 use App\Models\Student;
-use App\Models\AutoRecordedPayment; 
+use App\Models\AutoRecordedPayment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -53,11 +53,12 @@ class FeePaymentController extends Controller
         }
 
         $student = Student::where('admission_number', $request->admission_number)
-            ->with(['currentRank', 'fees' => function($query) {
+            ->with(['currentRank', 'fees' => function ($query) {
                 $query->where('balance', '>', 0)
-                      ->where('status', '!=', 'paid')
-                      ->orderBy('academic_year', 'desc')
-                      ->orderBy('term', 'desc');
+                    ->where('status', '!=', 'paid')
+                    ->where('status', '!=', 'carried_over')
+                    ->orderBy('academic_year', 'desc')
+                    ->orderBy('term', 'desc');
             }])
             ->first();
 
@@ -81,9 +82,9 @@ class FeePaymentController extends Controller
 
         // Calculate total outstanding balance including all fee types
         $totalOutstandingBalance = $student->fees->sum('balance');
-        
+
         // Get fee breakdown by type
-        $feeBreakdown = $student->fees->groupBy('fee_type')->map(function($fees, $type) {
+        $feeBreakdown = $student->fees->groupBy('fee_type')->map(function ($fees, $type) {
             return [
                 'total_amount' => $fees->sum('amount'),
                 'total_paid' => $fees->sum('paid_amount'),
@@ -94,7 +95,7 @@ class FeePaymentController extends Controller
 
         return response()->json([
             'success' => true,
-            'auto_payment' => $autoPayment, 
+            'auto_payment' => $autoPayment,
             'student' => $student,
             'outstanding_fees' => $student->fees,
             'total_outstanding_balance' => $totalOutstandingBalance,
@@ -127,7 +128,6 @@ class FeePaymentController extends Controller
                 'fees' => $outstandingFees,
                 'total_outstanding' => $outstandingFees->sum('balance')
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -152,6 +152,7 @@ class FeePaymentController extends Controller
             $outstandingFees = Fee::where('student_id', $student->id)
                 ->where('balance', '>', 0)
                 ->where('status', '!=', 'paid')
+                ->where('status', '!=', 'carried_over')
                 ->orderBy('academic_year', 'desc')
                 ->orderBy('term', 'desc')
                 ->orderBy('due_date', 'asc') // Overdue fees first
@@ -162,7 +163,6 @@ class FeePaymentController extends Controller
                 'fees' => $outstandingFees,
                 'total_outstanding' => $outstandingFees->sum('balance')
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -181,7 +181,7 @@ class FeePaymentController extends Controller
         }
 
         $request->validate([
-            'auto_payment_id' => 'required|exists:auto_recorded_payments,id', 
+            'auto_payment_id' => 'required|exists:auto_recorded_payments,id',
             'student_id' => 'required|exists:students,id',
             'fee_ids' => 'required|array',
             'fee_ids.*' => 'exists:fees,id',
@@ -191,7 +191,7 @@ class FeePaymentController extends Controller
 
         try {
             DB::transaction(function () use ($request) {
-                
+
                 $autoPayment = AutoRecordedPayment::findOrFail($request->auto_payment_id);
                 $student = Student::findOrFail($request->student_id);
                 $selectedFeeIds = $request->fee_ids;
@@ -205,7 +205,7 @@ class FeePaymentController extends Controller
 
                 // Get all selected fees
                 $selectedFees = Fee::whereIn('id', $selectedFeeIds)->get();
-                
+
                 // Calculate total balance of selected fees
                 $totalSelectedBalance = $selectedFees->sum('balance');
 
@@ -214,7 +214,7 @@ class FeePaymentController extends Controller
                     case 'auto_distribute':
                         $this->autoDistributePayment($student, $autoPayment, $selectedFees, $paymentAmount);
                         break;
-                        
+
                     case 'accept_overpayment':
                         $this->applyPaymentWithOverpayment($student, $autoPayment, $selectedFees, $paymentAmount);
                         break;
@@ -238,7 +238,6 @@ class FeePaymentController extends Controller
                 'receipt_url' => route('admin.fees.payments.receipt', $this->createdPayment->id),
                 'receipt_download_url' => route('admin.fees.payments.receipt.download', $this->createdPayment->id)
             ]);
-
         } catch (\Exception $e) {
             Log::error('Payment confirmation error: ' . $e->getMessage());
             return response()->json([
@@ -261,7 +260,7 @@ class FeePaymentController extends Controller
         }
 
         $request->validate([
-            'auto_payment_id' => 'required|exists:auto_recorded_payments,id', 
+            'auto_payment_id' => 'required|exists:auto_recorded_payments,id',
             'student_id' => 'required|exists:students,id',
             'fee_id' => 'required|exists:fees,id',
             'apply_to_other_fees' => 'sometimes|boolean',
@@ -270,7 +269,7 @@ class FeePaymentController extends Controller
 
         try {
             DB::transaction(function () use ($request) {
-                
+
                 $autoPayment = AutoRecordedPayment::findOrFail($request->auto_payment_id);
                 $student = Student::findOrFail($request->student_id);
                 $selectedFee = Fee::findOrFail($request->fee_id);
@@ -285,28 +284,29 @@ class FeePaymentController extends Controller
                 // Check if payment exceeds selected fee balance
                 if ($paymentAmount > $selectedFee->balance) {
                     $excessAmount = $paymentAmount - $selectedFee->balance;
-                    
+
                     // Get other outstanding fees
                     $otherOutstandingFees = Fee::where('student_id', $student->id)
                         ->where('id', '!=', $selectedFee->id)
                         ->where('balance', '>', 0)
                         ->where('status', '!=', 'paid')
+                        ->where('status', '!=', 'carried_over')
                         ->orderBy('academic_year', 'desc')
                         ->orderBy('term', 'desc')
                         ->get();
 
                     $totalOtherOutstanding = $otherOutstandingFees->sum('balance');
                     $totalOutstandingBalance = $selectedFee->balance + $totalOtherOutstanding;
-                    
+
                     // If apply_to_other_fees is true, check other outstanding fees
                     if ($request->get('apply_to_other_fees', false)) {
-                        
+
                         if ($excessAmount <= $totalOtherOutstanding) {
                             // Apply excess to other fees
                             $this->applyPaymentToMultipleFees(
-                                $student, 
-                                $autoPayment, 
-                                $selectedFee, 
+                                $student,
+                                $autoPayment,
+                                $selectedFee,
                                 $paymentAmount,
                                 $otherOutstandingFees
                             );
@@ -314,7 +314,7 @@ class FeePaymentController extends Controller
                         } else {
                             // Still have excess after applying to all fees
                             $remainingExcess = $excessAmount - $totalOtherOutstanding;
-                            
+
                             if ($request->get('accept_overpayment', false)) {
                                 // Accept overpayment and create credit
                                 $this->applyPaymentWithOverpaymentLegacy(
@@ -328,11 +328,11 @@ class FeePaymentController extends Controller
                                 return;
                             } else {
                                 throw new \Exception(
-                                    'Payment amount (KSh ' . number_format($paymentAmount, 2) . 
-                                    ') exceeds total outstanding balance of KSh ' . 
-                                    number_format($totalOutstandingBalance, 2) . 
-                                    '. You can accept overpayment to create a credit balance of KSh ' . 
-                                    number_format($remainingExcess, 2) . '.'
+                                    'Payment amount (KSh ' . number_format($paymentAmount, 2) .
+                                        ') exceeds total outstanding balance of KSh ' .
+                                        number_format($totalOutstandingBalance, 2) .
+                                        '. You can accept overpayment to create a credit balance of KSh ' .
+                                        number_format($remainingExcess, 2) . '.'
                                 );
                             }
                         }
@@ -342,18 +342,18 @@ class FeePaymentController extends Controller
                         return;
                     } else {
                         // Provide helpful error message with options
-                        $message = 'Payment amount (KSh ' . number_format($paymentAmount, 2) . 
-                                  ') exceeds selected fee balance of KSh ' . 
-                                  number_format($selectedFee->balance, 2);
-                        
+                        $message = 'Payment amount (KSh ' . number_format($paymentAmount, 2) .
+                            ') exceeds selected fee balance of KSh ' .
+                            number_format($selectedFee->balance, 2);
+
                         if ($totalOtherOutstanding > 0) {
-                            $message .= '. There are other outstanding fees totaling KSh ' . 
-                                       number_format($totalOtherOutstanding, 2) . 
-                                       ' that you can apply the excess to.';
+                            $message .= '. There are other outstanding fees totaling KSh ' .
+                                number_format($totalOtherOutstanding, 2) .
+                                ' that you can apply the excess to.';
                         } else {
                             $message .= '. You can accept overpayment to create a credit balance.';
                         }
-                        
+
                         throw new \Exception($message);
                     }
                 }
@@ -369,7 +369,6 @@ class FeePaymentController extends Controller
                 'receipt_url' => route('admin.fees.payments.receipt', $this->createdPayment->id),
                 'receipt_download_url' => route('admin.fees.payments.receipt.download', $this->createdPayment->id)
             ]);
-
         } catch (\Exception $e) {
             Log::error('Payment confirmation error: ' . $e->getMessage());
             return response()->json([
@@ -389,7 +388,7 @@ class FeePaymentController extends Controller
         $paymentReference = $autoPayment->reference_number;
 
         // Sort fees by priority (overdue first, then by due date, then by amount)
-        $sortedFees = $selectedFees->sortBy(function($fee) {
+        $sortedFees = $selectedFees->sortBy(function ($fee) {
             $priority = 0;
             if ($fee->due_date && $fee->due_date < now()) {
                 $priority += 1000; // High priority for overdue fees
@@ -405,7 +404,7 @@ class FeePaymentController extends Controller
             if ($remainingAmount <= 0) break;
 
             $amountToApply = min($remainingAmount, $fee->balance);
-            
+
             if ($amountToApply > 0) {
                 $this->createPartialPayment($student, $autoPayment, $fee, $amountToApply);
                 $remainingAmount -= $amountToApply;
@@ -447,7 +446,7 @@ class FeePaymentController extends Controller
             if ($remainingAmount <= 0) break;
 
             $amountToApply = min($remainingAmount, $fee->balance);
-            
+
             if ($amountToApply > 0) {
                 $this->createPartialPayment($student, $autoPayment, $fee, $amountToApply);
                 $remainingAmount -= $amountToApply;
@@ -490,9 +489,9 @@ class FeePaymentController extends Controller
             'transaction_id' => $autoPayment->transaction_id,
             'payment_date' => $autoPayment->payment_date,
             'status' => 'completed',
-            'notes' => 'Payment from ' . $autoPayment->payment_method . 
-                      ($isOverpayment ? ' (Overpayment accepted)' : '') . 
-                      ' - ' . ($autoPayment->narration ?? ''),
+            'notes' => 'Payment from ' . $autoPayment->payment_method .
+                ($isOverpayment ? ' (Overpayment accepted)' : '') .
+                ' - ' . ($autoPayment->narration ?? ''),
             'verified_by' => Auth::id(),
             'verified_at' => now(),
         ]);
@@ -500,13 +499,13 @@ class FeePaymentController extends Controller
         // Update fee balance
         $fee->paid_amount += $amount;
         $fee->balance = $fee->amount - $fee->paid_amount;
-        
+
         if ($fee->balance <= 0) {
             $fee->status = $fee->balance < 0 ? 'credit' : 'paid';
         } elseif ($fee->paid_amount > 0) {
             $fee->status = 'partial';
         }
-        
+
         $fee->save();
 
         $this->createdPayment = $payment;
@@ -535,13 +534,13 @@ class FeePaymentController extends Controller
         // Update fee balance
         $fee->paid_amount += $amount;
         $fee->balance = $fee->amount - $fee->paid_amount;
-        
+
         if ($fee->balance <= 0) {
             $fee->status = $fee->balance < 0 ? 'credit' : 'paid';
         } elseif ($fee->paid_amount > 0) {
             $fee->status = 'partial';
         }
-        
+
         $fee->save();
 
         // Process balance carry-over for next term if needed
@@ -573,8 +572,8 @@ class FeePaymentController extends Controller
             'transaction_id' => $autoPayment->transaction_id,
             'payment_date' => $autoPayment->payment_date,
             'status' => 'completed',
-            'notes' => 'Verified from ' . $autoPayment->payment_method . ' payment - ' . ($autoPayment->narration ?? '') . 
-                      ' | Overpayment accepted, credit balance: KSh ' . number_format(($amount - $fee->balance), 2),
+            'notes' => 'Verified from ' . $autoPayment->payment_method . ' payment - ' . ($autoPayment->narration ?? '') .
+                ' | Overpayment accepted, credit balance: KSh ' . number_format(($amount - $fee->balance), 2),
             'verified_by' => Auth::id(),
             'verified_at' => now(),
         ]);
@@ -605,7 +604,7 @@ class FeePaymentController extends Controller
         $remainingAmount = $totalAmount;
         $appliedFees = [];
         $primaryFeeAmount = min($remainingAmount, $primaryFee->balance);
-        
+
         // Apply to primary fee first
         if ($primaryFeeAmount > 0) {
             $this->createPartialPayment($student, $autoPayment, $primaryFee, $primaryFeeAmount);
@@ -643,7 +642,7 @@ class FeePaymentController extends Controller
     {
         $remainingAmount = $totalAmount;
         $appliedFees = [];
-        
+
         // Apply to primary fee
         $primaryFeeAmount = min($remainingAmount, $primaryFee->balance);
         if ($primaryFeeAmount > 0) {
@@ -695,9 +694,9 @@ class FeePaymentController extends Controller
         }
 
         $payment->load(['student', 'fee.rank', 'verifiedBy']);
-        
+
         $feeBreakdown = $this->getFeeBreakdown($payment);
-        
+
         return response()->json([
             'success' => true,
             'payment' => $payment,
@@ -715,12 +714,12 @@ class FeePaymentController extends Controller
         }
 
         $payment->load(['student', 'fee.rank', 'verifiedBy']);
-        
+
         $receiptNumber = 'RCPT-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
-        
+
         // Get fee breakdown details
         $feeBreakdown = $this->getFeeBreakdown($payment);
-        
+
         $data = [
             'payment' => $payment,
             'receipt_number' => $receiptNumber,
@@ -734,7 +733,7 @@ class FeePaymentController extends Controller
         ];
 
         $pdf = PDF::loadView('receipts.fee-payment', $data);
-        
+
         return $pdf->download("receipt-{$receiptNumber}.pdf");
     }
 
@@ -748,9 +747,9 @@ class FeePaymentController extends Controller
         }
 
         $payment->load(['student', 'fee.rank', 'verifiedBy']);
-        
+
         $receiptNumber = 'RCPT-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
-        
+
         // Get fee breakdown details
         $feeBreakdown = $this->getFeeBreakdown($payment);
 
@@ -771,15 +770,15 @@ class FeePaymentController extends Controller
     {
         $student = $payment->student;
         $currentFee = $payment->fee;
-        
+
         // Get previous term balances (carry-over)
         $previousBalances = Fee::where('student_id', $student->id)
-            ->where(function($query) use ($currentFee) {
+            ->where(function ($query) use ($currentFee) {
                 // Previous terms in same academic year
                 $query->where('academic_year', $currentFee->academic_year)
-                      ->where('term', '<', $currentFee->term)
-                      // Or previous academic years
-                      ->orWhere('academic_year', '<', $currentFee->academic_year);
+                    ->where('term', '<', $currentFee->term)
+                    // Or previous academic years
+                    ->orWhere('academic_year', '<', $currentFee->academic_year);
             })
             ->where('balance', '!=', 0)
             ->get();
@@ -847,16 +846,16 @@ class FeePaymentController extends Controller
         }
 
         $payments = AutoRecordedPayment::with(['student'])
-            ->when($request->has('status') && $request->status, function($query) use ($request) {
+            ->when($request->has('status') && $request->status, function ($query) use ($request) {
                 $query->where('status', $request->status);
             })
-            ->when($request->has('payment_method') && $request->payment_method, function($query) use ($request) {
+            ->when($request->has('payment_method') && $request->payment_method, function ($query) use ($request) {
                 $query->where('payment_method', $request->payment_method);
             })
-            ->when($request->has('date_from') && $request->date_from, function($query) use ($request) {
+            ->when($request->has('date_from') && $request->date_from, function ($query) use ($request) {
                 $query->where('payment_date', '>=', $request->date_from);
             })
-            ->when($request->has('date_to') && $request->date_to, function($query) use ($request) {
+            ->when($request->has('date_to') && $request->date_to, function ($query) use ($request) {
                 $query->where('payment_date', '<=', $request->date_to);
             })
             ->latest()
@@ -896,7 +895,7 @@ class FeePaymentController extends Controller
         $payment->update([
             'matched_student_id' => $student->id,
             'matched_admission_number' => $student->admission_number,
-            'status' => 'recorded', 
+            'status' => 'recorded',
         ]);
 
         return response()->json([
@@ -933,10 +932,9 @@ class FeePaymentController extends Controller
                 'success' => true,
                 'message' => 'Payment rejected successfully'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Payment rejection error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error rejecting payment: ' . $e->getMessage()
@@ -964,10 +962,10 @@ class FeePaymentController extends Controller
             foreach ($unmatchedPayments as $payment) {
                 // Try to extract admission number from narration
                 $admissionNumber = $this->extractAdmissionNumber($payment->narration);
-                
+
                 if ($admissionNumber) {
                     $student = Student::where('admission_number', $admissionNumber)->first();
-                    
+
                     if ($student) {
                         $payment->update([
                             'matched_student_id' => $student->id,
@@ -984,10 +982,9 @@ class FeePaymentController extends Controller
                 'message' => "Auto-matched {$matchedCount} payments",
                 'matched_count' => $matchedCount,
             ]);
-
         } catch (\Exception $e) {
             Log::error('Auto-match payments error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error auto-matching payments: ' . $e->getMessage()
@@ -1001,7 +998,7 @@ class FeePaymentController extends Controller
 
         // Common patterns for admission numbers
         preg_match_all('/(ADM|adm|Adm)\s?(\d+)/i', $narration, $matches);
-        
+
         if (!empty($matches[0])) {
             foreach ($matches[0] as $match) {
                 // Clean up the admission number
@@ -1028,12 +1025,12 @@ class FeePaymentController extends Controller
             DB::transaction(function () use ($student, $academicYear, $term) {
                 // Get previous term/year balances
                 $previousBalances = Fee::where('student_id', $student->id)
-                    ->where(function($query) use ($academicYear, $term) {
+                    ->where(function ($query) use ($academicYear, $term) {
                         // Previous terms in same academic year
                         $query->where('academic_year', $academicYear)
-                              ->where('term', '<', $term)
-                              // Or previous academic years
-                              ->orWhere('academic_year', '<', $academicYear);
+                            ->where('term', '<', $term)
+                            // Or previous academic years
+                            ->orWhere('academic_year', '<', $academicYear);
                     })
                     ->where('balance', '!=', 0)
                     ->get();
@@ -1047,7 +1044,7 @@ class FeePaymentController extends Controller
                     } else {
                         $totalCreditCarryOver += abs($previousFee->balance);
                     }
-                    
+
                     // Mark as carried over
                     $previousFee->update([
                         'is_carry_over' => true,
@@ -1073,8 +1070,8 @@ class FeePaymentController extends Controller
                             'amount' => $currentFee->amount + $netCarryOver,
                             'balance' => $newBalance,
                             'is_carry_over' => $netCarryOver != 0,
-                            'description' => $currentFee->description . 
-                                ($netCarryOver > 0 ? 
+                            'description' => $currentFee->description .
+                                ($netCarryOver > 0 ?
                                     " (Includes KSh " . number_format($netCarryOver, 2) . " previous balance)" :
                                     " (Includes KSh " . number_format(abs($netCarryOver), 2) . " credit)")
                         ]);
@@ -1083,7 +1080,6 @@ class FeePaymentController extends Controller
             });
 
             return $netCarryOver ?? 0;
-
         } catch (\Exception $e) {
             Log::error('Balance carry-over error for student ' . $student->id . ': ' . $e->getMessage());
             return 0;
@@ -1098,16 +1094,16 @@ class FeePaymentController extends Controller
         }
 
         $payments = FeePayment::with(['student', 'fee.rank', 'verifiedBy'])
-            ->when($request->has('payment_method') && $request->payment_method, function($query) use ($request) {
+            ->when($request->has('payment_method') && $request->payment_method, function ($query) use ($request) {
                 $query->where('payment_method', $request->payment_method);
             })
-            ->when($request->has('status') && $request->status, function($query) use ($request) {
+            ->when($request->has('status') && $request->status, function ($query) use ($request) {
                 $query->where('status', $request->status);
             })
-            ->when($request->has('date_from') && $request->date_from, function($query) use ($request) {
+            ->when($request->has('date_from') && $request->date_from, function ($query) use ($request) {
                 $query->where('payment_date', '>=', $request->date_from);
             })
-            ->when($request->has('date_to') && $request->date_to, function($query) use ($request) {
+            ->when($request->has('date_to') && $request->date_to, function ($query) use ($request) {
                 $query->where('payment_date', '<=', $request->date_to);
             })
             ->latest()
@@ -1127,7 +1123,7 @@ class FeePaymentController extends Controller
         try {
             $totalPayments = FeePayment::where('status', 'completed')->count();
             $totalAmount = FeePayment::where('status', 'completed')->sum('amount');
-            
+
             $todayPayments = FeePayment::where('status', 'completed')
                 ->whereDate('payment_date', today())
                 ->count();
@@ -1162,7 +1158,6 @@ class FeePaymentController extends Controller
                 'month_amount' => $monthAmount,
                 'average_payment' => $totalPayments > 0 ? round($totalAmount / $totalPayments, 2) : 0
             ];
-
         } catch (\Exception $e) {
             return [
                 'total_payments' => 0,
@@ -1219,7 +1214,7 @@ class FeePaymentController extends Controller
 
                 $fee->paid_amount -= $payment->amount;
                 $fee->balance = $fee->amount - $fee->paid_amount;
-                
+
                 if ($fee->paid_amount <= 0) {
                     $fee->status = 'pending';
                 } elseif ($fee->balance > 0) {
@@ -1227,7 +1222,7 @@ class FeePaymentController extends Controller
                 } elseif ($fee->balance < 0) {
                     $fee->status = 'credit_reversed';
                 }
-                
+
                 $fee->save();
 
                 $payment->update([
@@ -1242,7 +1237,6 @@ class FeePaymentController extends Controller
                 'success' => true,
                 'message' => 'Payment reversed successfully!'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1261,48 +1255,48 @@ class FeePaymentController extends Controller
         }
 
         $payments = FeePayment::with(['student', 'fee.rank', 'verifiedBy', 'reversedBy'])
-            ->when($request->has('payment_method') && $request->payment_method, function($query) use ($request) {
+            ->when($request->has('payment_method') && $request->payment_method, function ($query) use ($request) {
                 $query->where('payment_method', $request->payment_method);
             })
-            ->when($request->has('status') && $request->status, function($query) use ($request) {
+            ->when($request->has('status') && $request->status, function ($query) use ($request) {
                 $query->where('status', $request->status);
             })
-            ->when($request->has('date_from') && $request->date_from, function($query) use ($request) {
+            ->when($request->has('date_from') && $request->date_from, function ($query) use ($request) {
                 $query->where('payment_date', '>=', $request->date_from);
             })
-            ->when($request->has('date_to') && $request->date_to, function($query) use ($request) {
+            ->when($request->has('date_to') && $request->date_to, function ($query) use ($request) {
                 $query->where('payment_date', '<=', $request->date_to);
             })
-            ->when($request->has('student_name') && $request->student_name, function($query) use ($request) {
-                $query->whereHas('student', function($q) use ($request) {
+            ->when($request->has('student_name') && $request->student_name, function ($query) use ($request) {
+                $query->whereHas('student', function ($q) use ($request) {
                     $q->where('full_name', 'like', '%' . $request->student_name . '%');
                 });
             })
             ->latest();
 
         return datatables()->eloquent($payments)
-            ->addColumn('student_name', function($payment) {
+            ->addColumn('student_name', function ($payment) {
                 return $payment->student->full_name;
             })
-            ->addColumn('admission_number', function($payment) {
+            ->addColumn('admission_number', function ($payment) {
                 return $payment->student->admission_number;
             })
-            ->addColumn('class', function($payment) {
+            ->addColumn('class', function ($payment) {
                 return $payment->fee->rank->name;
             })
-            ->addColumn('fee_type', function($payment) {
+            ->addColumn('fee_type', function ($payment) {
                 return ucfirst(str_replace('_', ' ', $payment->fee->fee_type)) . ' Fee';
             })
-            ->addColumn('verified_by_name', function($payment) {
+            ->addColumn('verified_by_name', function ($payment) {
                 return $payment->verifiedBy->name ?? 'N/A';
             })
-            ->addColumn('reversed_by_name', function($payment) {
+            ->addColumn('reversed_by_name', function ($payment) {
                 return $payment->reversedBy->name ?? 'N/A';
             })
-            ->addColumn('receipt_number', function($payment) {
+            ->addColumn('receipt_number', function ($payment) {
                 return 'RCPT-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
             })
-            ->addColumn('status_badge', function($payment) {
+            ->addColumn('status_badge', function ($payment) {
                 $badgeClass = [
                     'completed' => 'bg-success',
                     'pending' => 'bg-warning',
@@ -1310,11 +1304,11 @@ class FeePaymentController extends Controller
                     'reversed' => 'bg-secondary'
                 ][$payment->status] ?? 'bg-secondary';
 
-                return '<span class="badge '.$badgeClass.'">'.ucfirst($payment->status).'</span>';
+                return '<span class="badge ' . $badgeClass . '">' . ucfirst($payment->status) . '</span>';
             })
-            ->addColumn('actions', function($payment) {
+            ->addColumn('actions', function ($payment) {
                 $actions = '
-                    <a href="'.route('admin.fees.payments.receipt', $payment->id).'" 
+                    <a href="' . route('admin.fees.payments.receipt', $payment->id) . '" 
                        class="btn btn-sm btn-primary" 
                        target="_blank"
                        title="View Receipt">
@@ -1325,9 +1319,9 @@ class FeePaymentController extends Controller
                 if ($payment->status === 'completed') {
                     $actions .= '
                         <button class="btn btn-sm btn-warning reverse-payment" 
-                                data-id="'.$payment->id.'"
-                                data-student="'.$payment->student->full_name.'"
-                                data-amount="'.$payment->amount.'"
+                                data-id="' . $payment->id . '"
+                                data-student="' . $payment->student->full_name . '"
+                                data-amount="' . $payment->amount . '"
                                 title="Reverse Payment">
                             <i class="fas fa-undo"></i>
                         </button>
@@ -1353,7 +1347,7 @@ class FeePaymentController extends Controller
         try {
             $totalPayments = FeePayment::where('status', 'completed')->count();
             $totalAmount = FeePayment::where('status', 'completed')->sum('amount');
-            
+
             $todayPayments = FeePayment::where('status', 'completed')
                 ->whereDate('payment_date', today())
                 ->count();
@@ -1397,7 +1391,6 @@ class FeePaymentController extends Controller
                     'average_payment' => $totalPayments > 0 ? round($totalAmount / $totalPayments, 2) : 0
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1448,7 +1441,6 @@ class FeePaymentController extends Controller
                     'payment_count' => $payments->count()
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1495,7 +1487,6 @@ class FeePaymentController extends Controller
                     'payment_count' => $payments->count()
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1515,7 +1506,7 @@ class FeePaymentController extends Controller
         }
 
         try {
-            $period = $request->get('period', 'month'); 
+            $period = $request->get('period', 'month');
 
             if ($period === 'week') {
                 $data = FeePayment::where('status', 'completed')
@@ -1545,7 +1536,6 @@ class FeePaymentController extends Controller
                 'period' => $period,
                 'data' => $data
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1590,7 +1580,7 @@ class FeePaymentController extends Controller
 
         try {
             $query = $request->get('query');
-            
+
             $students = Student::with(['currentRank'])
                 ->where('admission_number', 'like', "%{$query}%")
                 ->orWhere('full_name', 'like', "%{$query}%")
@@ -1601,7 +1591,6 @@ class FeePaymentController extends Controller
                 'success' => true,
                 'students' => $students
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1659,15 +1648,15 @@ class FeePaymentController extends Controller
                     if ($remainingAmount <= 0) break;
 
                     $transferable = min(abs($creditFee->balance), $remainingAmount);
-                    
+
                     // Reduce credit from source fee
                     $creditFee->paid_amount -= $transferable;
                     $creditFee->balance = $creditFee->amount - $creditFee->paid_amount;
-                    
+
                     if ($creditFee->balance >= 0) {
                         $creditFee->status = $creditFee->balance == 0 ? 'paid' : 'partial';
                     }
-                    
+
                     $creditFee->save();
 
                     // Find or create a fee for the destination student to apply the credit
@@ -1685,7 +1674,8 @@ class FeePaymentController extends Controller
                             'amount' => 0, // Will be updated
                             'paid_amount' => 0,
                             'balance' => 0,
-                            'academic_year', now()->year,
+                            'academic_year',
+                            now()->year,
                             'term' => $this->getCurrentTerm(),
                             'due_date' => now()->addMonth(),
                             'status' => 'pending',
@@ -1696,7 +1686,7 @@ class FeePaymentController extends Controller
                     // Apply credit to destination fee
                     $currentTermFee->paid_amount += $transferable;
                     $currentTermFee->balance = $currentTermFee->amount - $currentTermFee->paid_amount;
-                    
+
                     if ($currentTermFee->balance < 0) {
                         $currentTermFee->status = 'credit';
                     } elseif ($currentTermFee->balance == 0) {
@@ -1704,7 +1694,7 @@ class FeePaymentController extends Controller
                     } else {
                         $currentTermFee->status = 'partial';
                     }
-                    
+
                     $currentTermFee->save();
 
                     // Create transfer record
@@ -1716,9 +1706,9 @@ class FeePaymentController extends Controller
                         'reference_number' => 'CT-' . uniqid(),
                         'payment_date' => now(),
                         'status' => 'completed',
-                        'notes' => 'Credit transfer from ' . $fromStudent->admission_number . 
-                                  ' - Reason: ' . $request->reason . 
-                                  ' - Transferred by: ' . Auth::user()->name,
+                        'notes' => 'Credit transfer from ' . $fromStudent->admission_number .
+                            ' - Reason: ' . $request->reason .
+                            ' - Transferred by: ' . Auth::user()->name,
                         'verified_by' => Auth::id(),
                         'verified_at' => now(),
                     ]);
@@ -1726,17 +1716,16 @@ class FeePaymentController extends Controller
                     $remainingAmount -= $transferable;
                 }
 
-                Log::info("Credit transfer: KSh " . number_format($amount, 2) . 
-                         " from student " . $fromStudent->admission_number . 
-                         " to student " . $toStudent->admission_number . 
-                         " by user " . Auth::user()->name);
+                Log::info("Credit transfer: KSh " . number_format($amount, 2) .
+                    " from student " . $fromStudent->admission_number .
+                    " to student " . $toStudent->admission_number .
+                    " by user " . Auth::user()->name);
             });
 
             return response()->json([
                 'success' => true,
                 'message' => 'Credit transferred successfully!'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Credit transfer error: ' . $e->getMessage());
             return response()->json([
@@ -1749,9 +1738,9 @@ class FeePaymentController extends Controller
     private function getCurrentTerm()
     {
         $month = now()->month;
-        
-        if ($month >= 1 && $month <= 4) return 1;    
-        if ($month >= 5 && $month <= 8) return 2;    
-        return 3;   
+
+        if ($month >= 1 && $month <= 4) return 1;
+        if ($month >= 5 && $month <= 8) return 2;
+        return 3;
     }
 }

@@ -63,6 +63,21 @@ class SubjectAllocationController extends Controller
         // Get workload for all teachers
         $teacherWorkloads = $this->workloadCalculator->calculateAllTeacherWorkloads($academicYearId);
 
+        // Get all roles except admin for the modal
+        $roles = \App\Models\Role::where('name', '!=', 'admin')
+            ->get(['id', 'name', 'display_name', 'description']);
+
+        // Get all other dropdown options
+        $employmentTypes = \App\Models\EmploymentType::select('id', 'name')->get();
+        $employmentStatuses = \App\Models\EmploymentStatus::select('id', 'name')->get();
+        $honorifics = \App\Models\Honorific::select('id', 'name')->get();
+        $maritalStatuses = \App\Models\MaritalStatus::select('id', 'name')->get();
+        $genders = \App\Models\Gender::select('id', 'name')->get();
+        $religions = \App\Models\Religion::select('id', 'name')->get();
+
+        // Generate next staff number
+        $nextStaffNumber = \App\Models\Employee::generateStaffNumber();
+
         return Inertia::render('Timetable/Setup/SubjectAllocation', [
             'allocations' => $allocations,
             'teachers' => $teachers,
@@ -72,6 +87,16 @@ class SubjectAllocationController extends Controller
             'currentAcademicYearId' => $academicYearId,
             'teacherWorkloads' => $teacherWorkloads,
             'workloadLimits' => config('timetable.limits'),
+            'roles' => $roles,
+            'nextStaffNumber' => $nextStaffNumber,
+            'options' => [
+                'employmentTypes' => $employmentTypes,
+                'employmentStatuses' => $employmentStatuses,
+                'honorifics' => $honorifics,
+                'maritalStatuses' => $maritalStatuses,
+                'genders' => $genders,
+                'religions' => $religions,
+            ]
         ]);
     }
 

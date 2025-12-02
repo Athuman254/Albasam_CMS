@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Fee;
 
 use App\Http\Controllers\Controller;
@@ -97,7 +98,6 @@ class FeeStructureController extends Controller
 
             return redirect()->route('admin.fee-structures.index')
                 ->with('success', 'Fee structure created successfully!');
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation Error: ', $e->errors());
             throw $e;
@@ -210,7 +210,6 @@ class FeeStructureController extends Controller
 
             return redirect()->route('admin.fee-structures.index')
                 ->with('success', $message);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation Error: ', $e->errors());
             throw $e;
@@ -247,7 +246,6 @@ class FeeStructureController extends Controller
             }
 
             Log::info("Successfully synced {$affectedCount} fee records for structure {$feeStructure->id}");
-
         } catch (\Exception $e) {
             Log::error('Error syncing fee structure changes: ' . $e->getMessage());
             throw $e;
@@ -267,7 +265,7 @@ class FeeStructureController extends Controller
             // Calculate the difference
             $amountDifference = $newAmount - $oldAmount;
             $newBalance = max(0, $fee->balance + $amountDifference);
-            
+
             // Update the fee amount and balance
             $fee->update([
                 'amount' => $newAmount,
@@ -302,7 +300,7 @@ class FeeStructureController extends Controller
         foreach ($newFees as $newFee) {
             $oldFee = $oldFees->firstWhere('name', $newFee['name']);
             $feeType = $this->getFeeTypeFromName($newFee['name']);
-            
+
             if (!$oldFee) {
                 // New additional fee - create for all students with invoices
                 $totalAffected += $this->addNewAdditionalFee($feeStructure, $newFee, $feeType);
@@ -327,7 +325,7 @@ class FeeStructureController extends Controller
     private function removeAdditionalFee(FeeStructure $feeStructure, $feeName)
     {
         $feeType = $this->getFeeTypeFromName($feeName);
-        
+
         $fees = Fee::where('original_fee_structure_id', $feeStructure->id)
             ->where('fee_type', $feeType)
             ->get();
@@ -335,7 +333,7 @@ class FeeStructureController extends Controller
         foreach ($fees as $fee) {
             // Find and remove related invoice items
             $this->removeInvoiceItem($fee, $feeName);
-            
+
             // Delete the fee record
             $fee->delete();
         }
@@ -400,7 +398,7 @@ class FeeStructureController extends Controller
             // Calculate the difference
             $amountDifference = $feeData['amount'] - $oldAmount;
             $newBalance = max(0, $fee->balance + $amountDifference);
-            
+
             // Update the fee
             $fee->update([
                 'amount' => $feeData['amount'],
@@ -441,7 +439,7 @@ class FeeStructureController extends Controller
     private function syncDueDate(FeeStructure $feeStructure, $newDueDate)
     {
         $fees = Fee::where('original_fee_structure_id', $feeStructure->id)->get();
-        
+
         foreach ($fees as $fee) {
             $fee->update(['due_date' => $newDueDate]);
         }
@@ -546,18 +544,17 @@ class FeeStructureController extends Controller
     {
         try {
             Log::info('Deleting Fee Structure:', $fee_structure->toArray());
-            
+
             // Check if there are generated invoices
             if ($fee_structure->invoices()->exists()) {
                 return redirect()->route('admin.fee-structures.index')
                     ->with('error', 'Cannot delete fee structure. There are generated invoices associated with it.');
             }
-            
+
             $fee_structure->delete();
 
             return redirect()->route('admin.fee-structures.index')
                 ->with('success', 'Fee structure deleted successfully!');
-
         } catch (\Exception $e) {
             Log::error('Fee Structure Deletion Error: ' . $e->getMessage());
             return redirect()->route('admin.fee-structures.index')
@@ -580,7 +577,6 @@ class FeeStructureController extends Controller
 
             return redirect()->route('admin.fee-structures.index')
                 ->with('success', "Fee structure {$status} successfully!");
-
         } catch (\Exception $e) {
             Log::error('Fee Structure Status Update Error: ' . $e->getMessage());
             return redirect()->route('admin.fee-structures.index')
@@ -619,7 +615,7 @@ class FeeStructureController extends Controller
 
             // Generate invoice for the student
             $invoice = $this->generateStudentInvoice($student, $feeStructure);
-            
+
             DB::commit();
 
             Log::info("Fee structure applied to new student", [
@@ -633,11 +629,10 @@ class FeeStructureController extends Controller
                 'message' => 'Fees successfully applied to student.',
                 'invoice' => $invoice
             ];
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error applying fee structure to student: ' . $e->getMessage());
-            
+
             return [
                 'success' => false,
                 'message' => 'Failed to apply fees to student: ' . $e->getMessage()
@@ -654,7 +649,7 @@ class FeeStructureController extends Controller
         try {
             $students = Student::where('rank_id', $feeStructure->rank_id)
                 ->where('status', 'active')
-                ->whereDoesntHave('feeInvoices', function($query) use ($feeStructure) {
+                ->whereDoesntHave('feeInvoices', function ($query) use ($feeStructure) {
                     $query->where('fee_structure_id', $feeStructure->id);
                 })
                 ->get();
@@ -704,11 +699,10 @@ class FeeStructureController extends Controller
             ]);
 
             return $result;
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error applying fee structure to eligible students: ' . $e->getMessage());
-            
+
             return [
                 'success' => false,
                 'message' => 'Failed to apply fees to eligible students: ' . $e->getMessage()
@@ -730,7 +724,7 @@ class FeeStructureController extends Controller
             foreach ($feeStructures as $feeStructure) {
                 $result = $this->applyToAllEligibleStudents($feeStructure);
                 $results[$feeStructure->id] = $result;
-                
+
                 if ($result['success']) {
                     $totalApplied += $result['applied_count'] ?? 0;
                 }
@@ -746,10 +740,9 @@ class FeeStructureController extends Controller
                 'message' => "Sync completed. Applied fees to {$totalApplied} student(s) across {$feeStructures->count()} fee structure(s).",
                 'results' => $results
             ];
-
         } catch (\Exception $e) {
             Log::error('Error syncing all fee structures: ' . $e->getMessage());
-            
+
             return [
                 'success' => false,
                 'message' => 'Failed to sync fee structures: ' . $e->getMessage()
@@ -821,11 +814,10 @@ class FeeStructureController extends Controller
             ]);
 
             return $result;
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error applying relevant fees to student: ' . $e->getMessage());
-            
+
             return [
                 'success' => false,
                 'message' => 'Failed to apply fees to student: ' . $e->getMessage()
@@ -851,13 +843,13 @@ class FeeStructureController extends Controller
             // Get students who don't have this fee structure yet
             $students = Student::where('rank_id', $fee_structure->rank_id)
                 ->where('status', 'active')
-                ->whereDoesntHave('feeInvoices', function($query) use ($fee_structure) {
+                ->whereDoesntHave('feeInvoices', function ($query) use ($fee_structure) {
                     $query->where('fee_structure_id', $fee_structure->id);
                 })
                 ->get();
-            
+
             Log::info('Eligible students found:', ['count' => $students->count()]);
-            
+
             if ($students->isEmpty()) {
                 return redirect()->route('admin.fee-structures.index')
                     ->with('info', 'All active students in ' . $fee_structure->rank->name . ' already have fees generated for this structure.');
@@ -873,7 +865,7 @@ class FeeStructureController extends Controller
                     try {
                         // Generate invoice for student
                         $invoice = $this->generateStudentInvoice($student, $fee_structure);
-                        
+
                         if ($invoice) {
                             $generatedCount++;
                             Log::info('Invoice generated successfully:', [
@@ -883,7 +875,6 @@ class FeeStructureController extends Controller
                         } else {
                             $errors[] = "Failed to generate invoice for {$student->full_name}";
                         }
-
                     } catch (\Exception $e) {
                         $errorMsg = "Error for {$student->full_name}: " . $e->getMessage();
                         $errors[] = $errorMsg;
@@ -893,7 +884,6 @@ class FeeStructureController extends Controller
 
                 DB::commit();
                 Log::info('=== FEE GENERATION COMPLETED ===');
-
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('=== FEE GENERATION FAILED - TRANSACTION ROLLED BACK ===');
@@ -902,7 +892,7 @@ class FeeStructureController extends Controller
             }
 
             $message = "Generated {$generatedCount} student invoices for " . $fee_structure->rank->name;
-            
+
             if (!empty($errors)) {
                 $message .= ". " . count($errors) . " errors occurred.";
                 session()->flash('generation_errors', $errors);
@@ -910,7 +900,6 @@ class FeeStructureController extends Controller
 
             return redirect()->route('admin.fee-structures.index')
                 ->with('success', $message);
-
         } catch (\Exception $e) {
             Log::error('Fee Generation Error: ' . $e->getMessage());
             return redirect()->route('admin.fee-structures.index')
@@ -922,19 +911,20 @@ class FeeStructureController extends Controller
     {
         try {
             // Calculate previous balance
-            $previousBalance = $this->calculatePreviousBalance($student->id, $fee_structure->academic_year, $fee_structure->term);
-            
+            $previousFees = $this->getPreviousFees($student->id, $fee_structure->academic_year, $fee_structure->term);
+            $previousBalance = $previousFees->sum('balance');
+
             // Generate invoice number
             $invoiceNumber = $this->generateInvoiceNumber();
-            
+
             // Calculate total amount
             $totalAmount = $fee_structure->amount;
             $additionalFees = $fee_structure->additional_fees ?? [];
-            
+
             foreach ($additionalFees as $fee) {
                 $totalAmount += $fee['amount'];
             }
-            
+
             if ($previousBalance != 0) {
                 $totalAmount += $previousBalance;
             }
@@ -968,13 +958,17 @@ class FeeStructureController extends Controller
             if ($previousBalance != 0) {
                 $description = $previousBalance > 0 ? 'Previous Balance Carry-over' : 'Credit Balance Carry-over';
                 $this->addInvoiceItem($invoice, 'Balance B/F', $previousBalance, $description);
+
+                // Mark old fees as carried over
+                foreach ($previousFees as $fee) {
+                    $fee->update(['status' => 'carried_over']);
+                }
             }
 
             // Create individual fee records
             $this->createIndividualFeeRecords($student, $fee_structure, $invoice, $previousBalance);
 
             return $invoice;
-
         } catch (\Exception $e) {
             Log::error('Invoice generation error: ' . $e->getMessage());
             throw $e;
@@ -1041,7 +1035,6 @@ class FeeStructureController extends Controller
                     'description' => $description,
                 ]);
             }
-
         } catch (\Exception $e) {
             Log::error('Failed to create individual fee records: ' . $e->getMessage());
             throw $e;
@@ -1060,7 +1053,7 @@ class FeeStructureController extends Controller
         ];
 
         $lowerName = strtolower($name);
-        
+
         foreach ($mapping as $key => $value) {
             if (str_contains($lowerName, $key)) {
                 return $value;
@@ -1070,29 +1063,21 @@ class FeeStructureController extends Controller
         return 'other';
     }
 
-    private function calculatePreviousBalance($studentId, $academicYear, $term)
+    private function getPreviousFees($studentId, $academicYear, $term)
     {
         try {
-            $previousFees = Fee::where('student_id', $studentId)
-                ->where(function($query) use ($academicYear, $term) {
+            return Fee::where('student_id', $studentId)
+                ->where(function ($query) use ($academicYear, $term) {
                     $query->where('academic_year', $academicYear)
-                          ->where('term', '<', $term)
-                          ->orWhere('academic_year', '<', $academicYear);
+                        ->where('term', '<', $term)
+                        ->orWhere('academic_year', '<', $academicYear);
                 })
                 ->where('balance', '!=', 0)
+                ->where('status', '!=', 'carried_over')
                 ->get();
-
-            $totalBalance = 0;
-            
-            foreach ($previousFees as $fee) {
-                $totalBalance += $fee->balance;
-            }
-
-            return $totalBalance;
-
         } catch (\Exception $e) {
-            Log::error('Error calculating previous balance: ' . $e->getMessage());
-            return 0;
+            Log::error('Error getting previous fees: ' . $e->getMessage());
+            return collect([]);
         }
     }
 
@@ -1117,13 +1102,13 @@ class FeeStructureController extends Controller
     private function generateFeeDescription($fee_structure, $previousBalance)
     {
         $description = $fee_structure->description ?: "Term {$fee_structure->term} Fees";
-        
+
         if ($previousBalance > 0) {
             $description .= " (Includes KSh " . number_format($previousBalance, 2) . " previous balance)";
         } elseif ($previousBalance < 0) {
             $description .= " (Includes KSh " . number_format(abs($previousBalance), 2) . " credit from previous terms)";
         }
-        
+
         return $description;
     }
 
@@ -1144,7 +1129,6 @@ class FeeStructureController extends Controller
 
             return redirect()->back()
                 ->with('success', "Successfully deleted {$deletedCount} generated fees for this fee structure.");
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Bulk delete fees error: ' . $e->getMessage());
@@ -1157,7 +1141,7 @@ class FeeStructureController extends Controller
     {
         $currentYear = now()->year;
         $years = [];
-        
+
         for ($i = -2; $i <= 2; $i++) {
             $year = $currentYear + $i;
             $years[] = [
@@ -1165,20 +1149,20 @@ class FeeStructureController extends Controller
                 'name' => $year . '/' . ($year + 1),
             ];
         }
-        
+
         return $years;
     }
 
     public function dataTable(Request $request)
     {
         return FeeStructure::with(['rank'])
-            ->when($request->has('class_id') && $request->class_id, function($query) use ($request) {
+            ->when($request->has('class_id') && $request->class_id, function ($query) use ($request) {
                 $query->where('rank_id', $request->class_id);
             })
-            ->when($request->has('academic_year') && $request->academic_year, function($query) use ($request) {
+            ->when($request->has('academic_year') && $request->academic_year, function ($query) use ($request) {
                 $query->where('academic_year', $request->academic_year);
             })
-            ->when($request->has('is_active') && $request->is_active !== '', function($query) use ($request) {
+            ->when($request->has('is_active') && $request->is_active !== '', function ($query) use ($request) {
                 $query->where('is_active', $request->is_active);
             })
             ->orderBy('academic_year', 'desc')

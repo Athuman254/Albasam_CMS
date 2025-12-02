@@ -35,7 +35,7 @@ class Rank extends Model
         'stream_id',
         'teacher_id',
         'activated',
-        'capacity',
+        'capacity', // Maximum number of students allowed
         'description',
         'academic_year_id',
         'grade_level',

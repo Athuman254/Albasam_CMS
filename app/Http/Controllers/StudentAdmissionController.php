@@ -17,6 +17,7 @@ use App\Http\Resources\Resource;
 use App\Models\StudentAdmission;
 use App\Mail\AdmissionRequestMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
@@ -28,94 +29,94 @@ use App\Http\Controllers\Fee\FeeStructureController;
 
 class StudentAdmissionController extends Controller
 {
-   public function dataTable(Request $request)
-{
-    Log::info('=== STUDENT ADMISSIONS DATATABLE ===');
+    public function dataTable(Request $request)
+    {
+        Log::info('=== STUDENT ADMISSIONS DATATABLE ===');
 
-    try {
-        // Build query with relationships
-        $query = StudentAdmission::with([
-            'student',
-            'division',
-            'student.rank',
-            'student.gender'
-        ])->orderBy('created_at', 'desc');
+        try {
+            // Build query with relationships
+            $query = StudentAdmission::with([
+                'student',
+                'division',
+                'student.rank',
+                'student.gender'
+            ])->orderBy('created_at', 'desc');
 
-        // Apply search filter
-        if ($request->has('filter.search') && !empty($request->filter['search'])) {
-            $search = $request->filter['search'];
-            Log::info("Applying search filter: {$search}");
+            // Apply search filter
+            if ($request->has('filter.search') && !empty($request->filter['search'])) {
+                $search = $request->filter['search'];
+                Log::info("Applying search filter: {$search}");
 
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('student', function ($studentQuery) use ($search) {
-                    $studentQuery->where('first_name', 'like', "%{$search}%")
-                        ->orWhere('last_name', 'like', "%{$search}%")
-                        ->orWhere('admission_number', 'like', "%{$search}%");
-                })
-                    ->orWhere('id', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('student', function ($studentQuery) use ($search) {
+                        $studentQuery->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('admission_number', 'like', "%{$search}%");
+                    })
+                        ->orWhere('id', 'like', "%{$search}%");
+                });
+            }
+
+            // Get pagination parameters
+            Log::info('Request parameters:', $request->all());
+            $perPage = $request->input('page.size', 20); // Default to 20 if not specified
+            $currentPage = $request->input('page.number', 1);
+
+            Log::info("Pagination params - perPage: {$perPage}, currentPage: {$currentPage}");
+
+            // Paginate with error handling
+            $admissions = $query->paginate($perPage, ['*'], 'page', $currentPage);
+
+            Log::info('Pagination successful', [
+                'total' => $admissions->total(),
+                'current_page' => $admissions->currentPage(),
+                'last_page' => $admissions->lastPage(),
+                'per_page' => $admissions->perPage()
+            ]);
+
+            $transformedData = $admissions->through(function ($admission) {
+                return [
+                    'id' => $admission->id,
+                    'hashid' => $admission->hashid,
+                    'date' => $admission->created_at ? $admission->created_at->toISOString() : null,
+                    'formatted_date' => $admission->formatted_date,
+                    'student_name' => $admission->student_name,
+                    'admission_number' => $admission->admission_number,
+                    'student_class' => $admission->student_class,
+                    'division_name' => $admission->division_name,
+                    'is_active' => $admission->is_active,
+                    'has_student' => $admission->has_student,
+                    'student' => $admission->student ? [
+                        'id' => $admission->student->id,
+                        'first_name' => $admission->student->first_name,
+                        'last_name' => $admission->student->last_name,
+                        'admission_number' => $admission->student->admission_number,
+                    ] : null,
+                    'division' => $admission->division ? [
+                        'id' => $admission->division->id,
+                        'name' => $admission->division->name,
+                    ] : null,
+                ];
             });
+
+            return Resource::collection($transformedData);
+        } catch (\Exception $e) {
+            Log::error('DATATABLE ERROR: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'error' => 'Failed to fetch admissions data',
+                'message' => $e->getMessage(),
+                'data' => [],
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $perPage ?? 20,
+                    'total' => 0
+                ]
+            ], 500);
         }
-
-        // Get pagination parameters
-        Log::info('Request parameters:', $request->all());
-        $perPage = $request->input('page.size', 20); // Default to 20 if not specified
-        $currentPage = $request->input('page.number', 1);
-
-        Log::info("Pagination params - perPage: {$perPage}, currentPage: {$currentPage}");
-
-        // Paginate with error handling
-        $admissions = $query->paginate($perPage, ['*'], 'page', $currentPage);
-
-        Log::info('Pagination successful', [
-            'total' => $admissions->total(),
-            'current_page' => $admissions->currentPage(),
-            'last_page' => $admissions->lastPage(),
-            'per_page' => $admissions->perPage()
-        ]);
-
-        $transformedData = $admissions->through(function ($admission) {
-            return [
-                'id' => $admission->id,
-                'hashid' => $admission->hashid,
-                'date' => $admission->created_at ? $admission->created_at->toISOString() : null,
-                'formatted_date' => $admission->formatted_date,
-                'student_name' => $admission->student_name,
-                'admission_number' => $admission->admission_number,
-                'student_class' => $admission->student_class,
-                'division_name' => $admission->division_name,
-                'is_active' => $admission->is_active,
-                'has_student' => $admission->has_student,
-                'student' => $admission->student ? [
-                    'id' => $admission->student->id,
-                    'first_name' => $admission->student->first_name,
-                    'last_name' => $admission->student->last_name,
-                    'admission_number' => $admission->student->admission_number,
-                ] : null,
-                'division' => $admission->division ? [
-                    'id' => $admission->division->id,
-                    'name' => $admission->division->name,
-                ] : null,
-            ];
-        });
-
-        return Resource::collection($transformedData);
-    } catch (\Exception $e) {
-        Log::error('DATATABLE ERROR: ' . $e->getMessage());
-        Log::error('Stack trace: ' . $e->getTraceAsString());
-
-        return response()->json([
-            'error' => 'Failed to fetch admissions data',
-            'message' => $e->getMessage(),
-            'data' => [],
-            'meta' => [
-                'current_page' => 1,
-                'last_page' => 1,
-                'per_page' => $perPage ?? 20,
-                'total' => 0
-            ]
-        ], 500);
     }
-}
 
     public function index()
     {
@@ -223,9 +224,18 @@ class StudentAdmissionController extends Controller
                 'division_id' => $validated['registration_details']['division_id'],
             ]);
 
+            // Generate default password (Admission Number + Current Year)
+            $defaultPassword = $admissionNumber . date('Y');
+
             $student = Student::create([
                 'student_admission_id' => $admission->id,
                 'admission_number' => $admissionNumber,
+                // Authentication Fields
+                'username' => $admissionNumber,
+                'password' => Hash::make($defaultPassword),
+                'user_type' => 'student',
+                'force_password_change' => true,
+
                 'rank_id' => $validated['student']['rank_id'] ?? $defaultDivision->id,
                 'first_name' => $validated['student']['first_name'],
                 'middle_name' => $validated['student']['middle_name'],
@@ -246,6 +256,9 @@ class StudentAdmissionController extends Controller
                 'character_book' => $validated['other_details']['character_book'] ?? null,
             ]);
 
+            // TODO: Send SMS with credentials to parent
+            // $this->sendCredentialsSms($student, $defaultPassword);
+
             if (isset($validated['guardians']) && is_array($validated['guardians'])) {
                 $guardianRecords = collect($validated['guardians'])
                     ->filter(function ($guardian) {
@@ -261,6 +274,7 @@ class StudentAdmissionController extends Controller
                             'email' => $guardian['email'],
                             'phone' => $guardian['phone'],
                             'profession' => $guardian['profession'],
+                            'place_of_work' => $guardian['place_of_work'] ?? null,
                             'identification_number' => $guardian['identification_number']
                         ];
                     })->toArray();

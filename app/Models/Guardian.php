@@ -15,8 +15,16 @@ class Guardian extends Model
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
     protected $fillable = [
-        'student_id', 'relationship_id', 'first_name', 'middle_name', 'last_name',
-        'email', 'phone', 'identification_number', 'profession'
+        'student_id',
+        'relationship_id',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'email',
+        'phone',
+        'identification_number',
+        'profession',
+        'place_of_work'
     ];
 
     public function student(): \Illuminate\Database\Eloquent\Relations\BelongsTo

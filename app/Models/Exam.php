@@ -37,6 +37,14 @@ class Exam extends Model
     }
 
     /**
+     * Relationship with exam marks
+     */
+    public function marks()
+    {
+        return $this->hasMany(ExamMark::class, 'exam_id');
+    }
+
+    /**
      * Relationship with skills through exam_skills pivot table
      */
     public function skills()

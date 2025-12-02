@@ -10,7 +10,6 @@ class StudentAdmissionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'registration_details.date' => ['required', 'date'],
             'registration_details.division_id' => ['required', Rule::exists('divisions', 'id')],
             'student.first_name' => ['required', 'string', 'max:255'],
             'student.middle_name' => ['nullable', 'string', 'max:255'],
@@ -26,18 +25,19 @@ class StudentAdmissionRequest extends FormRequest
             'student.ward' => ['nullable', 'string', 'max:255'],
             'student.permanent_address' => ['nullable', 'string', 'max:255'],
             'student.kcpe_score' => ['nullable', 'string', 'max:255'],
-//            'student.kpsea_score' => ['nullable', 'string', 'max:255'],
-//            'student.kjsea_score' => ['nullable', 'string', 'max:255'],
-//            'student.index_number' => ['nullable', 'string', 'max:255'],
-//            'student.upi_number' => ['nullable', 'string', 'max:255'],
-//            'student.nemis' => ['nullable', 'string', 'max:255'],
-//            'student.assessment_number' => ['nullable', 'string', 'max:255'],
+            //            'student.kpsea_score' => ['nullable', 'string', 'max:255'],
+            //            'student.kjsea_score' => ['nullable', 'string', 'max:255'],
+            //            'student.index_number' => ['nullable', 'string', 'max:255'],
+            //            'student.upi_number' => ['nullable', 'string', 'max:255'],
+            //            'student.nemis' => ['nullable', 'string', 'max:255'],
+            //            'student.assessment_number' => ['nullable', 'string', 'max:255'],
             'student.previous_school' => ['nullable', 'string', 'max:255'],
             'student.specialization' => ['nullable', 'string', 'max:255'],
             'guardians' => ['required', 'array'], // Ensure at least one guardian is provided
             'guardians.*.relationship_id' => ['nullable', Rule::exists('relationships', 'id')],
             'guardians.*.first_name' => ['nullable', 'string', 'max:255'],
             'guardians.*.middle_name' => ['nullable', 'string', 'max:255'],
+            'guardians.*.place_of_work' => ['nullable', 'string', 'max:255'],
             'guardians.*.last_name' => ['nullable', 'string', 'max:255'],
             'guardians.*.email' => ['nullable', 'email'],
             'guardians.*.phone' => ['nullable', 'string'],
@@ -59,7 +59,6 @@ class StudentAdmissionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'registration_details.date' => 'Please select the registration date.',
             'registration_details.admission_number' => 'You must provide an admission number.',
             'registration_details.division_id' => 'Please select a division.',
             'registration_details.rank_id' => 'Please select a class.',
@@ -83,7 +82,7 @@ class StudentAdmissionRequest extends FormRequest
             'other_details.siblings.*.current_class.required_with' => 'Each sibling must have a current class if siblings are provided.',
         ];
     }
-    
+
     protected function prepareForValidation(): void
     {
         $this->merge(

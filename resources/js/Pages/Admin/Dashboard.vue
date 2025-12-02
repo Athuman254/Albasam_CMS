@@ -2,6 +2,13 @@
    <Head title="Dashboard"/>
    
    <DefaultLayout>
+      <!-- Greeting Card -->
+      <div class="mb-4">
+         <GreetingCard 
+            :user-name="$page.props.auth.user?.name || 'Admin'" 
+            user-type="admin" 
+         />
+      </div>
       <div class="row">
          <div class="col-lg-4 col-sm-6 mb-3">
             <div class="card h-100">
@@ -58,15 +65,14 @@
    </DefaultLayout>
 </template>
 
-<script>
+<script setup>
 import DefaultLayout from '@/Layouts/DefaultLayout.vue'; 
+import GreetingCard from '@/Components/GreetingCard.vue';
 import { Head, Link } from "@inertiajs/vue3";
 
-export default {
-   components: {DefaultLayout, Head, Link},
-   props: ['studentsCount', 'teachersCount', 'classesCount'],
-   mounted() {
-      console.log('Dashboard component mounted');
-   }
-};
+defineProps({
+   studentsCount: Number,
+   teachersCount: Number,
+   classesCount: Number
+});
 </script>

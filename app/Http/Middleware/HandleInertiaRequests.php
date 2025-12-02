@@ -35,12 +35,12 @@ class HandleInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             'logoUrl' => function () {
                 $institution = \App\Models\Institution::firstOrFail() ?? null;
-                
+
                 return $institution->hasMedia('logo') ? $institution->getMedia('logo')->sortByDesc('created_at')->first()->getUrl() : null;
             },
             'faviconUrl' => function () {
                 $institution = \App\Models\Institution::firstOrFail() ?? null;
-                
+
                 return $institution->hasMedia('favicon') ? $institution->getMedia('favicon')->sortByDesc('created_at')->first()->getUrl() : null;
             },
             'institution' => function () {
@@ -49,7 +49,7 @@ class HandleInertiaRequests extends Middleware
             },
             'auth.user' => function () use ($request) {
                 $user = Auth::guard('web')->user();
-                
+
                 return $user
                     ? [
                         'id' => $user->hashid,
@@ -58,15 +58,15 @@ class HandleInertiaRequests extends Middleware
                         'email' => $user->email,
                         'phone' => $user->phone,
                         'username' => $user->username,
-                        'roles' => $user->roles->pluck('name'),
-                        'permissions' => $user->permissions->pluck('name'),
+                        'roles' => $user->roles->pluck('name')->toArray(),
+                        'permissions' => $user->allPermissions()->pluck('name')->toArray(),
                     ]
                     : null;
             },
-            
+
             'auth.employee' => function () use ($request) {
                 $employee = Auth::guard('employee')->user();
-                
+
                 return $employee
                     ? [
                         'id' => $employee->hashid,
@@ -78,7 +78,28 @@ class HandleInertiaRequests extends Middleware
                         'teacher' => $employee->teacher ?? null,
                     ]
                     : null;
-            }
+            },
+
+            'auth.student' => function () use ($request) {
+                $student = Auth::guard('student')->user();
+
+                return $student
+                    ? [
+                        'id' => $student->hashid,
+                        'student_id' => $student->id,
+                        'admission_number' => $student->admission_number,
+                        'name' => $student->first_name . ' ' . $student->last_name,
+                        'email' => $student->email, // If student has email
+                        'photo_url' => $student->photo_url,
+                    ]
+                    : null;
+            },
+            'flash' => [
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
+                'warning' => fn() => $request->session()->get('warning'),
+                'info' => fn() => $request->session()->get('info'),
+            ],
         ]);
     }
 }

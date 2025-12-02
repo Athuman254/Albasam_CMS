@@ -19,8 +19,28 @@ class Institution extends Model implements HasMedia
     protected $primaryKey = 'id';
     protected $appends = ['hashid'];
     protected $fillable = [
-        'name', 'code', 'email', 'phone', 'country', 'state', 'city', 'physical_address', 'postal_address', 'tax_identification_pin',
-        'mission', 'vision', 'motto', 'logo_size', 'x_profile', 'fb_profile', 'ig_profile', 'youtube_profile', 'tiktok_profile',
+        'name',
+        'code',
+        'email',
+        'phone',
+        'country',
+        'state',
+        'city',
+        'physical_address',
+        'postal_address',
+        'tax_identification_pin',
+        'mission',
+        'vision',
+        'motto',
+        'logo_size',
+        'x_profile',
+        'fb_profile',
+        'ig_profile',
+        'youtube_profile',
+        'tiktok_profile',
+        'latitude',
+        'longitude',
+        'geofence_radius',
     ];
 
     public function registerMediaCollections(): void
@@ -30,7 +50,9 @@ class Institution extends Model implements HasMedia
             ->useFallbackPath(public_path('/logo.png'))
             ->acceptsFile(function (File $file) {
                 return in_array($file->mimeType, [
-                    'image/jpg', 'image/jpeg', 'image/png',
+                    'image/jpg',
+                    'image/jpeg',
+                    'image/png',
                 ]);
             })
             ->registerMediaConversions(function (Media $media) {
@@ -44,7 +66,9 @@ class Institution extends Model implements HasMedia
             ->useFallbackPath(public_path('/favicon.png'))
             ->acceptsFile(function (File $file) {
                 return in_array($file->mimeType, [
-                    'image/jpg', 'image/jpeg', 'image/png',
+                    'image/jpg',
+                    'image/jpeg',
+                    'image/png',
                 ]);
             })
             ->registerMediaConversions(function (Media $media) {

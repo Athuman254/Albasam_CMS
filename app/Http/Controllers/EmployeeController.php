@@ -28,16 +28,63 @@ class EmployeeController extends Controller
     /**
      * Display a listing of the employees.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        // Get all roles except admin for the modal
+        $roles = \App\Models\Role::where('name', '!=', 'admin')
+            ->get(['id', 'name', 'display_name', 'description']);
+
+        // Get subjects for specialization dropdown
+        $subjects = Subject::select('id', 'name')->orderBy('name')->get();
+
+        // Get all other dropdown options
+        $employmentTypes = \App\Models\EmploymentType::select('id', 'name')->get();
+        $employmentStatuses = \App\Models\EmploymentStatus::select('id', 'name')->get();
+        $honorifics = \App\Models\Honorific::select('id', 'name')->get();
+        $maritalStatuses = \App\Models\MaritalStatus::select('id', 'name')->get();
+        $genders = \App\Models\Gender::select('id', 'name')->get();
+        $religions = \App\Models\Religion::select('id', 'name')->get();
+
+        // Generate next staff number
+        $nextStaffNumber = Employee::generateStaffNumber();
+
+        // Build query with relationships
+        $query = Employee::query()->with([
+            'employmentType',
+            'employmentStatus',
+            'gender',
+            'honorific',
+            'classes'
+        ]);
+
+        // Add search functionality
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('middle_name', 'like', "%{$search}%")
+                    ->orWhere('staff_number', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('primary_phone', 'like', "%{$search}%")
+                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"]);
+            });
+        }
+
         return Inertia::render('Admin/Employees/Index', [
-            'employees' => Employee::with([
-                'employmentType',
-                'employmentStatus', 
-                'gender',
-                'classes'
-            ])->latest()->paginate(20),
-            'filters' => request()->all(['search', 'trashed']),
+            'employees' => $query->latest()->paginate($request->input('per_page', 20)),
+            'filters' => $request->all(['search', 'trashed']),
+            'roles' => $roles,
+            'subjects' => $subjects,
+            'nextStaffNumber' => $nextStaffNumber,
+            'options' => [
+                'employmentTypes' => $employmentTypes,
+                'employmentStatuses' => $employmentStatuses,
+                'honorifics' => $honorifics,
+                'maritalStatuses' => $maritalStatuses,
+                'genders' => $genders,
+                'religions' => $religions,
+            ]
         ]);
     }
 
@@ -46,8 +93,12 @@ class EmployeeController extends Controller
      */
     public function create(): Response
     {
+        // Get all roles except admin (admin role should be assigned carefully)
+        $roles = \App\Models\Role::where('name', '!=', 'admin')
+            ->get(['id', 'name', 'display_name', 'description']);
+
         return Inertia::render('Admin/Employees/Create', [
-            // Add any necessary data for the create form
+            'roles' => $roles,
         ]);
     }
 
@@ -57,16 +108,164 @@ class EmployeeController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            // Personal Info
+            'honorific_id' => 'nullable|exists:honorifics,id',
             'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
+            'gender_id' => 'required|exists:genders,id',
+            'marital_status_id' => 'nullable|exists:marital_statuses,id',
+            'religion_id' => 'nullable|exists:religions,id',
+            'date_of_hire' => 'required|date',
+
+            // Contact Info
+            'email' => 'nullable|email|max:255|unique:employees,email',
+            'primary_phone' => 'required|string|max:20|unique:employees,primary_phone',
+            'secondary_phone' => 'nullable|string|max:20',
+            'permanent_physical_address' => 'nullable|string',
+            'secondary_physical_address' => 'nullable|string',
+            'postal_address' => 'nullable|string',
+
+            // Employment Info
             'staff_number' => 'required|string|unique:employees',
-            // Add other validation rules
+            'employment_type_id' => 'required|exists:employment_types,id',
+            'employment_status_id' => 'required|exists:employment_statuses,id',
+            'identification_number' => 'required|string|max:50|unique:employees',
+            'tax_identification_pin' => 'nullable|string|max:50',
+
+            // Role & System Access
+            'role_id' => 'required|exists:roles,id',
+            'has_system_access' => 'boolean',
+            'password' => 'required_if:has_system_access,true|min:8',
+
+            // Teacher Specific
+            'subject_specialization' => 'nullable|array',
+            'teaching_qualification' => 'nullable|string|max:255',
+
+            // Payroll Info
+            'in_payroll' => 'boolean',
+            'pays_paye' => 'boolean',
+            'pays_sha' => 'boolean',
+            'sha_no' => 'nullable|string|max:50',
+            'pays_nssf' => 'boolean',
+            'nssf_no' => 'nullable|string|max:50',
+            'pays_housing_levy' => 'boolean',
+        ], [
+            // Custom error messages
+            'first_name.required' => 'First name is required.',
+            'last_name.required' => 'Last name is required.',
+            'gender_id.required' => 'Gender is required.',
+            'date_of_hire.required' => 'Date of hire is required.',
+            'primary_phone.required' => 'Primary phone number is required.',
+            'primary_phone.unique' => 'This phone number is already registered.',
+            'email.unique' => 'This email is already registered.',
+            'staff_number.unique' => 'This staff number is already in use.',
+            'identification_number.unique' => 'This ID number is already registered.',
+            'employment_type_id.required' => 'Employment type is required.',
+            'employment_status_id.required' => 'Employment status is required.',
+            'role_id.required' => 'Staff role is required.',
         ]);
 
-        $employee = Employee::create($validated);
+        // Check for soft-deleted duplicates
+        $conflicts = Employee::withTrashed()
+            ->where(function ($query) use ($request) {
+                $query->where('primary_phone', $request->primary_phone)
+                    ->orWhere('email', $request->email)
+                    ->orWhere('staff_number', $request->staff_number)
+                    ->orWhere('identification_number', $request->identification_number);
+            })
+            ->whereNotNull('deleted_at')
+            ->first();
 
-        return redirect()->route('employees.show', $employee)
-            ->with('success', 'Employee created successfully.');
+        if ($conflicts) {
+            $field = '';
+            if ($conflicts->primary_phone === $request->primary_phone) $field = 'phone number';
+            elseif ($conflicts->email === $request->email) $field = 'email';
+            elseif ($conflicts->staff_number === $request->staff_number) $field = 'staff number';
+            elseif ($conflicts->identification_number === $request->identification_number) $field = 'ID number';
+
+            return back()
+                ->withInput()
+                ->withErrors(['error' => "This {$field} belongs to a deleted employee ({$conflicts->first_name} {$conflicts->last_name}). Please restore them from the trash or permanently delete them first."]);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Convert empty strings to null for optional fields
+            $nullableFields = [
+                'honorific_id',
+                'middle_name',
+                'marital_status_id',
+                'religion_id',
+                'email',
+                'secondary_phone',
+                'permanent_physical_address',
+                'secondary_physical_address',
+                'postal_address',
+                'tax_identification_pin',
+                'teaching_qualification',
+                'sha_no',
+                'nssf_no'
+            ];
+
+            foreach ($nullableFields as $field) {
+                if (isset($validated[$field]) && $validated[$field] === '') {
+                    $validated[$field] = null;
+                }
+            }
+
+            // Handle subject specialization array -> string
+            if (isset($validated['subject_specialization']) && is_array($validated['subject_specialization'])) {
+                $validated['subject_specialization'] = implode(', ', $validated['subject_specialization']);
+            }
+
+            $employee = Employee::create($validated);
+
+            // Create user account if system access granted
+            if ($request->boolean('has_system_access')) {
+                $user = \App\Models\User::create([
+                    'name' => $validated['first_name'] . ' ' . $validated['last_name'],
+                    'email' => $validated['email'],
+                    'password' => bcrypt($validated['password']),
+                    'username' => strtolower($validated['first_name'] . '.' . $validated['last_name']),
+                ]);
+
+                // Link employee to user
+                $employee->user_id = $user->id;
+                $employee->save();
+
+                // Assign role
+                $user->roles()->attach($validated['role_id']);
+            } elseif (!empty($validated['role_id']) && $employee->user) {
+                // If user already exists (shouldn't happen in create but good fallback)
+                $employee->user->roles()->sync([$validated['role_id']]);
+            }
+
+            DB::commit();
+
+            return redirect()->back()
+                ->with('success', 'Employee created successfully.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+
+            // Handle specific database errors with user-friendly messages
+            if ($e->getCode() == 23000) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'This employee information already exists. Please check phone number, email, or ID number.');
+            }
+
+            Log::error('Employee creation failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create employee. Please check all required fields and try again.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Employee creation failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'An error occurred while creating the employee. Please try again.');
+        }
     }
 
     /**
@@ -75,11 +274,11 @@ class EmployeeController extends Controller
     public function show(Employee $employee): Response
     {
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         // Load current assignments for the employee
         $currentAssignments = EmployeeClass::with(['class.stream', 'subject', 'academicYear'])
             ->where('employee_id', $employee->id)
-            ->when($currentAcademicYear, function($query) use ($currentAcademicYear) {
+            ->when($currentAcademicYear, function ($query) use ($currentAcademicYear) {
                 return $query->where('academic_year_id', $currentAcademicYear->id);
             })
             ->get();
@@ -103,6 +302,13 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee): Response
     {
+        // Get all roles except admin
+        $roles = \App\Models\Role::where('name', '!=', 'admin')
+            ->get(['id', 'name', 'display_name', 'description']);
+
+        // Get employee's current role
+        $currentRole = $employee->user?->roles->first();
+
         return Inertia::render('Admin/Employees/Edit', [
             'employee' => $employee->load([
                 'user',
@@ -110,6 +316,8 @@ class EmployeeController extends Controller
                 'employmentStatus',
                 'gender'
             ]),
+            'roles' => $roles,
+            'currentRole' => $currentRole,
         ]);
     }
 
@@ -119,16 +327,153 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee): RedirectResponse
     {
         $validated = $request->validate([
+            // Personal Info
+            'honorific_id' => 'nullable|exists:honorifics,id',
             'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
+            'gender_id' => 'required|exists:genders,id',
+            'marital_status_id' => 'nullable|exists:marital_statuses,id',
+            'religion_id' => 'nullable|exists:religions,id',
+            'date_of_hire' => 'required|date',
+
+            // Contact Info
+            'email' => 'nullable|email|max:255|unique:employees,email,' . $employee->id,
+            'primary_phone' => 'required|string|max:20|unique:employees,primary_phone,' . $employee->id,
+            'secondary_phone' => 'nullable|string|max:20',
+            'permanent_physical_address' => 'nullable|string',
+            'secondary_physical_address' => 'nullable|string',
+            'postal_address' => 'nullable|string',
+
+            // Employment Info
             'staff_number' => 'required|string|unique:employees,staff_number,' . $employee->id,
-            // Add other validation rules
+            'employment_type_id' => 'required|exists:employment_types,id',
+            'employment_status_id' => 'required|exists:employment_statuses,id',
+            'identification_number' => 'required|string|max:50|unique:employees,identification_number,' . $employee->id,
+            'tax_identification_pin' => 'nullable|string|max:50',
+
+            // Role & System Access
+            'role_id' => 'required|exists:roles,id',
+            'has_system_access' => 'boolean',
+            'password' => 'nullable|min:8',
+
+            // Teacher Specific
+            'subject_specialization' => 'nullable|array',
+            'teaching_qualification' => 'nullable|string|max:255',
+
+            // Payroll Info
+            'in_payroll' => 'boolean',
+            'pays_paye' => 'boolean',
+            'pays_sha' => 'boolean',
+            'sha_no' => 'nullable|string|max:50',
+            'pays_nssf' => 'boolean',
+            'nssf_no' => 'nullable|string|max:50',
+            'pays_housing_levy' => 'boolean',
+        ], [
+            // Custom error messages
+            'first_name.required' => 'First name is required.',
+            'last_name.required' => 'Last name is required.',
+            'gender_id.required' => 'Gender is required.',
+            'date_of_hire.required' => 'Date of hire is required.',
+            'primary_phone.required' => 'Primary phone number is required.',
+            'primary_phone.unique' => 'This phone number is already registered.',
+            'email.unique' => 'This email is already registered.',
+            'staff_number.unique' => 'This staff number is already in use.',
+            'identification_number.unique' => 'This ID number is already registered.',
+            'employment_type_id.required' => 'Employment type is required.',
+            'employment_status_id.required' => 'Employment status is required.',
+            'role_id.required' => 'Staff role is required.',
         ]);
 
-        $employee->update($validated);
+        DB::beginTransaction();
+        try {
+            // Convert empty strings to null for optional fields
+            $nullableFields = [
+                'honorific_id',
+                'middle_name',
+                'marital_status_id',
+                'religion_id',
+                'email',
+                'secondary_phone',
+                'permanent_physical_address',
+                'secondary_physical_address',
+                'postal_address',
+                'tax_identification_pin',
+                'teaching_qualification',
+                'sha_no',
+                'nssf_no'
+            ];
 
-        return redirect()->route('employees.show', $employee)
-            ->with('success', 'Employee updated successfully.');
+            foreach ($nullableFields as $field) {
+                if (isset($validated[$field]) && $validated[$field] === '') {
+                    $validated[$field] = null;
+                }
+            }
+
+            // Handle subject specialization array -> string
+            if (isset($validated['subject_specialization']) && is_array($validated['subject_specialization'])) {
+                $validated['subject_specialization'] = implode(', ', $validated['subject_specialization']);
+            }
+
+            $employee->update($validated);
+
+            // Update role if provided and employee has a user account
+            if ($employee->user) {
+                if (!empty($validated['role_id'])) {
+                    // Sync roles (remove old, add new)
+                    $employee->user->roles()->sync([$validated['role_id']]);
+                } else {
+                    // Remove all roles if role_id is empty
+                    $employee->user->roles()->detach();
+                }
+
+                // Update password if provided
+                if (!empty($validated['password'])) {
+                    $employee->user->update([
+                        'password' => bcrypt($validated['password']),
+                    ]);
+                }
+            } elseif ($request->boolean('has_system_access') && !empty($validated['password'])) {
+                // Create user if they don't have one but system access is requested
+                $user = \App\Models\User::create([
+                    'name' => $validated['first_name'] . ' ' . $validated['last_name'],
+                    'email' => $validated['email'],
+                    'password' => bcrypt($validated['password']),
+                    'username' => strtolower($validated['first_name'] . '.' . $validated['last_name']),
+                ]);
+
+                $employee->user_id = $user->id;
+                $employee->save();
+
+                $user->roles()->attach($validated['role_id']);
+            }
+
+            DB::commit();
+
+            // For Inertia requests, we need to handle this differently
+            // Instead of redirecting, we'll let Inertia handle the response
+            return back()->with('success', 'Employee updated successfully.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+
+            // Handle specific database errors with user-friendly messages
+            if ($e->getCode() == 23000) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['error' => 'This employee information already exists. Please check phone number, email, or ID number.']);
+            }
+
+            Log::error('Employee update failed: ' . $e->getMessage());
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to update employee. Please check all required fields and try again.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Employee update failed: ' . $e->getMessage());
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to update employee: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -136,10 +481,33 @@ class EmployeeController extends Controller
      */
     public function destroy(Employee $employee): RedirectResponse
     {
-        $employee->delete();
+        DB::beginTransaction();
+        try {
+            // Store user_id before removing the reference
+            $userId = $employee->user_id;
 
-        return redirect()->route('employees.index')
-            ->with('success', 'Employee deleted successfully.');
+            // Set user_id to NULL to remove the foreign key reference
+            $employee->user_id = null;
+            $employee->save();
+
+            // Now delete the employee
+            $employee->delete();
+
+            // Then delete the associated user if exists
+            if ($userId) {
+                $user = \App\Models\User::find($userId);
+                if ($user) {
+                    $user->delete();
+                }
+            }
+
+            DB::commit();
+            return back()->with('success', 'Employee deleted successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Employee deletion failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to delete employee: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -151,12 +519,12 @@ class EmployeeController extends Controller
             Employee::with([
                 'employmentType',
                 'employmentStatus',
-                'honorific', 
+                'honorific',
                 'maritalStatus',
-                'gender', 
-                'religion', 
+                'gender',
+                'religion',
                 'teacher',
-                'classes' => function($query) {
+                'classes' => function ($query) {
                     $academicYearId = AcademicYear::where('is_active', true)->value('id');
                     if ($academicYearId) {
                         $query->wherePivot('academic_year_id', $academicYearId);
@@ -169,7 +537,7 @@ class EmployeeController extends Controller
             AllowedFilter::scope('teachers', 'Teachers'),
             AllowedFilter::scope('active', 'Active'),
         ])->jsonPaginate();
-        
+
         return Resource::collection($employees);
     }
 
@@ -179,7 +547,7 @@ class EmployeeController extends Controller
     public function dataTableEmployeeClasses(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
         $assignments = QueryBuilder::for(
-            DB::table('employee_class')
+            EmployeeClass::query()
                 ->join('employees', 'employee_class.employee_id', '=', 'employees.id')
                 ->join('ranks', 'employee_class.class_id', '=', 'ranks.id')
                 ->leftJoin('subjects', 'employee_class.subject_id', '=', 'subjects.id')
@@ -197,13 +565,13 @@ class EmployeeController extends Controller
             AllowedFilter::exact('employee_id'),
             AllowedFilter::exact('class_id'),
             AllowedFilter::exact('academic_year_id'),
-            AllowedFilter::scope('search', function ($query, $value) {
+            AllowedFilter::callback('search', function ($query, $value) {
                 $query->where(function ($q) use ($value) {
                     $q->where('employees.first_name', 'like', "%{$value}%")
-                      ->orWhere('employees.last_name', 'like', "%{$value}%")
-                      ->orWhere('employees.staff_number', 'like', "%{$value}%")
-                      ->orWhere('ranks.name', 'like', "%{$value}%")
-                      ->orWhere('subjects.name', 'like', "%{$value}%");
+                        ->orWhere('employees.last_name', 'like', "%{$value}%")
+                        ->orWhere('employees.staff_number', 'like', "%{$value}%")
+                        ->orWhere('ranks.name', 'like', "%{$value}%")
+                        ->orWhere('subjects.name', 'like', "%{$value}%");
                 });
             }),
         ])->jsonPaginate();
@@ -219,7 +587,7 @@ class EmployeeController extends Controller
         // Implement your datatable logic for subject assignments
         return response()->json([]);
     }
-    
+
     /**
      * Grant system access to employee - FIXED VERSION
      * Uses plain text password to let Employee model mutator handle hashing
@@ -227,19 +595,19 @@ class EmployeeController extends Controller
     public function systemAccess(EmployeeCredentialRequest $request, Employee $employee): RedirectResponse
     {
         $validated = $request->validated();
-        
+
         $update = ['has_system_access' => $validated['has_system_access']];
-        
+
         if (!empty($validated['password'])) {
             // ✅ FIXED: Use plain text password - let the Employee model mutator handle hashing
             $update['password'] = $validated['password'];
         }
-        
+
         $employee->update($update);
-        
+
         return back(303)->with('success', 'Credentials captured.');
     }
-    
+
     /**
      * Revoke system access from employee
      */
@@ -248,7 +616,7 @@ class EmployeeController extends Controller
         $employee->update([
             'has_system_access' => false,
         ]);
-        
+
         return back(303)->with('success', 'Access Revoked');
     }
 
@@ -262,11 +630,11 @@ class EmployeeController extends Controller
         $subjects = Subject::where('activated', true)->get();
         $academicYears = AcademicYear::all();
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
-        
+
         // Get current assignments using the EmployeeClass model
         $currentAssignments = EmployeeClass::with(['class.stream', 'subject', 'academicYear'])
             ->where('employee_id', $employee->id)
-            ->when($currentAcademicYear, function($query) use ($currentAcademicYear) {
+            ->when($currentAcademicYear, function ($query) use ($currentAcademicYear) {
                 return $query->where('academic_year_id', $currentAcademicYear->id);
             })
             ->get();
@@ -295,7 +663,7 @@ class EmployeeController extends Controller
         $currentAcademicYear = AcademicYear::where('is_active', true)->first();
         $subjects = Subject::where('activated', true)->orderBy('name')->get();
         $classes = Rank::where('activated', true)->orderBy('name')->get();
-        
+
         $assignedSubjects = $employee->subjects()
             ->withPivot('academic_year_id', 'class_id')
             ->get();
@@ -310,129 +678,128 @@ class EmployeeController extends Controller
         ]);
     }
 
-   /**
- * Store class assignments for employee (API endpoint for Vue component)
- * Updated to handle teacher_id field
- */
-public function storeClassAssignments(Request $request, Employee $employee): JsonResponse
-{
-    $validated = $request->validate([
-        'class_id' => 'required|exists:ranks,id',
-        'subject_ids' => 'nullable|array',
-        'subject_ids.*' => 'exists:subjects,id',
-        'is_class_teacher' => 'boolean',
-        'academic_year_id' => 'required|exists:academic_years,id',
-    ]);
+    /**
+     * Store class assignments for employee (API endpoint for Vue component)
+     * Updated to handle teacher_id field
+     */
+    public function storeClassAssignments(Request $request, Employee $employee): JsonResponse
+    {
+        $validated = $request->validate([
+            'class_id' => 'required|exists:ranks,id',
+            'subject_ids' => 'nullable|array',
+            'subject_ids.*' => 'exists:subjects,id',
+            'is_class_teacher' => 'boolean',
+            'academic_year_id' => 'required|exists:academic_years,id',
+        ]);
 
-    // If subject_ids is provided, is_class_teacher should be false
-    if (!empty($validated['subject_ids']) && $validated['is_class_teacher']) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Cannot set both subjects and class teacher for the same assignment.',
-        ], 422);
-    }
+        // If subject_ids is provided, is_class_teacher should be false
+        if (!empty($validated['subject_ids']) && $validated['is_class_teacher']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot set both subjects and class teacher for the same assignment.',
+            ], 422);
+        }
 
-    // If no subjects and not class teacher, return error
-    if (empty($validated['subject_ids']) && !$validated['is_class_teacher']) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Please select at least one subject or enable Class Teacher.',
-        ], 422);
-    }
+        // If no subjects and not class teacher, return error
+        if (empty($validated['subject_ids']) && !$validated['is_class_teacher']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please select at least one subject or enable Class Teacher.',
+            ], 422);
+        }
 
-    // Check subject count limit (max 2 subjects per class)
-    if (!empty($validated['subject_ids']) && count($validated['subject_ids']) > 2) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Maximum 2 subjects allowed per class.',
-        ], 422);
-    }
+        // Check subject count limit (max 2 subjects per class)
+        if (!empty($validated['subject_ids']) && count($validated['subject_ids']) > 2) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Maximum 2 subjects allowed per class.',
+            ], 422);
+        }
 
-    try {
-        DB::beginTransaction();
+        try {
+            DB::beginTransaction();
 
-        // If setting as class teacher
-        if ($validated['is_class_teacher']) {
-            // Remove existing class teacher for this class
-            EmployeeClass::where('class_id', $validated['class_id'])
-                ->where('academic_year_id', $validated['academic_year_id'])
-                ->where('is_class_teacher', true)
-                ->delete();
+            // If setting as class teacher
+            if ($validated['is_class_teacher']) {
+                // Remove existing class teacher for this class
+                EmployeeClass::where('class_id', $validated['class_id'])
+                    ->where('academic_year_id', $validated['academic_year_id'])
+                    ->where('is_class_teacher', true)
+                    ->delete();
 
-            // Remove any existing subject assignments for this class
+                // Remove any existing subject assignments for this class
+                EmployeeClass::where('employee_id', $employee->id)
+                    ->where('class_id', $validated['class_id'])
+                    ->where('academic_year_id', $validated['academic_year_id'])
+                    ->delete();
+
+                // Create class teacher assignment
+                $assignment = EmployeeClass::create([
+                    'employee_id' => $employee->id,
+                    'teacher_id' => $employee->id, // Explicitly set teacher_id
+                    'class_id' => $validated['class_id'],
+                    'subject_id' => null,
+                    'is_class_teacher' => true,
+                    'academic_year_id' => $validated['academic_year_id'],
+                ]);
+
+                $assignment->load(['class.stream', 'subject']);
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Class Teacher assignment created successfully.',
+                    'assignment' => $assignment,
+                ]);
+            }
+
+            // Handle multiple subject assignments
+            $createdAssignments = [];
+
+            // Remove existing subject assignments for this class to avoid duplicates
             EmployeeClass::where('employee_id', $employee->id)
                 ->where('class_id', $validated['class_id'])
                 ->where('academic_year_id', $validated['academic_year_id'])
                 ->delete();
 
-            // Create class teacher assignment
-            $assignment = EmployeeClass::create([
-                'employee_id' => $employee->id,
-                'teacher_id' => $employee->id, // Explicitly set teacher_id
-                'class_id' => $validated['class_id'],
-                'subject_id' => null,
-                'is_class_teacher' => true,
-                'academic_year_id' => $validated['academic_year_id'],
-            ]);
+            // Create new subject assignments
+            foreach ($validated['subject_ids'] as $subjectId) {
+                $assignment = EmployeeClass::create([
+                    'employee_id' => $employee->id,
+                    'teacher_id' => $employee->id, // Explicitly set teacher_id
+                    'class_id' => $validated['class_id'],
+                    'subject_id' => $subjectId,
+                    'is_class_teacher' => false,
+                    'academic_year_id' => $validated['academic_year_id'],
+                ]);
 
-            $assignment->load(['class.stream', 'subject']);
+                $assignment->load(['class.stream', 'subject']);
+                $createdAssignments[] = $assignment;
+            }
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Class Teacher assignment created successfully.',
-                'assignment' => $assignment,
+                'message' => count($createdAssignments) . ' subject assignment(s) created successfully.',
+                'assignments' => $createdAssignments,
             ]);
-        }
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-        // Handle multiple subject assignments
-        $createdAssignments = [];
-        
-        // Remove existing subject assignments for this class to avoid duplicates
-        EmployeeClass::where('employee_id', $employee->id)
-            ->where('class_id', $validated['class_id'])
-            ->where('academic_year_id', $validated['academic_year_id'])
-            ->delete();
-
-        // Create new subject assignments
-        foreach ($validated['subject_ids'] as $subjectId) {
-            $assignment = EmployeeClass::create([
+            Log::error('Failed to create class assignments: ' . $e->getMessage(), [
                 'employee_id' => $employee->id,
-                'teacher_id' => $employee->id, // Explicitly set teacher_id
-                'class_id' => $validated['class_id'],
-                'subject_id' => $subjectId,
-                'is_class_teacher' => false,
-                'academic_year_id' => $validated['academic_year_id'],
+                'request' => $validated,
+                'error' => $e->getMessage()
             ]);
 
-            $assignment->load(['class.stream', 'subject']);
-            $createdAssignments[] = $assignment;
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create assignments: ' . $e->getMessage(),
+            ], 500);
         }
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => count($createdAssignments) . ' subject assignment(s) created successfully.',
-            'assignments' => $createdAssignments,
-        ]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        
-        Log::error('Failed to create class assignments: ' . $e->getMessage(), [
-            'employee_id' => $employee->id,
-            'request' => $validated,
-            'error' => $e->getMessage()
-        ]);
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to create assignments: ' . $e->getMessage(),
-        ], 500);
     }
-}
 
     /**
      * Update class assignment for employee (API endpoint for Vue component)
@@ -447,7 +814,7 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
 
         // Handle single assignment update (for backward compatibility)
         $assignment = EmployeeClass::find($assignmentId);
-        
+
         if (!$assignment || $assignment->employee_id !== $employee->id) {
             return response()->json([
                 'success' => false,
@@ -526,7 +893,7 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
             // Update or create assignments for each subject
             foreach ($validated['subject_ids'] as $subjectId) {
                 $existingAssignment = $existingAssignments->firstWhere('subject_id', $subjectId);
-                
+
                 if ($existingAssignment) {
                     // Assignment already exists, keep it
                     $existingAssignment->update(['is_class_teacher' => false]);
@@ -562,7 +929,6 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                 'message' => 'Assignments updated successfully.',
                 'assignments' => $createdAssignments,
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -605,7 +971,6 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                 'success' => true,
                 'message' => count($validated['assignment_ids']) . ' assignment(s) removed successfully.',
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -649,7 +1014,7 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
         try {
             DB::transaction(function () use ($employee, $request) {
                 $academicYearId = $request->academic_year_id;
-                
+
                 // Remove existing assignments for this academic year
                 $employee->subjects()->wherePivot('academic_year_id', $academicYearId)->detach();
 
@@ -665,7 +1030,6 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
             });
 
             return redirect()->back()->with('success', 'Subjects assigned successfully.');
-
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Failed to assign subjects: ' . $e->getMessage())
@@ -693,7 +1057,6 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                 'success' => true,
                 'message' => 'Class assignment removed successfully.'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -722,7 +1085,6 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                 'success' => true,
                 'message' => 'Subject assignment removed successfully.'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -751,12 +1113,12 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
 
         $teachers = Employee::whereHas('classes', function ($query) use ($class, $academicYearId) {
             $query->where('class_id', $class->id)
-                  ->where('academic_year_id', $academicYearId);
+                ->where('academic_year_id', $academicYearId);
         })->with([
             'user',
-            'subjects' => function($query) use ($class, $academicYearId) {
+            'subjects' => function ($query) use ($class, $academicYearId) {
                 $query->wherePivot('class_id', $class->id)
-                      ->wherePivot('academic_year_id', $academicYearId);
+                    ->wherePivot('academic_year_id', $academicYearId);
             }
         ])->get();
 
@@ -829,7 +1191,7 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
             // Exclude teachers already assigned to this class in the academic year
             $query->whereDoesntHave('classes', function ($q) use ($classId, $academicYearId) {
                 $q->where('class_id', $classId)
-                  ->where('academic_year_id', $academicYearId);
+                    ->where('academic_year_id', $academicYearId);
             });
         }
 
@@ -870,9 +1232,9 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
         $totalTeachers = Employee::teachers()->count();
         $activeTeachers = Employee::teachers()->active()->count();
         $currentAcademicYearId = AcademicYear::where('is_active', true)->value('id');
-        
-        $teachersWithClasses = $currentAcademicYearId 
-            ? Employee::whereHas('classes', function($query) use ($currentAcademicYearId) {
+
+        $teachersWithClasses = $currentAcademicYearId
+            ? Employee::whereHas('classes', function ($query) use ($currentAcademicYearId) {
                 $query->where('academic_year_id', $currentAcademicYearId);
             })->count()
             : 0;
@@ -935,7 +1297,7 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
         try {
             $employee = Auth::guard('employee')->user();
             $classId = $request->get('class_id');
-            
+
             if (!$classId) {
                 return response()->json([
                     'success' => false,
@@ -943,7 +1305,7 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                     'data' => []
                 ], 400);
             }
-            
+
             // Get current academic year
             $academicYearId = $request->get('academic_year_id') ?? $this->getCurrentAcademicYearId();
 
@@ -977,10 +1339,9 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                 'success' => true,
                 'data' => $subjects
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Failed to fetch teacher subjects: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch subjects',
@@ -997,7 +1358,7 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
     {
         try {
             $employee = Auth::guard('employee')->user();
-            
+
             $request->validate([
                 'academic_year_id' => 'nullable|exists:academic_years,id'
             ]);
@@ -1038,10 +1399,9 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                 'success' => true,
                 'data' => $classes
             ]);
-
         } catch (\Exception $e) {
             Log::error('Failed to fetch employee classes for teacher: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch classes',
@@ -1073,7 +1433,7 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
 
             // Get authenticated employee
             $employee = Auth::guard('employee')->user();
-            
+
             if (!$employee) {
                 return response()->json([
                     'success' => false,
@@ -1121,13 +1481,12 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                 'count' => $students->count(),
                 'message' => 'Loaded ' . $students->count() . ' student(s) from class'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error loading students: ' . $e->getMessage(), [
                 'request' => $request->all(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error loading students: ' . $e->getMessage(),
@@ -1143,7 +1502,7 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
     {
         try {
             $employee = Auth::guard('employee')->user();
-            
+
             // Get students in this class using rank_id
             $students = Student::where('rank_id', $classId)
                 ->with(['user', 'rank'])
@@ -1160,15 +1519,14 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                         'class_name' => $student->rank->name ?? 'Unknown',
                     ];
                 });
-                
+
             return response()->json([
                 'success' => true,
                 'data' => $students
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Failed to fetch class students: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch students',
@@ -1218,10 +1576,9 @@ public function storeClassAssignments(Request $request, Employee $employee): Jso
                 'success' => true,
                 'data' => $workload
             ]);
-
         } catch (\Exception $e) {
             Log::error('Failed to fetch teacher workload: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch workload information',

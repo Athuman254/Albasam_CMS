@@ -160,6 +160,21 @@
                            </div>
 
                            <div class="mb-3">
+                              <label for="capacity" class="form-label">Class Capacity</label>
+                              <input 
+                                 id="capacity" 
+                                 type="number" 
+                                 v-model="form.capacity" 
+                                 class="form-control" 
+                                 min="1" 
+                                 max="1000"
+                                 placeholder="Maximum number of students (optional)"
+                              >
+                              <div v-if="form.errors.capacity" class="text-danger">{{ form.errors.capacity }}</div>
+                              <small class="text-muted">Leave empty for unlimited capacity</small>
+                           </div>
+
+                           <div class="mb-3">
                               <label class="row d-flex">
                                  <span class="col">
                                     <span class="fw-bold me-3">Activate</span>
@@ -273,6 +288,21 @@
                            </div>
 
                            <div class="mb-3">
+                              <label for="edit_capacity" class="form-label">Class Capacity</label>
+                              <input 
+                                 id="edit_capacity" 
+                                 type="number" 
+                                 v-model="editForm.capacity" 
+                                 class="form-control" 
+                                 min="1" 
+                                 max="1000"
+                                 placeholder="Maximum number of students (optional)"
+                              >
+                              <div v-if="editForm.errors.capacity" class="text-danger">{{ editForm.errors.capacity }}</div>
+                              <small class="text-muted">Leave empty for unlimited capacity</small>
+                           </div>
+
+                           <div class="mb-3">
                               <label class="row d-flex">
                                  <span class="col">
                                     <span class="fw-bold me-3">Activate</span>
@@ -364,6 +394,7 @@ export default {
             stream_id: null,
             teacher_id: null,
             activated: true,
+            capacity: null,
          }),
          editForm: useForm({
             id: '',
@@ -372,6 +403,7 @@ export default {
             stream_id: null,
             teacher_id: null,
             activated: null,
+            capacity: null,
          }),
          ranks: [],
          divisions: [],
@@ -457,6 +489,7 @@ export default {
          this.editForm.stream_id = rowData.stream_id;
          this.editForm.teacher_id = rowData.teacher_id;
          this.editForm.activated = rowData.activated;
+         this.editForm.capacity = rowData.capacity;
          const modalElement = this.$refs.editRankModal;
          const modalInstance = Modal.getOrCreateInstance(modalElement);
          modalInstance.show();

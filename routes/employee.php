@@ -7,40 +7,57 @@ use App\Http\Controllers\Employee\PromotionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('employee')->name('employee.')->group(function () {
-    
-    Route::middleware('guest:employee')->group(function () {
-        Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
-    });
+
+    // Route::middleware('guest:employee')->group(function () {
+    //     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    //     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+    // });
+
+    // Redirect to main login
+    Route::get('/login', function () {
+        return redirect()->route('login');
+    })->name('login');
 
     Route::middleware('auth:employee')->group(function () {
         Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        
+
         // =========================================================================
-// STUDENT PROMOTION ROUTES - ADDED SECTION
-// =========================================================================
-Route::prefix('promotion')->name('promotion.')->group(function () {
-    Route::get('/', [PromotionController::class, 'index'])->name('index');
-    
-    // Add the missing stats route
-    Route::get('/stats', [PromotionController::class, 'getPromotionStats'])->name('stats');
-    
-    Route::post('/promote-students', [PromotionController::class, 'promoteStudents'])->name('promote-students');
-    Route::get('/get-class-students', [PromotionController::class, 'getClassStudents'])->name('get-class-students');
-    Route::get('/promotion-history', [PromotionController::class, 'promotionHistory'])->name('history');
-});
+        // STUDENT PROMOTION ROUTES - ADDED SECTION
+        // =========================================================================
+        Route::prefix('promotion')->name('promotion.')->group(function () {
+            Route::get('/', [PromotionController::class, 'index'])->name('index');
+
+            // Add the missing stats route
+            Route::get('/stats', [PromotionController::class, 'getPromotionStats'])->name('stats');
+
+            Route::post('/promote-students', [PromotionController::class, 'promoteStudents'])->name('promote-students');
+            Route::get('/get-class-students', [PromotionController::class, 'getClassStudents'])->name('get-class-students');
+            Route::get('/promotion-history', [PromotionController::class, 'promotionHistory'])->name('history');
+        });
+
+        // =========================================================================
+        // STAFF ATTENDANCE ROUTES
+        // =========================================================================
+        Route::prefix('attendance')->name('attendance.')->group(function () {
+            Route::get('/mark', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'index'])->name('mark');
+            Route::post('/clock-in', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'clockIn'])->name('clock-in');
+            Route::post('/clock-out', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'clockOut'])->name('clock-out');
+            Route::get('/status', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'getTodayStatus'])->name('status');
+            Route::get('/history', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'getHistory'])->name('history');
+        });
+
 
         // =========================================================================
         // FIXED ROUTES FOR MARKS ENTRY FUNCTIONALITY
         // =========================================================================
-        
+
         // FIXED: Use controller method instead of closure for classes
         Route::get('/classes', [EmployeeController::class, 'getEmployeeClassesForTeacher'])->name('classes');
-        
+
         // Employee subjects for a class
         Route::get('/subjects', [EmployeeController::class, 'getTeacherSubjects'])->name('subjects');
-        
+
         // Current academic year
         Route::get('/current-academic-year', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'getCurrentAcademicYear'])->name('current-academic-year');
 
@@ -62,7 +79,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
         Route::get('/debug/whoami', function () {
             $employee = Auth::guard('employee')->user();
             $user = Auth::user();
-            
+
             return response()->json([
                 'employee_guard' => $employee ? [
                     'id' => $employee->id,
@@ -84,14 +101,14 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
 
         Route::get('/debug/employee-classes-detailed', function () {
             $employee = Auth::guard('employee')->user();
-            
+
             if (!$employee) {
                 return response()->json(['error' => 'Not authenticated as employee']);
             }
 
             // Check all the relationships step by step
             $academicYear = \App\Models\AcademicYear::where('is_active', true)->first();
-            
+
             // Raw SQL query to see what's happening
             $rawAssignments = DB::select("
                 SELECT 
@@ -125,7 +142,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                 'academic_year' => $academicYear,
                 'raw_sql_assignments' => $rawAssignments,
                 'eloquent_assignments_count' => $eloquentAssignments->count(),
-                'eloquent_assignments' => $eloquentAssignments->map(function($assignment) {
+                'eloquent_assignments' => $eloquentAssignments->map(function ($assignment) {
                     return [
                         'id' => $assignment->id,
                         'class_id' => $assignment->class_id,
@@ -161,7 +178,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
          *******************************/
         Route::get('/dashboard-statistics', function () {
             $employee = auth()->guard('employee')->user();
-            
+
             try {
                 $statistics = [
                     'classes' => $employee->classes()->count() ?? 0,
@@ -175,7 +192,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                         ->where('status', 'approved')
                         ->count(),
                 ];
-                
+
                 return response()->json($statistics);
             } catch (\Exception $e) {
                 // Return default values if relationships aren't set up yet
@@ -187,11 +204,11 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                 ]);
             }
         })->name('dashboard.statistics');
-        
+
         Route::get('/recent-activity', function () {
             $employee = auth()->guard('employee')->user();
             $recentActivity = [];
-            
+
             try {
                 // Get recent exam mark submissions
                 $recentSubmissions = \App\Models\ExamMark::with(['examSubject.exam', 'examSubject.subject'])
@@ -201,7 +218,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                     ->limit(5)
                     ->get()
                     ->groupBy('submitted_at');
-                
+
                 foreach ($recentSubmissions as $date => $marks) {
                     if ($marks->count() > 0) {
                         $firstMark = $marks->first();
@@ -214,7 +231,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                         ];
                     }
                 }
-                
+
                 // Get recent mark entries (drafts)
                 $recentEntries = \App\Models\ExamMark::with(['examSubject.exam'])
                     ->where('submitted_by', $employee->id)
@@ -224,7 +241,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                     ->limit(3)
                     ->get()
                     ->groupBy('updated_at');
-                
+
                 foreach ($recentEntries as $date => $marks) {
                     if ($marks->count() > 0) {
                         $firstMark = $marks->first();
@@ -237,15 +254,14 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                         ];
                     }
                 }
-                
+
                 // Sort by time (most recent first)
-                usort($recentActivity, function($a, $b) {
+                usort($recentActivity, function ($a, $b) {
                     return strtotime($b['time']) - strtotime($a['time']);
                 });
-                
+
                 // Limit to 5 most recent activities
                 $recentActivity = array_slice($recentActivity, 0, 5);
-                
             } catch (\Exception $e) {
                 // Fallback mock data if there's an error
                 $recentActivity = [
@@ -272,31 +288,31 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                     ]
                 ];
             }
-            
+
             return response()->json($recentActivity);
         })->name('recent.activity');
-        
+
         Route::get('/upcoming-exams', function () {
             $employee = auth()->guard('employee')->user();
-            
+
             try {
                 $upcomingExams = [];
-                
+
                 // Get exams for the employee's classes
                 if (method_exists($employee, 'classes')) {
                     $employeeClasses = $employee->classes()->pluck('id');
-                    
-                    $exams = \App\Models\Exam::with(['subjects' => function($query) use ($employeeClasses) {
-                            $query->whereIn('class_id', $employeeClasses);
-                        }])
-                        ->whereHas('subjects', function($query) use ($employeeClasses) {
+
+                    $exams = \App\Models\Exam::with(['subjects' => function ($query) use ($employeeClasses) {
+                        $query->whereIn('class_id', $employeeClasses);
+                    }])
+                        ->whereHas('subjects', function ($query) use ($employeeClasses) {
                             $query->whereIn('class_id', $employeeClasses);
                         })
                         ->where('status', 'active')
                         ->orderBy('created_at', 'desc')
                         ->limit(5)
                         ->get();
-                    
+
                     foreach ($exams as $exam) {
                         $classNames = $exam->subjects->pluck('class.name')->unique()->implode(', ');
                         $upcomingExams[] = [
@@ -308,7 +324,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                         ];
                     }
                 }
-                
+
                 // If no exams found or relationships not set up, return mock data
                 if (empty($upcomingExams)) {
                     $upcomingExams = [
@@ -328,9 +344,8 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                         ]
                     ];
                 }
-                
+
                 return response()->json($upcomingExams);
-                
             } catch (\Exception $e) {
                 // Return mock data if there's an error
                 return response()->json([
@@ -351,7 +366,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                 ]);
             }
         })->name('upcoming.exams');
-        
+
         /********************************
          * DATATABLE ROUTES
          *******************************/
@@ -369,18 +384,18 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
             Route::get('/languages', [\App\Http\Controllers\Settings\LanguageController::class, 'dataTable'])->name('languages');
             Route::get('/relationships', [\App\Http\Controllers\Settings\RelationshipController::class, 'dataTable'])->name('relationships');
             Route::get('/qualification-types', [\App\Http\Controllers\Settings\QualificationTypeController::class, 'dataTable'])->name('qualification-types');
-            
+
             Route::get('/emergency-contacts', [\App\Http\Controllers\EmergencyContactController::class, 'dataTable'])->name('contacts');
             Route::get('/employee-qualifications', [\App\Http\Controllers\QualificationController::class, 'dataTable'])->name('qualifications');
             Route::get('/work-histories', [\App\Http\Controllers\WorkHistoryController::class, 'dataTable'])->name('work-histories');
-            
+
             // EXAM MODULE DATATABLES FOR EMPLOYEES
             Route::get('/exams', [\App\Http\Controllers\Exams\ExamManageController::class, 'dataTable'])->name('exams');
             Route::get('/exam-subjects', [\App\Http\Controllers\Exams\ExamManageController::class, 'examSubject'])->name('exam-subjects');
             Route::get('/exam-marks', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'examMarks'])->name('exam-marks');
             Route::get('/enrolled-students', [\App\Http\Controllers\Exams\ExamStudentController::class, 'dataTableEnrollStudents'])->name('enrolled-students');
         });
-        
+
         /********************************
          * EMPLOYEE EXAM ROUTES
          *******************************/
@@ -388,32 +403,33 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
             // Page routes
             Route::get('/enter-marks', [\App\Http\Controllers\Exams\EmployeeExamController::class, 'enterMarks'])->name('enter-marks');
             Route::get('/submitted-marks', [\App\Http\Controllers\Exams\EmployeeExamController::class, 'submittedMarks'])->name('submitted-marks');
-            
+
             // API routes
             Route::post('/save-marks', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'store'])->name('save-marks');
-            
+
             // ADDED MISSING EXAM ROUTES:
             Route::post('/save-single-mark', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'saveSingleMark'])->name('save-single-mark');
-            
+            Route::get('/existing-marks', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'existingMarks'])->name('existing-marks');
+
             // NEW: Classes route within exams group for consistency
             Route::get('/classes', [EmployeeController::class, 'getEmployeeClassesForTeacher'])->name('classes');
-            
+
             Route::get('/submitted-marks-data', function () {
                 $employee = auth()->guard('employee')->user();
-                
+
                 try {
                     $submittedMarks = \App\Models\ExamMark::with([
-                            'examSubject.exam',
-                            'examSubject.subject',
-                            'examSubject.class'
-                        ])
+                        'examSubject.exam',
+                        'examSubject.subject',
+                        'examSubject.class'
+                    ])
                         ->where('submitted_by', $employee->id)
                         ->whereNotNull('submitted_at')
                         ->selectRaw('exam_subject_id, COUNT(*) as marks_count, MAX(submitted_at) as submitted_date, status, remarks')
                         ->groupBy('exam_subject_id', 'status', 'remarks')
                         ->orderBy('submitted_date', 'desc')
                         ->get()
-                        ->map(function($group) {
+                        ->map(function ($group) {
                             $examSubject = $group->examSubject;
                             return [
                                 'id' => $group->exam_subject_id,
@@ -426,7 +442,7 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                                 'remarks' => $group->remarks
                             ];
                         });
-                    
+
                     // If no data found, return mock data
                     if ($submittedMarks->isEmpty()) {
                         $submittedMarks = collect([
@@ -452,9 +468,8 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                             ]
                         ]);
                     }
-                    
+
                     return response()->json($submittedMarks);
-                    
                 } catch (\Exception $e) {
                     // Return mock data if there's an error
                     return response()->json([
@@ -492,28 +507,31 @@ Route::prefix('promotion')->name('promotion.')->group(function () {
                 }
             })->name('submitted-marks.data');
         });
-        
+
         /********************************
          * EMPLOYEE PROFILE & ATTENDANCE
          *******************************/
-        
+
         // NOTE: The main /classes route has been moved to use the controller method above
         // This ensures it uses the EmployeeClass model with proper academic year filtering
-        
+
         // ADDED MISSING SUBJECTS ROUTE
         Route::get('/subjects', [EmployeeController::class, 'getTeacherSubjects'])->name('subjects');
-        
+
         // ADDED MISSING CURRENT ACADEMIC YEAR ROUTE
         Route::get('/current-academic-year', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'getCurrentAcademicYear'])->name('current-academic-year');
         
-        Route::get('profile',[\App\Http\Controllers\Employee\ProfileController::class, 'index'])->name('profile.index');
+        // ADDED MISSING EXAM SUBJECT SKILLS ROUTE
+        Route::get('/exam-subject-skills', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'examSubjectSkills'])->name('exam-subject-skills');
+
+        Route::get('profile', [\App\Http\Controllers\Employee\ProfileController::class, 'index'])->name('profile.index');
         Route::post('password/update', [\App\Http\Controllers\Employee\ProfileController::class, 'updatePassword'])
             ->name('password.update');
-        
+
         Route::resource('/attendances', \App\Http\Controllers\Employee\AttendanceController::class)->names('attendances');
         Route::get('/reports/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'report'])->name('reports.attendance');
         Route::get('/attendance/fetch', [\App\Http\Controllers\Employee\AttendanceController::class, 'fetchForDate'])->name('attendance.fetch');
-        
+
         Route::resource('/emergency-contacts', \App\Http\Controllers\EmergencyContactController::class)
             ->names('emergency-contacts')->only(['store', 'update', 'destroy']);
         Route::resource('/qualifications', \App\Http\Controllers\QualificationController::class)

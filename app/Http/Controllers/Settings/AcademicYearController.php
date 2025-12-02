@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Models\Settings\AcademicYear; 
+use App\Models\Settings\AcademicYear;
 use Illuminate\Http\Request;
 use App\Http\Resources\Resource;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +14,9 @@ class AcademicYearController extends Controller
 {
    public function dataTable()
    {
+      // Ensure academic years exist, auto-generate if needed
+      AcademicYear::ensureYearsExist();
+
       $academicyears = QueryBuilder::for(
          AcademicYear::orderBy('id')
       )->allowedFilters([

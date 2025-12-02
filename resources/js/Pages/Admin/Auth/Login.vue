@@ -24,11 +24,11 @@
 <!--                  Parent-->
 <!--               </Link>-->
 <!--            </li>-->
-<!--            <li class="nav-item" role="presentation">-->
-<!--               <Link href="#" class="nav-link" :class="{ 'active': $page.url.startsWith('/student/login') }">-->
-<!--                  Student-->
-<!--               </Link>-->
-<!--            </li>-->
+            <li class="nav-item" role="presentation">
+               <Link :href="route('login', { portal: 'student' })" class="nav-link" :class="{ 'active': $page.url.includes('portal=student') }">
+                  Student
+               </Link>
+            </li>
          </ul>
       </div>
       
@@ -99,10 +99,10 @@
             <!-- /Logo -->
             <form id="formAuthentication" class="mb-6">
                <div class="mb-3">
-                  <label for="email" class="form-label">Email</label>
-                  <input v-model="form.email" type="email" class="form-control" id="email" required
-                         placeholder="Enter your email"/>
-                  <div v-if="form.errors.email" class="text-danger">{{ form.errors.email }}</div>
+                  <label for="login_id" class="form-label">Email or Admission Number</label>
+                  <input v-model="form.login_id" type="text" class="form-control" id="login_id" required
+                         placeholder="Enter your email or admission number"/>
+                  <div v-if="form.errors.login_id" class="text-danger">{{ form.errors.login_id }}</div>
                </div>
                <div class="mb-3 form-password-toggle">
                   <label class="form-label" for="password">Password</label>
@@ -161,7 +161,7 @@ export default {
    data() {
       return {
          form: useForm({
-            email: '',
+            login_id: '',
             password: '',
             remember: false,
          }),

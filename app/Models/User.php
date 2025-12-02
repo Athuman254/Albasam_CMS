@@ -111,6 +111,15 @@ class User extends Authenticatable implements LaratrustUser
         return $this->hasOne(Student::class);
     }
 
+    /**
+     * Relationship with employee
+     */
+    public function employee(): HasOne
+    {
+        return $this->hasOne(Employee::class);
+    }
+
+
     public function scopeActivated($query): void
     {
         $query->where('activated', '=', true);

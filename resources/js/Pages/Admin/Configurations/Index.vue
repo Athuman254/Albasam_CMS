@@ -19,6 +19,11 @@
             <div class="mb-3">
                <ul class="nav nav-pills mb-5" role="tablist">
                   <li class="nav-item me-1" role="presentation">
+                     <button type="button" class="nav-link" :class="{ active: activeTab === 'academic-years' }" @click="activeTab = 'academic-years'">
+                        Academic Years
+                     </button>
+                  </li>
+                  <li class="nav-item me-1" role="presentation">
                      <button type="button" class="nav-link" :class="{ active: activeTab === 'divisions' }" @click="activeTab = 'divisions'">
                         Divisions
                      </button>
@@ -100,6 +105,9 @@
                   </li>
                </ul>
 
+               <div v-if="activeTab === 'academic-years'">
+                  <academic-years></academic-years>
+               </div>
                <div v-if="activeTab === 'divisions'">
                   <divisions></divisions>
                </div>
@@ -174,15 +182,16 @@ import BlogCategories from "./BlogCategories.vue";
 import Allowance from './Allowance.vue'
 import Deduction from './Deduction.vue'
 import Income from './Income.vue'
+import AcademicYears from '../Settings/AcademicYears.vue'
 
 export default {
    components: {
       DefaultLayout, Head, Link, Divisions, Streams, Subjects, Religions,
       Relationships, Honorifics, JobTitles, EmploymentTypes, EmploymentStatuses,
-      SalaryScales, SalaryGrades, QualificationTypes, BlogCategories, Allowance, Deduction, Income},
+      SalaryScales, SalaryGrades, QualificationTypes, BlogCategories, Allowance, Deduction, Income, AcademicYears},
    data() {
       return {
-         activeTab: 'divisions'
+         activeTab: 'academic-years'
       }
    }
 }

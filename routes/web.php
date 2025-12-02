@@ -498,6 +498,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          Route::resource('/salary-scales', \App\Http\Controllers\Settings\SalaryScaleController::class)->names('salary-scales')->only('store', 'update', 'destroy');
 
          Route::resource('academic-years', AcademicYearController::class);
+         Route::post('academic-years/{id}/activate', [AcademicYearController::class, 'activate'])->name('academic-years.activate');
          Route::resource('allowances', \App\Http\Controllers\Settings\AllowanceController::class)->names('settings.allowances')->only('store', 'update', 'destroy');
          Route::resource('deductions', \App\Http\Controllers\Settings\DeductionController::class)->names('settings.deductions')->only('store', 'update', 'destroy');
          Route::resource('income', \App\Http\Controllers\Settings\IncomeController::class)->names('settings.income')->only('store', 'update', 'destroy');

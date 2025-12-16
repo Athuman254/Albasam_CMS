@@ -416,11 +416,11 @@ html:not(.layout-footer-fixed) .content-wrapper {
 
 @include media-breakpoint-down($menu-collapsed-layout-breakpoint) {
   .layout-menu {
-    z-index: $zindex-layout-mobile;
+    z-index: 1200; // Increased from $zindex-layout-mobile to ensure menu appears above navbar
   }
 
   .layout-overlay {
-    z-index: $zindex-layout-mobile - 1;
+    z-index: 1199; // Increased to match menu z-index
   }
 }
 

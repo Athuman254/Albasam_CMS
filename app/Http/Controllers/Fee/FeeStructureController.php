@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Fee;
 use App\Models\FeeInvoice;
 use App\Models\FeeInvoiceItem;
+use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
@@ -1139,18 +1140,22 @@ class FeeStructureController extends Controller
 
     private function getAcademicYears()
     {
-        $currentYear = now()->year;
-        $years = [];
+        // Fetch academic years from database
+        $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
 
-        for ($i = -2; $i <= 2; $i++) {
-            $year = $currentYear + $i;
-            $years[] = [
-                'id' => $year,
-                'name' => $year . '/' . ($year + 1),
-            ];
+        // If no academic years exist, return empty array
+        if ($academicYears->isEmpty()) {
+            return [];
         }
 
-        return $years;
+        // Format for dropdown
+        return $academicYears->map(function ($year) {
+            return [
+                'id' => $year->id,
+                'name' => $year->name,
+                'display_name' => $year->name . ($year->is_active ? ' (Active)' : ''),
+            ];
+        })->toArray();
     }
 
     public function dataTable(Request $request)

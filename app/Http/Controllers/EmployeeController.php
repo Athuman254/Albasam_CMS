@@ -241,6 +241,23 @@ class EmployeeController extends Controller
                 $employee->user->roles()->sync([$validated['role_id']]);
             }
 
+            // Check if role is a teaching role and create teacher record
+            $role = \App\Models\Role::find($validated['role_id']);
+            $teachingRoles = ['teacher', 'academic-coordinator', 'principal', 'deputy-principal'];
+
+            if ($role && in_array($role->name, $teachingRoles)) {
+                \App\Models\Teacher::firstOrCreate(
+                    ['employee_id' => $employee->id],
+                    [
+                        'user_id' => $employee->user_id,
+                        'first_name' => $employee->first_name,
+                        'middle_name' => $employee->middle_name,
+                        'last_name' => $employee->last_name,
+                        'honorific_id' => $employee->honorific_id,
+                    ]
+                );
+            }
+
             DB::commit();
 
             return redirect()->back()
@@ -446,6 +463,25 @@ class EmployeeController extends Controller
                 $employee->save();
 
                 $user->roles()->attach($validated['role_id']);
+            }
+
+            // Check if role is a teaching role and create teacher record
+            if (!empty($validated['role_id'])) {
+                $role = \App\Models\Role::find($validated['role_id']);
+                $teachingRoles = ['teacher', 'academic-coordinator', 'principal', 'deputy-principal'];
+
+                if ($role && in_array($role->name, $teachingRoles)) {
+                    \App\Models\Teacher::firstOrCreate(
+                        ['employee_id' => $employee->id],
+                        [
+                            'user_id' => $employee->user_id,
+                            'first_name' => $employee->first_name,
+                            'middle_name' => $employee->middle_name,
+                            'last_name' => $employee->last_name,
+                            'honorific_id' => $employee->honorific_id,
+                        ]
+                    );
+                }
             }
 
             DB::commit();
@@ -1420,7 +1456,7 @@ class EmployeeController extends Controller
     }
 
     /**
-     * SIMPLIFIED: Get all students from selected class for marks entry
+     * Get enrolled students for marks entry - Uses exam_students enrollment table
      */
     public function getEnrolledStudentsForMarks(Request $request): JsonResponse
     {
@@ -1442,34 +1478,41 @@ class EmployeeController extends Controller
                 ], 401);
             }
 
+            $examId = $request->exam_id;
             $classId = $request->class_id;
+            $subjectId = $request->subject_id;
 
-            Log::info("Loading all students for class", [
+            Log::info("Loading enrolled students for marks entry", [
                 'employee_id' => $employee->id,
                 'employee_name' => $employee->first_name . ' ' . $employee->last_name,
+                'exam_id' => $examId,
                 'class_id' => $classId,
-                'exam_id' => $request->exam_id,
-                'subject_id' => $request->subject_id
+                'subject_id' => $subjectId
             ]);
 
-            // SIMPLIFIED: Just get all students in this class (using rank_id)
-            $students = Student::where('rank_id', $classId)
-                ->with(['user', 'rank'])
-                ->get()
-                ->map(function ($student) {
-                    return [
-                        'id' => $student->id,
-                        'student_id' => $student->admission_number,
-                        'first_name' => $student->first_name,
-                        'last_name' => $student->last_name,
-                        'name' => $student->first_name . ' ' . $student->last_name,
-                        'email' => $student->user->email ?? 'No email',
-                        'admission_number' => $student->admission_number,
-                        'class_name' => $student->rank->name ?? 'Unknown Class',
-                    ];
-                });
+            // Get students enrolled in this exam for this class
+            $students = DB::table('exam_students')
+                ->join('students', 'exam_students.student_id', '=', 'students.id')
+                ->leftJoin('users', 'students.user_id', '=', 'users.id')
+                ->leftJoin('ranks', 'students.rank_id', '=', 'ranks.id')
+                ->where('exam_students.exam_id', $examId)
+                ->where('exam_students.class_id', $classId)
+                ->select(
+                    'students.id',
+                    'students.admission_number as student_id',
+                    'students.first_name',
+                    'students.last_name',
+                    DB::raw("CONCAT(students.first_name, ' ', students.last_name) as name"),
+                    'users.email',
+                    'students.admission_number',
+                    'ranks.name as class_name'
+                )
+                ->orderBy('students.first_name')
+                ->orderBy('students.last_name')
+                ->get();
 
-            Log::info("Students loaded successfully", [
+            Log::info("Enrolled students loaded successfully", [
+                'exam_id' => $examId,
                 'class_id' => $classId,
                 'student_count' => $students->count(),
                 'students' => $students->pluck('name')->toArray()
@@ -1479,10 +1522,10 @@ class EmployeeController extends Controller
                 'success' => true,
                 'data' => $students,
                 'count' => $students->count(),
-                'message' => 'Loaded ' . $students->count() . ' student(s) from class'
+                'message' => 'Loaded ' . $students->count() . ' enrolled student(s)'
             ]);
         } catch (\Exception $e) {
-            Log::error('Error loading students: ' . $e->getMessage(), [
+            Log::error('Error loading enrolled students: ' . $e->getMessage(), [
                 'request' => $request->all(),
                 'trace' => $e->getTraceAsString()
             ]);

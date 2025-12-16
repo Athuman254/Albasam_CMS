@@ -158,3 +158,54 @@
   text-align: center;
   margin-top: 1rem;
 }
+
+/* BRUTE FORCE VUE SELECT OVERRIDES */
+.vs__actions,
+.vs__actions:before,
+.vs__actions:after,
+.vs__open-indicator,
+.vs__clear,
+.vs__selected-options,
+.vs__search,
+.vs__dropdown-toggle {
+  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+/* Restore outer border for the main container if desired, usually expected */
+.vs__dropdown-toggle {
+  border: 1px solid #d9dee3 !important;
+}
+
+/* Ensure actions container layout */
+.vs__actions {
+  padding: 4px 6px 0 3px !important;
+}
+
+/* Hide pseudo elements completely */
+.vs__actions::before,
+.vs__actions::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Colors and spacing */
+.vs__clear {
+  margin-right: 5px !important;
+  background: transparent !important;
+}
+
+.vs__open-indicator {
+  fill: rgba(60, 60, 60, 0.5) !important;
+  background: transparent !important;
+}
+
+.vs__search::placeholder {
+  color: #a1acb8;
+}

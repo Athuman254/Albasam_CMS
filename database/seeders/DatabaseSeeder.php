@@ -53,9 +53,9 @@ class DatabaseSeeder extends Seeder
 
         $this->relationships();
 
-        $this->divisions();
+        // $this->divisions();
 
-        $this->streams();
+        // $this->streams();
 
         // $this->ranks(); // Skip secondary classes for now
 
@@ -87,36 +87,45 @@ class DatabaseSeeder extends Seeder
 
         $this->menus();
 
-        User::create([
-            'name'      => 'John Doe',
-            'username'  => 'admin',
-            'email'     => 'admin@app.com',
-            'password'  => Hash::make('admin@!2025'),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@app.com'],
+            [
+                'name'      => 'John Doe',
+                'username'  => 'admin',
+                'password'  => Hash::make('admin@!2025'),
+            ]
+        );
 
         $this->call(LaratrustSeeder::class);
+        $this->call(RolesAndPermissionsSeeder::class);
+
+        // Ensure Admin has the administrator role
+        $adminUser = User::where('email', 'admin@app.com')->first();
+        if ($adminUser && !$adminUser->hasRole('administrator')) {
+            $adminUser->addRole('administrator');
+        }
 
         // Seed primary school classes and students
-        $this->call(PrimarySchoolClassesSeeder::class);
-        $this->call(PrimarySchoolStudentsSeeder::class);
+        // $this->call(PrimarySchoolClassesSeeder::class);
+        // $this->call(PrimarySchoolStudentsSeeder::class);
 
         // Seed subjects
-        $this->call(SubjectsSeeder::class);
+        // $this->call(SubjectsSeeder::class);
 
         // Seed skills
         $this->call(SkillsSeeder::class);
 
         // Seed teachers with qualifications and assignments
-        $this->call(TeachersSeeder::class);
+        // $this->call(TeachersSeeder::class);
 
         // Seed teacher qualifications (subject assignments)
-        $this->call(TeacherQualificationsSeeder::class);
+        // $this->call(TeacherQualificationsSeeder::class);
 
         // Seed exams with subjects and marks
-        $this->call(ExamsSeeder::class);
+        // $this->call(ExamsSeeder::class);
 
         // Seed timetable data
-        $this->call(TimetableSeeder::class);
+        // $this->call(TimetableSeeder::class);
 
         Schema::enableForeignKeyConstraints();
     }
@@ -161,8 +170,6 @@ class DatabaseSeeder extends Seeder
         Relationship::insert([
             ['name' => 'Father', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Mother', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Husband', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Wife', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Brother', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Sister', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Uncle', 'created_at' => now(), 'updated_at' => now()],
@@ -177,7 +184,7 @@ class DatabaseSeeder extends Seeder
         Division::truncate();
 
         Division::insert([
-            ['name' => 'High School', 'created_at' => now(), 'updated_at' => now()],
+            // ['name' => 'High School', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 
@@ -186,9 +193,9 @@ class DatabaseSeeder extends Seeder
         Stream::truncate();
 
         Stream::insert([
-            ['name' => 'Aberdare', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Satima', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Kinangop', 'created_at' => now(), 'updated_at' => now()],
+            // ['name' => 'Aberdare', 'created_at' => now(), 'updated_at' => now()],
+            // ['name' => 'Satima', 'created_at' => now(), 'updated_at' => now()],
+            // ['name' => 'Kinangop', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 
@@ -200,25 +207,25 @@ class DatabaseSeeder extends Seeder
 
         Rank::insert([
             [
-                'name' => 'Form 1',
-                'division_id' => $divisionId,
-                'stream_id' => $streams->firstWhere('name', '=', 'Aberdare')->id,
-                'created_at' => now(),
-                'updated_at' => now()
+                // 'name' => 'Form 1',
+                // 'division_id' => $divisionId,
+                // 'stream_id' => $streams->firstWhere('name', '=', 'Aberdare')->id,
+                // 'created_at' => now(),
+                // 'updated_at' => now()
             ],
             [
-                'name' => 'Form 1',
-                'division_id' => $divisionId,
-                'stream_id' => $streams->firstWhere('name', '=', 'Satima')->id,
-                'created_at' => now(),
-                'updated_at' => now()
+                // 'name' => 'Form 1',
+                // 'division_id' => $divisionId,
+                // 'stream_id' => $streams->firstWhere('name', '=', 'Satima')->id,
+                // 'created_at' => now(),
+                // 'updated_at' => now()
             ],
             [
-                'name' => 'Form 1',
-                'division_id' => $divisionId,
-                'stream_id' => $streams->firstWhere('name', '=', 'Kinangop')->id,
-                'created_at' => now(),
-                'updated_at' => now()
+                // 'name' => 'Form 1',
+                // 'division_id' => $divisionId,
+                // 'stream_id' => $streams->firstWhere('name', '=', 'Kinangop')->id,
+                // 'created_at' => now(),
+                // 'updated_at' => now()
             ],
         ]);
     }
@@ -429,6 +436,8 @@ class DatabaseSeeder extends Seeder
 
     public function pages(): void
     {
+        Page::truncate();
+
         Page::insert([
             ['title' => 'Home', 'slug' => '/', 'published' => true, 'created_at' => now(), 'updated_at' => now()],
             ['title' => 'About Us', 'slug' => 'about-us', 'published' => true, 'created_at' => now(), 'updated_at' => now()],

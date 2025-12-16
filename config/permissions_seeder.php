@@ -48,6 +48,39 @@ return [
             'roles-workspace' => 'a',
             'roles' => 'c,e,d',
         ],
+        'Exam-Management' => [
+            'exams-workspace' => 'a',
+            'exams' => 'c,e,d,r',
+            'exam-results' => 'c,e,r',
+        ],
+        'Fee-Management' => [
+            'fees-workspace' => 'a',
+            'fees' => 'c,e,d,r',
+            'fee-structures-workspace' => 'a',
+            'fee-structures' => 'c,e,d,r',
+            'fee-payments' => 'c,e,r',
+        ],
+        'Finance-Management' => [
+            'payroll-workspace' => 'a',
+            'payroll' => 'c,e,d,r',
+        ],
+        'Report-Management' => [
+            'reports-workspace' => 'a',
+            'reports' => 'r',
+            'promotions-report' => 'a',
+            'staff-attendance-reports' => 'r',
+            'all-students-report' => 'r',
+            'all-staff-report' => 'r',
+        ],
+        'Timetable-Management' => [
+            'timetable-workspace' => 'a',
+            'periods' => 'c,e,d,r',
+            'allocations' => 'c,e,d,r',
+            'constraints' => 'c,e,d,r',
+            'class-timetables' => 'r',
+            'teacher-timetables' => 'r',
+            'timetable-generation' => 'c,e,d,r', // Generate, Publish
+        ],
         'Website-Management' => [
             'pages-workspace' => 'a',
             'pages' => 'c,e,d',

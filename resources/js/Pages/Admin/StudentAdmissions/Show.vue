@@ -122,15 +122,15 @@
                               type="button"
                               class="accordion-button"
                               :class="{ collapsed: openAccordion !== 'general-details' }"
-                              @click="toggleAccordion('general-details')"
-                              data-bs-toggle="collapse"
-                              data-bs-target="#generalDetails">
+                              @click="toggleAccordion('general-details')">
                               <i class="bx bx-user-circle me-2"></i>
                               General Details
                            </button>
                         </h2>
-                        <div id="generalDetails" class="accordion-collapse collapse" :class="{ show: openAccordion === 'general-details' }">
-                           <div class="accordion-body">
+                    <!-- General Details Body -->
+<div id="generalDetails" v-show="openAccordion === 'general-details'" aria-labelledby="headingOne" data-bs-parent="#studentDetailsAccordion">
+    <div class="accordion-body fw-normal">
+
                               <div class="row">
                                  <div class="col-md-6">
                                     <table class="table table-sm table-borderless">
@@ -196,16 +196,16 @@
                               type="button"
                               class="accordion-button"
                               :class="{ collapsed: openAccordion !== 'guardian-details' }"
-                              @click="toggleAccordion('guardian-details')"
-                              data-bs-toggle="collapse"
-                              data-bs-target="#guardianDetails">
+                              @click="toggleAccordion('guardian-details')">
                               <i class="bx bx-group me-2"></i>
                               Guardian Details
                               <span class="badge bg-primary ms-2">{{ guardianDetails.length }}</span>
                            </button>
                         </h2>
-                        <div id="guardianDetails" class="accordion-collapse collapse" :class="{ show: openAccordion === 'guardian-details' }">
-                           <div class="accordion-body">
+                    <!-- Guardian Details Body -->
+<div id="guardianDetails" v-show="openAccordion === 'guardian-details'" aria-labelledby="headingTwo" data-bs-parent="#studentDetailsAccordion">
+    <div class="accordion-body fw-normal">
+
                               <div class="table-responsive">
                                  <table class="table table-hover" v-if="guardianDetails.length > 0">
                                     <thead class="table-light">
@@ -261,9 +261,7 @@
                               type="button"
                               class="accordion-button"
                               :class="{ collapsed: openAccordion !== 'medical-details' }"
-                              @click="toggleAccordion('medical-details')"
-                              data-bs-toggle="collapse"
-                              data-bs-target="#medicalDetails">
+                              @click="toggleAccordion('medical-details')">
                               <i class="bx bx-plus-medical me-2"></i>
                               Medical & Other Details
                            </button>
@@ -305,16 +303,16 @@
                               type="button"
                               class="accordion-button"
                               :class="{ collapsed: openAccordion !== 'sibling-details' }"
-                              @click="toggleAccordion('sibling-details')"
-                              data-bs-toggle="collapse"
-                              data-bs-target="#siblingDetails">
+                              @click="toggleAccordion('sibling-details')">
                               <i class="bx bx-user-plus me-2"></i>
                               Sibling Details
                               <span class="badge bg-info ms-2">{{ siblingDetails.length }}</span>
                            </button>
                         </h2>
-                        <div id="siblingDetails" class="accordion-collapse collapse" :class="{ show: openAccordion === 'sibling-details' }">
-                           <div class="accordion-body">
+                    <!-- Sibling Details Body -->
+<div id="siblingDetails" v-show="openAccordion === 'sibling-details'" aria-labelledby="headingFour" data-bs-parent="#studentDetailsAccordion">
+    <div class="accordion-body fw-normal">
+
                               <div class="table-responsive">
                                  <table class="table table-hover">
                                     <thead class="table-light">
@@ -331,7 +329,7 @@
                                           <td class="p-2 fw-medium">{{ sibling.name || 'N/A' }}</td>
                                           <td class="p-2">{{ sibling.age || 'N/A' }}</td>
                                           <td class="p-2">
-                                             <span class="badge bg-light text-dark">{{ getGenderName(sibling.gender_id) }}</span>
+                                             <span class="badge bg-light text-dark">{{ sibling.gender?.name || 'N/A' }}</span>
                                           </td>
                                           <td class="p-2">{{ sibling.current_school || 'N/A' }}</td>
                                           <td class="p-2">{{ sibling.current_class || 'N/A' }}</td>
@@ -369,79 +367,23 @@ export default{
    },
    data() {
       return {
-         guardianDetails: [],
-         siblingDetails: [],
-         dataFetched: false,
          openAccordion: 'general-details',
-         genders: []
       }
    },
    mounted() {
-      this.fetchAllData();
+      console.log('Student Prop:', this.student);
+      console.log('Siblings:', this.student?.siblings);
+      console.log('Guardians:', this.student?.guardians);
+   },
+   computed: {
+      guardianDetails() {
+         return this.student?.guardians || [];
+      },
+      siblingDetails() {
+         return this.student?.siblings || [];
+      }
    },
    methods: {
-      fetchAllData() {
-         if (this.student && this.student.id) {
-            this.fetchedGuardianDetails();
-            this.fetchedSiblingDetails();
-            this.fetchGenders();
-            this.dataFetched = true;
-         }
-      },
-      fetchedGuardianDetails() {
-         if (!this.student || !this.student.id) {
-            console.warn('No student ID available for fetching guardian details');
-            return;
-         }
-         
-         axios.get('/datatable/guardians', {
-            params: {
-               filter: {
-                  student_id: this.student.id,
-               },
-            },
-         }).then(({data}) => {
-            this.guardianDetails = data.data || [];
-         }).catch((error) => {
-            console.error('Error fetching guardian details:', error)
-            this.$toast?.error('An error occurred while fetching the guardian details.')
-         });
-      },
-      fetchedSiblingDetails() {
-         if (!this.student || !this.student.id) {
-            console.warn('No student ID available for fetching sibling details');
-            return;
-         }
-         
-         axios.get('/datatable/siblings', {
-            params: {
-               filter: {
-                  student_id: this.student.id,
-               },
-            },
-         }).then(({data}) => {
-            this.siblingDetails = data.data || [];
-         }).catch((error) => {
-            console.error('Error fetching sibling details:', error)
-            // Don't show error toast for siblings as they might not exist
-         });
-      },
-      fetchGenders() {
-         axios.get('/datatable/genders', {
-            params: {
-               filter: { activated: true },
-            },
-         }).then(({data}) => {
-            this.genders = data.data || [];
-         }).catch((error) => {
-            console.error('Error fetching genders:', error)
-         });
-      },
-      getGenderName(genderId) {
-         if (!genderId || !this.genders.length) return 'N/A';
-         const gender = this.genders.find(g => g.id === genderId);
-         return gender ? gender.name : 'N/A';
-      },
       toggleAccordion(section) {
          this.openAccordion = this.openAccordion === section ? null : section;
       },
@@ -465,22 +407,13 @@ export default{
                   year: 'numeric'
                });
             }
-         } catch (error) {-
+         } catch (error) {
             console.warn('Date formatting error:', error);
             return 'N/A';
          }
       }
    },
-   watch: {
-      student: {
-         handler(newStudent) {
-            if (newStudent && newStudent.id && !this.dataFetched) {
-               this.fetchAllData();
-            }
-         },
-         immediate: true
-      }
-   }
+
 }
 </script>
 

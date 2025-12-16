@@ -137,7 +137,7 @@
 
           <div class="card-body">
             <!-- Students Table with Skill Breakdown -->
-            <div v-if="students.length && selectedSubject && subjectSkills.length">
+            <div v-if="students.length && selectedSubject">
               <div class="alert alert-success border">
                 <i class="bi bi-check-circle me-2"></i>
                 Successfully loaded {{ students.length }} students for {{ availableSubjects.find(s => s.id === selectedSubject)?.name }}
@@ -1032,5 +1032,108 @@ onMounted(async () => {
 
 .breadcrumb-item.active {
   color: #6c757d;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  /* Make tables scroll horizontally on mobile */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: block;
+    width: 100%;
+  }
+  
+  /* Reduce font sizes on mobile */
+  .table {
+    font-size: 0.85rem;
+  }
+  
+  /* Make input fields touch-friendly */
+  .form-control-sm {
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    min-height: 38px;
+  }
+  
+  /* Hide email column on mobile to save space */
+  .table td .small {
+    display: none;
+  }
+  
+  /* Reduce avatar size on mobile */
+  .avatar-sm {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 10px !important;
+  }
+  
+  /* Stack selection dropdowns vertically on mobile */
+  .d-flex.gap-3.flex-wrap {
+    flex-direction: column !important;
+  }
+  
+  .flex-1 {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+  
+  /* Make buttons full width on mobile */
+  .flex-shrink-0 {
+    width: 100%;
+  }
+  
+  .flex-shrink-0 .btn {
+    width: 100%;
+  }
+  
+  /* Adjust alert text size */
+  .alert {
+    font-size: 0.9rem;
+  }
+  
+  /* Make submission section stack on mobile */
+  .row.mb-4 {
+    flex-direction: column;
+  }
+  
+  .col-md-6, .col-md-4, .col-md-8 {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Reduce padding on cards */
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .card-header {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Extra small devices (phones in portrait) */
+@media (max-width: 576px) {
+  /* Further reduce table font size */
+  .table {
+    font-size: 0.75rem;
+  }
+  
+  /* Make table cells more compact */
+  .table td, .table th {
+    padding: 0.5rem 0.25rem;
+  }
+  
+  /* Hide student ID column on very small screens */
+  .table th:nth-child(2),
+  .table td:nth-child(2) {
+    display: none;
+  }
+  
+  /* Reduce badge size */
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.4rem;
+  }
 }
 </style>

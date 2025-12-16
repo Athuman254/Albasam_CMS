@@ -16,7 +16,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // Define roles
         $roles = [
             [
-                'name' => 'admin',
+                'name' => 'administrator',
                 'display_name' => 'Administrator',
                 'description' => 'Full system access - can manage all aspects of the system'
             ],
@@ -79,7 +79,7 @@ class RolesAndPermissionsSeeder extends Seeder
     private function assignPermissions(): void
     {
         // Admin gets ALL permissions
-        $admin = Role::where('name', 'admin')->first();
+        $admin = Role::where('name', 'administrator')->first();
         if ($admin) {
             $admin->syncPermissions(Permission::all());
             $this->command->info('Admin role: ALL permissions assigned');

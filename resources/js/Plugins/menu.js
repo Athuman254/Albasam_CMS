@@ -88,6 +88,39 @@ class Menu {
 			if (!this._horizontal && !horizontalMenuTemplate) this.manageScroll()
 		}
 		window.addEventListener('resize', this._evntWindowResize)
+
+		// Auto-close menu on mobile when clicking menu links
+		this._evntMenuLinkClick = (e) => {
+			// Only on mobile screens
+			if (window.innerWidth >= 1200) return
+
+			const target = e.target
+
+			// Check if clicked element or its parent is a menu link
+			const menuLink = target.closest('.menu-link')
+			const menuItem = target.closest('.menu-item')
+
+			// Ignore if it's a menu toggle (dropdown parent)
+			if (menuLink && menuLink.classList.contains('menu-toggle')) return
+
+			// If clicked on a menu link that's not a toggle
+			if (menuLink && menuItem && !menuItem.classList.contains('menu-item-open')) {
+				// Close the menu after a short delay to allow navigation
+				setTimeout(() => {
+					const layoutWrapper = document.querySelector('.layout-wrapper')
+					if (layoutWrapper && layoutWrapper.classList.contains('layout-menu-expanded')) {
+						layoutWrapper.classList.remove('layout-menu-expanded')
+
+						// Also remove the overlay
+						const overlay = document.querySelector('.layout-overlay')
+						if (overlay) {
+							overlay.classList.remove('layout-menu-toggle')
+						}
+					}
+				}, 150)
+			}
+		}
+		this._el.addEventListener('click', this._evntMenuLinkClick)
 	}
 
 	static childOf(/* child node */ c, /* parent node */ p) {
@@ -113,6 +146,11 @@ class Menu {
 		if (this._evntElMouseOut) {
 			this._el.removeEventListener('mouseout', this._evntElMouseOut)
 			this._evntElMouseOut = null
+		}
+
+		if (this._evntMenuLinkClick) {
+			this._el.removeEventListener('click', this._evntMenuLinkClick)
+			this._evntMenuLinkClick = null
 		}
 
 		if (this._evntWindowResize) {

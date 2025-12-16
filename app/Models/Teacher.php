@@ -17,6 +17,7 @@ class Teacher extends Model
     protected $primaryKey = 'id';
     protected $appends = ['hashid', 'is_class_teacher'];
     protected $fillable = [
+        'user_id',
         'employee_id',
         'first_name',
         'middle_name',

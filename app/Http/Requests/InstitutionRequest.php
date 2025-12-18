@@ -67,10 +67,14 @@ class InstitutionRequest extends FormRequest
     {
         $this->merge([
             //            'name' => strtoupper($this->input('name')),
-            'email' => strtolower($this->input('email')),
-            'country' => strtoupper($this->input('country')),
-            'state' => strtoupper($this->input('state')),
-            'city' => strtoupper($this->input('city')),
+            'email' => $this->input('email') ? strtolower($this->input('email')) : null,
+            'country' => $this->input('country') ? strtoupper($this->input('country')) : null,
+            'state' => $this->input('state') ? strtoupper($this->input('state')) : null,
+            'city' => $this->input('city') ? strtoupper($this->input('city')) : null,
+            // Convert empty strings to null for numeric fields
+            'latitude' => $this->input('latitude') !== '' ? $this->input('latitude') : null,
+            'longitude' => $this->input('longitude') !== '' ? $this->input('longitude') : null,
+            'geofence_radius' => $this->input('geofence_radius') !== '' ? $this->input('geofence_radius') : null,
         ]);
     }
 }

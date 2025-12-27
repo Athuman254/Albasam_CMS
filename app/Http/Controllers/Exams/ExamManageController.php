@@ -13,7 +13,8 @@ use Spatie\QueryBuilder\AllowedFilter;
 
 class ExamManageController extends Controller
 {
-   public function examSubject(){
+   public function examSubject()
+   {
       $subjects = \Spatie\QueryBuilder\QueryBuilder::for(
          ExamSubject::with('subject')->orderBy('id')
       )->allowedFilters([
@@ -25,7 +26,7 @@ class ExamManageController extends Controller
    public function dataTable()
    {
       $exams = \Spatie\QueryBuilder\QueryBuilder::for(
-         Exam::with(['academicYear','subjects'])->orderBy('id')
+         Exam::with(['academicYear', 'subjects'])->orderBy('id')
       )->allowedFilters([
          // AllowedFilter::exact('id'),
          // AllowedFilter::exact('is_active'),
@@ -57,6 +58,10 @@ class ExamManageController extends Controller
    {
       $validated = $request->validate([
          'name' => 'required|string|max:255',
+         'term' => 'nullable|string',
+         'exam_type' => 'required|in:opening,mid,end,general',
+         'publisher' => 'nullable|string',
+         'exam_date' => 'nullable|date',
          'academic_year_id' => 'required|exists:academic_years,id',
          'description' => 'nullable|string',
          'classes' => 'required|array|min:1',
@@ -68,24 +73,33 @@ class ExamManageController extends Controller
 
          $exam = Exam::create([
             'name' => $validated['name'],
+            'term' => $request->term,
+            'exam_type' => $validated['exam_type'],
+            'publisher' => $request->publisher,
+            'exam_date' => $request->exam_date,
             'academic_year_id' => $validated['academic_year_id'],
             'description' => $request->description,
             'status' => 'draft',
          ]);
 
          foreach ($validated['classes'] as $classId) {
-            $subjects = $validated['classSubjects'][$classId] ?? [];
+            $classSubjectsData = $validated['classSubjects'][$classId] ?? [];
 
-            foreach ($subjects as $subjectId) {
+            foreach ($classSubjectsData as $subjectData) {
+               $subjectId = is_array($subjectData) ? $subjectData['id'] : $subjectData;
+               $maxMarks = is_array($subjectData) ? ($subjectData['max_marks'] ?? 100) : 100;
+               // Publisher and Date are now on Exam model
+
                ExamSubject::create([
                   'exam_id' => $exam->id,
                   'class_id' => $classId,
                   'subject_id' => $subjectId,
-                  'max_marks' =>  100,
+                  'max_marks' =>  $maxMarks,
                ]);
             }
          }
       });
+      return back(303);
    }
 
    /**
@@ -107,9 +121,50 @@ class ExamManageController extends Controller
    /**
     * Update the specified resource in storage.
     */
-   public function update(Request $request, string $id)
+   public function update(Request $request, Exam $manage)
    {
-      //
+      $validated = $request->validate([
+         'name' => 'required|string|max:255',
+         'term' => 'nullable|string',
+         'exam_type' => 'required|in:opening,mid,end,general',
+         'publisher' => 'nullable|string',
+         'exam_date' => 'nullable|date',
+         'academic_year_id' => 'required|exists:academic_years,id',
+         'description' => 'nullable|string',
+         'classes' => 'required|array|min:1',
+         'classes.*' => 'exists:ranks,id',
+         'classSubjects' => 'required|array',
+      ]);
+
+      DB::transaction(function () use ($validated, $request, $manage) {
+         $manage->update([
+            'name' => $validated['name'],
+            'term' => $request->term,
+            'exam_type' => $validated['exam_type'],
+            'publisher' => $request->publisher,
+            'exam_date' => $request->exam_date,
+            'academic_year_id' => $validated['academic_year_id'],
+            'description' => $request->description,
+         ]);
+
+         // Remove existing subjects and re-add
+         $manage->subjects()->delete();
+
+         foreach ($validated['classes'] as $classId) {
+            $classSubjectsData = $validated['classSubjects'][$classId] ?? [];
+            foreach ($classSubjectsData as $subjectData) {
+               $subjectId = is_array($subjectData) ? $subjectData['id'] : $subjectData;
+               $maxMarks = is_array($subjectData) ? ($subjectData['max_marks'] ?? 100) : 100;
+               ExamSubject::create([
+                  'exam_id' => $manage->id,
+                  'class_id' => $classId,
+                  'subject_id' => $subjectId,
+                  'max_marks' =>  $maxMarks,
+               ]);
+            }
+         }
+      });
+      return back(303);
    }
 
    /**
@@ -119,16 +174,16 @@ class ExamManageController extends Controller
    {
       try {
 
-            $manage->subjects()->delete();
-            $manage->delete();
-            return response()->json([
-                'message' => 'Exam deleted successfully.'
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to delete exam.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+         $manage->subjects()->delete();
+         $manage->delete();
+         return response()->json([
+            'message' => 'Exam deleted successfully.'
+         ], 200);
+      } catch (\Exception $e) {
+         return response()->json([
+            'message' => 'Failed to delete exam.',
+            'error' => $e->getMessage()
+         ], 500);
+      }
    }
 }

@@ -15,6 +15,7 @@ use App\Models\Subject;
 use App\Models\Skill;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Omaralalwi\Gpdf\Facade\Gpdf as GpdfFacade;
 
 class ExamResultController extends Controller
@@ -24,7 +25,43 @@ class ExamResultController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Exam/ExamResult/Index');
+        // Only load recent academic years (last 3 years) for better performance
+        $academicYears = \App\Models\AcademicYear::select('id', 'name', 'start_date', 'end_date')
+            ->orderBy('start_date', 'desc')
+            ->limit(3)
+            ->get()
+            ->map(function ($year) {
+                $year->display_name = $year->name . ' (' . \Carbon\Carbon::parse($year->start_date)->format('Y') . '-' . \Carbon\Carbon::parse($year->end_date)->format('Y') . ')';
+                return $year;
+            });
+
+        // Only load recent exams (last 50) for better performance
+        $exams = Exam::with(['academicYear' => function ($query) {
+            $query->select('id', 'name');
+        }])->select('id', 'name', 'exam_type', 'term', 'academic_year_id')
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get();
+
+        // Load classes with eager loading
+        $classes = Rank::with(['stream' => function ($query) {
+            $query->select('id', 'name');
+        }])->select('id', 'name', 'stream_id')
+            ->orderBy('name')
+            ->get();
+
+        // Debug logging
+        \Log::info('ExamResultController::index called', [
+            'exams_count' => $exams->count(),
+            'classes_count' => $classes->count(),
+            'academic_years_count' => $academicYears->count()
+        ]);
+
+        return Inertia::render('Exam/ExamResult/Index', [
+            'initialAcademicYears' => $academicYears,
+            'initialExams' => $exams,
+            'initialClasses' => $classes
+        ]);
     }
 
     /**
@@ -114,21 +151,110 @@ class ExamResultController extends Controller
                 ];
             }
         } else {
-            // Distribute marks evenly among skills (fallback)
-            $marksPerSkill = $maxMarks / $numberOfSkills;
-            $obtainedPerSkill = $totalMarks / $numberOfSkills;
-
-            foreach ($subject->skills as $skill) {
-                $breakdown[] = [
-                    'skill_name' => $skill->name,
-                    'marks_obtained' => round($obtainedPerSkill, 1),
-                    'maximum_marks' => round($marksPerSkill, 1),
-                    'remarks' => $this->getSkillRemarks($obtainedPerSkill, $marksPerSkill)
-                ];
-            }
+            // If no detailed skill marks, return null to show overall subject performance only
+            return null;
         }
 
         return $breakdown;
+    }
+
+    /**
+     * Generate Term Analysis Report
+     */
+    public function generateTermAnalysisReport(Request $request)
+    {
+        $request->validate([
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'term' => 'required|string',
+            'class_id' => 'required|exists:ranks,id',
+            'opening_date' => 'nullable|date',
+            'closing_date' => 'nullable|date'
+        ]);
+
+        $term = $request->term;
+        $classId = $request->class_id;
+        $academicYearId = $request->academic_year_id;
+
+        // Find the three exams for this term
+        $exams = Exam::where('academic_year_id', $academicYearId)
+            ->where('term', $term)
+            ->whereIn('exam_type', ['opening', 'mid', 'end'])
+            ->get()
+            ->keyBy('exam_type');
+
+        if ($exams->isEmpty()) {
+            return back()->with('error', 'No opening, mid or end term exams found for this term.');
+        }
+
+        // Get class details
+        $class = Rank::with('stream')->findOrFail($classId);
+        $institution = Institution::with('media')->first();
+
+        // Use the END term exam as the base for subjects, or first available
+        $baseExam = $exams->get('end') ?? $exams->first();
+
+        // Get students in this class
+        $students = Student::whereHas('studentClasses', function ($q) use ($classId) {
+            $q->where('class_id', $classId);
+        })->orderBy('first_name')->orderBy('last_name')->get();
+
+        $analysisData = [];
+
+        foreach ($students as $student) {
+            $studentData = [
+                'student' => $student,
+                'exams' => [],
+                'average' => 0,
+                'total_points' => 0
+            ];
+
+            $totalAverage = 0;
+            $examCount = 0;
+
+            foreach (['opening', 'mid', 'end'] as $type) {
+                if (isset($exams[$type])) {
+                    $exam = $exams[$type];
+                    // Calculate total marks for this student in this exam
+                    $marks = ExamMark::where('exam_id', $exam->id)
+                        ->where('student_id', $student->id)
+                        ->get();
+
+                    if ($marks->isNotEmpty()) {
+                        $totalMarks = $marks->sum('marks_obtained');
+                        $maxMarks = $marks->sum('maximum_marks');
+                        $percentage = $maxMarks > 0 ? ($totalMarks / $maxMarks) * 100 : 0;
+
+                        $studentData['exams'][$type] = [
+                            'total' => $totalMarks,
+                            'max' => $maxMarks,
+                            'percentage' => $percentage
+                        ];
+
+                        $totalAverage += $percentage;
+                        $examCount++;
+                    }
+                }
+            }
+
+            if ($examCount > 0) {
+                $studentData['average'] = $totalAverage / 3; // Always divide by 3 as per requirement "Opening + Mid + End"
+            }
+
+            $analysisData[] = $studentData;
+        }
+
+        // Generate PDF
+        $pdf = GpdfFacade::loadView('exams.reports.term_analysis_report', [
+            'institution' => $institution,
+            'class' => $class,
+            'term' => $term,
+            'data' => $analysisData,
+            'exams' => $exams,
+            'opening_date' => $request->opening_date,
+            'closing_date' => $request->closing_date
+        ]);
+
+        return $pdf->stream('term-analysis-report.pdf');
     }
 
     /**
@@ -186,7 +312,7 @@ class ExamResultController extends Controller
                 return 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
             }
         } catch (\Exception $e) {
-            \Log::error('Error getting logo: ' . $e->getMessage());
+            Log::error('Error getting logo: ' . $e->getMessage());
         }
 
         return null;
@@ -197,8 +323,11 @@ class ExamResultController extends Controller
      */
     public function generateBulkReport(Request $request)
     {
-        \Log::info('=== GENERATE BULK REPORT CALLED ===');
-        \Log::info('Request Data: ', $request->all());
+        // Increase execution time for large PDF generation
+        set_time_limit(300); // 5 minutes
+
+        Log::info('=== GENERATE BULK REPORT CALLED ===');
+        Log::info('Request Data: ', $request->all());
 
         $request->validate([
             'exam_id' => 'required|exists:exams,id',
@@ -385,11 +514,99 @@ class ExamResultController extends Controller
     }
 
     /**
-     * Generate individual student reports for entire class
+     * Get results for the results table
      */
+    public function getResults(Request $request)
+    {
+        $request->validate([
+            'exam_id' => 'required|exists:exams,id',
+            'class_id' => 'required|exists:ranks,id',
+            'only_published' => 'sometimes',
+        ]);
+
+        $examId = $request->exam_id;
+        $classId = $request->class_id;
+        $onlyPublished = $request->boolean('only_published', false);
+
+        // Get class details
+        $class = Rank::with('stream')->findOrFail($classId);
+
+        // Get all subjects for this exam and class
+        $examSubjects = \App\Models\ExamSubject::with('subject')
+            ->where('exam_id', $examId)
+            ->where('class_id', $classId)
+            ->get();
+
+        // Get students
+        $students = Student::where('rank_id', $classId)
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+
+        if ($students->isEmpty()) {
+            return response()->json([
+                'students' => [],
+                'subjects' => [],
+                'marks' => [],
+                'statuses' => []
+            ]);
+        }
+
+        // Get marks
+        $marksQuery = ExamMark::with('examSubject')
+            ->where('exam_id', $examId)
+            ->where('class_id', $classId);
+
+        if ($onlyPublished) {
+            $marksQuery->where('status', ExamMark::PUBLISHED);
+        } else {
+            $marksQuery->whereIn('status', ['approved', ExamMark::PUBLISHED]);
+        }
+
+        $marksData = $marksQuery->get();
+
+        // Organize marks by student_id and subject_id
+        $organizedMarks = [];
+        $studentStatuses = [];
+
+        foreach ($marksData as $mark) {
+            $studentId = $mark->student_id;
+            $subjectId = $mark->examSubject->subject_id;
+
+            if (!isset($organizedMarks[$studentId])) {
+                $organizedMarks[$studentId] = [];
+            }
+
+            $organizedMarks[$studentId][$subjectId] = $mark->marks_obtained;
+
+            // Determine overall status for student (simplified)
+            if (!isset($studentStatuses[$studentId])) {
+                $studentStatuses[$studentId] = 'Pass'; // Default
+            }
+            // Logic for fail can be added here
+        }
+
+        // Prepare subjects list for frontend headers
+        $frontendSubjects = $examSubjects->map(function ($es) {
+            return [
+                'id' => $es->subject_id,
+                'name' => $es->subject->name,
+                'code' => $es->subject->code,
+                'max_marks' => $es->max_marks,
+                'exam_subject_id' => $es->id
+            ];
+        });
+
+        return response()->json([
+            'students' => $students,
+            'subjects' => $frontendSubjects,
+            'marks' => $organizedMarks,
+            'statuses' => $studentStatuses
+        ]);
+    }
     private function generateClassIndividualReports($institution, $exam, $class, $students, $includeAnalysis, $includeRankings, $onlyPublished, $examId, $classId, $closingDate = null, $openingDate = null)
     {
-        $allStudentHtml = '';
+        $studentReports = []; // Collect all generated reports
         $logoBase64 = $this->getLogoBase64($institution);
 
         foreach ($students as $index => $student) {
@@ -493,7 +710,7 @@ class ExamResultController extends Controller
                 $performanceAnalysis = $includeAnalysis ? $this->calculatePerformanceAnalysis($marks, $classRank, $classSize) : null;
 
                 // Prepare marks data with grades and ranks
-                $marksWithGrades = $marks->map(function ($mark) use ($subjectRanks, $includeRankings, $student, $examId, $classId) {
+                $marksWithGrades = $marks->map(function ($mark) use ($subjectRanks, $includeRankings, $student, $examId, $classId, $exam) {
                     $percentage = $mark->examSubject->max_marks > 0 ?
                         ($mark->marks_obtained / $mark->examSubject->max_marks) * 100 : 0;
 
@@ -516,7 +733,7 @@ class ExamResultController extends Controller
                         'maximum_marks' => $mark->examSubject->max_marks,
                         'percentage' => round($percentage, 2),
                         'grade' => $this->calculateGrade($percentage),
-                        'remarks' => $this->getRemarks($percentage),
+                        'remarks' => $this->getRemarks($percentage, $exam->grading_scale_id),
                         'class_rank' => $includeRankings ? ($subjectRankInfo['class_rank'] ?? null) : null,
                         'stream_rank' => $includeRankings ? ($subjectRankInfo['stream_rank'] ?? null) : null,
                         'total_students_class' => $includeRankings ? ($subjectRankInfo['total_students_class'] ?? null) : null,
@@ -551,23 +768,42 @@ class ExamResultController extends Controller
                     'logoBase64' => $logoBase64, // Add base64 logo
                 ])->render();
 
-                $allStudentHtml .= $studentHtml;
-
-                // Add page break after each student except the last one
-                if ($index < count($students) - 1) {
-                    $allStudentHtml .= '<div style="page-break-after: always;"></div>';
-                }
+                // Add to reports array
+                $studentReports[] = $studentHtml;
             } catch (\Exception $e) {
-                \Log::error("Error generating report for student {$student->id}: " . $e->getMessage());
+                Log::error("Error generating report for student {$student->id}: " . $e->getMessage());
                 continue;
             }
         }
 
-        if (empty($allStudentHtml)) {
+        if (empty($studentReports)) {
             return response()->json([
                 'error' => 'No student reports could be generated. Please check if marks are available.'
             ], 404);
         }
+
+        // Join all reports with page breaks between them
+        $reportsContent = implode('<div style="page-break-after: always;"></div>', $studentReports);
+
+        // Wrap all reports in a single HTML document to prevent PDF generator issues
+        $allStudentHtml = '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Reports - ' . $class->name . '</title>
+    <style>
+        @page {
+            margin: 0;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>' . $reportsContent . '</body>
+</html>';
 
         $filename = "exam-report-{$exam->name}-{$class->name}-class-individuals-" . now()->format('Y-m-d') . ".pdf";
 
@@ -717,7 +953,7 @@ class ExamResultController extends Controller
         $performanceAnalysis = $includeAnalysis ? $this->calculatePerformanceAnalysis($marks, $classRank, $this->getClassSize($examId, $classId, $onlyPublished)) : null;
 
         // Prepare marks data with grades and ranks
-        $marksWithGrades = $marks->map(function ($mark) use ($subjectRanks, $includeRankings, $studentId, $examId, $classId) {
+        $marksWithGrades = $marks->map(function ($mark) use ($subjectRanks, $includeRankings, $studentId, $examId, $classId, $exam) {
             $percentage = $mark->examSubject->max_marks > 0 ?
                 ($mark->marks_obtained / $mark->examSubject->max_marks) * 100 : 0;
 
@@ -740,7 +976,7 @@ class ExamResultController extends Controller
                 'maximum_marks' => $mark->examSubject->max_marks,
                 'percentage' => round($percentage, 2),
                 'grade' => $this->calculateGrade($percentage),
-                'remarks' => $this->getRemarks($percentage),
+                'remarks' => $this->getRemarks($percentage, $exam->grading_scale_id),
                 'class_rank' => $includeRankings ? ($subjectRankInfo['class_rank'] ?? null) : null,
                 'stream_rank' => $includeRankings ? ($subjectRankInfo['stream_rank'] ?? null) : null,
                 'total_students_class' => $includeRankings ? ($subjectRankInfo['total_students_class'] ?? null) : null,
@@ -1040,16 +1276,9 @@ class ExamResultController extends Controller
     /**
      * Get remarks based on percentage
      */
-    private function getRemarks($percentage)
+    private function getRemarks($percentage, $gradingScaleId = null)
     {
-        return match (true) {
-            $percentage >= 80 => 'Excellent',
-            $percentage >= 70 => 'Very Good',
-            $percentage >= 60 => 'Good',
-            $percentage >= 50 => 'Average',
-            $percentage >= 40 => 'Below Average',
-            default => 'Poor',
-        };
+        return \App\Services\GradingService::getRemarks($percentage, $gradingScaleId);
     }
 
     /**

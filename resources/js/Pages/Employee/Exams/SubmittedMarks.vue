@@ -348,7 +348,7 @@ const loadSubmittedMarks = async () => {
     error.value = null;
     
     console.log('Loading submitted marks from API...');
-    const response = await apiClient.get('/employee/exams/submitted-marks');
+    const response = await apiClient.get('/employee/exams/submitted-marks-data');
     console.log('API Response:', response);
     
     // Handle different response structures

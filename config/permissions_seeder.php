@@ -10,6 +10,7 @@ return [
         'Admission-Management' => [
             'admissions-workspace' => 'a',
             'admissions' => 'c,e,d',
+            'admission-applications' => 'a,r,e,d',
             'students-workspace' => 'a',
             'students' => 'r,c,e,d',
         ],
@@ -52,6 +53,11 @@ return [
             'exams-workspace' => 'a',
             'exams' => 'c,e,d,r',
             'exam-results' => 'c,e,r',
+            'manage-exams' => 'a',
+            'enroll-students' => 'a',
+            'upload-exam-results' => 'a',
+            'approve-exam-results' => 'a',
+            'approved-marks' => 'e',
         ],
         'Fee-Management' => [
             'fees-workspace' => 'a',
@@ -63,6 +69,10 @@ return [
         'Finance-Management' => [
             'payroll-workspace' => 'a',
             'payroll' => 'c,e,d,r',
+            'manage-payroll' => 'a',
+            'approve-payroll' => 'a',
+            'run-payroll' => 'a',
+            'edit-payroll-adjustments' => 'a',
         ],
         'Report-Management' => [
             'reports-workspace' => 'a',
@@ -71,6 +81,7 @@ return [
             'staff-attendance-reports' => 'r',
             'all-students-report' => 'r',
             'all-staff-report' => 'r',
+            'student-ids' => 'a,r',
         ],
         'Timetable-Management' => [
             'timetable-workspace' => 'a',
@@ -79,7 +90,20 @@ return [
             'constraints' => 'c,e,d,r',
             'class-timetables' => 'r',
             'teacher-timetables' => 'r',
-            'timetable-generation' => 'c,e,d,r', // Generate, Publish
+            'timetable-generation' => 'c,e,d,r',
+            'publish-timetable' => 'a',
+            'view-timetable' => 'a',
+            'create-timetable' => 'a',
+            'edit-timetable' => 'a',
+            'delete-timetable' => 'a',
+        ],
+        'LMS-Management' => [
+            'lms-workspace' => 'a',
+            'lesson-materials' => 'c,e,d,r',
+            'assignments' => 'c,e,d,r',
+            'assignment-submissions' => 'r,e',
+            'revision-tools' => 'c,e,d,r',
+            'online-classes' => 'c,e,d,r',
         ],
         'Website-Management' => [
             'pages-workspace' => 'a',

@@ -8,6 +8,7 @@ use App\Models\Student;
 use App\Models\Fee;
 use App\Models\FeePayment;
 use Illuminate\Support\Facades\Log;
+use App\Services\MessageService;
 
 class AllocateFeeCommand extends Command
 {
@@ -28,10 +29,10 @@ class AllocateFeeCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(MessageService $messageService)
     {
         $paymentId = $this->argument('payment_id');
-        
+
         Log::info("AllocateFeeCommand started", ['payment_id' => $paymentId]);
 
         // Find payment record with validation
@@ -53,7 +54,7 @@ class AllocateFeeCommand extends Command
 
         // Use Student model instead of StudentAdmission
         $student = Student::find($paymentRecord->matched_student_id);
-        
+
         if (!$student) {
             $this->error("Student not found for payment ID: {$paymentRecord->id}");
             Log::error("Student not found", [
@@ -71,11 +72,11 @@ class AllocateFeeCommand extends Command
 
         // Get unpaid fees for the student
         $unpaidFees = Fee::where('student_id', $student->id)
-            ->where('balance', '>', 0) 
-            ->orderBy('academic_year', 'asc') 
-            ->orderBy('term', 'asc') 
-            ->orderBy('due_date', 'asc') 
-            ->orderBy('created_at', 'asc') 
+            ->where('balance', '>', 0)
+            ->orderBy('academic_year', 'asc')
+            ->orderBy('term', 'asc')
+            ->orderBy('due_date', 'asc')
+            ->orderBy('created_at', 'asc')
             ->with(['rank'])
             ->get();
 
@@ -89,7 +90,7 @@ class AllocateFeeCommand extends Command
         $totalAllocated = 0;
         $allocatedFees = [];
 
-        foreach($unpaidFees as $fee) {
+        foreach ($unpaidFees as $fee) {
             if ($amountPaid <= 0) {
                 break;
             }
@@ -97,7 +98,7 @@ class AllocateFeeCommand extends Command
             $feeBalance = $fee->balance;
             $amountToAllocate = min($feeBalance, $amountPaid);
 
-            if($amountToAllocate > 0) {
+            if ($amountToAllocate > 0) {
                 // Create FeePayment record
                 try {
                     FeePayment::create([
@@ -120,7 +121,7 @@ class AllocateFeeCommand extends Command
                     // Update fee balance and status
                     $newBalance = $feeBalance - $amountToAllocate;
                     $newPaidAmount = $fee->paid_amount + $amountToAllocate;
-                    
+
                     $fee->update([
                         'paid_amount' => $newPaidAmount,
                         'balance' => $newBalance,
@@ -135,13 +136,12 @@ class AllocateFeeCommand extends Command
 
                     $amountPaid -= $amountToAllocate;
                     $totalAllocated += $amountToAllocate;
-                    
+
                     $allocatedFees[] = [
                         'fee_id' => $fee->id,
                         'amount_allocated' => $amountToAllocate,
                         'remaining_balance' => $newBalance
                     ];
-
                 } catch (\Exception $e) {
                     Log::error("Failed to allocate fee payment", [
                         'fee_id' => $fee->id,
@@ -150,7 +150,7 @@ class AllocateFeeCommand extends Command
                     $this->error("Failed to allocate fee payment for fee ID: {$fee->id}");
                 }
 
-                if($amountPaid <= 0) {
+                if ($amountPaid <= 0) {
                     break;
                 }
             }
@@ -158,12 +158,19 @@ class AllocateFeeCommand extends Command
 
         // Update payment status
         $paymentStatus = $amountPaid > 0 ? 'partially_allocated' : 'fully_allocated';
-        
+
         $paymentRecord->update([
             'status' => $paymentStatus,
             'allocated_at' => now(),
             'allocation_notes' => "Allocated KSh {$totalAllocated} to " . count($allocatedFees) . " fee items"
         ]);
+
+        // Send SMS Receipt
+        try {
+            $messageService->sendPaymentReceipt($student, $totalAllocated, $paymentRecord->reference_number);
+        } catch (\Exception $e) {
+            Log::error("SMS Receipt error in AllocateFeeCommand: " . $e->getMessage());
+        }
 
         Log::info("Payment allocation completed", [
             'payment_id' => $paymentRecord->id,

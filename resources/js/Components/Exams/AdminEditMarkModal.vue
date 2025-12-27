@@ -178,15 +178,16 @@ const submitEdit = async () => {
   
   loading.value = true;
   try {
-    const response = await axios.put(
-      route('admin.exams.marks.admin-update', props.mark.id),
+    const response = await axios.post(
+      '/admin/exams/approval-queue/update-approved-mark',
       {
-        marks_obtained: newMarks.value,
-        edit_reason: editReason.value.trim()
+        mark_id: props.mark.id,
+        new_marks: newMarks.value,
+        reason: editReason.value.trim()
       }
     );
     
-    toast.success(response.data.message);
+    toast.success(response.data.message || 'Mark updated successfully');
     emit('updated', response.data.data);
     close();
   } catch (error) {
@@ -194,9 +195,11 @@ const submitEdit = async () => {
       // Validation errors
       const validationErrors = error.response.data.errors || {};
       errors.value = {
-        marks: validationErrors.marks_obtained?.[0],
-        reason: validationErrors.edit_reason?.[0]
+        marks: validationErrors.new_marks?.[0] || validationErrors.mark_id?.[0],
+        reason: validationErrors.reason?.[0]
       };
+    } else if (error.response?.status === 403) {
+      toast.error('Only administrators can edit approved marks');
     }
     toast.error(error.response?.data?.message || 'Failed to update mark');
   } finally {
@@ -217,11 +220,11 @@ const close = () => {
 <style scoped>
 .modal.show {
   display: block !important;
-  z-index: 1060; /* Higher than standard Bootstrap modal (1055) */
+  z-index: 2000 !important; /* Higher than any standard Bootstrap modal */
+  background: rgba(0,0,0,0.5); /* Built-in backdrop for better layering */
 }
 
 .modal-backdrop.show {
-  opacity: 0.5;
-  z-index: 1059; /* Higher than standard Bootstrap backdrop (1050) */
+  display: none; /* Hide separate backdrop to avoid layering issues */
 }
 </style>

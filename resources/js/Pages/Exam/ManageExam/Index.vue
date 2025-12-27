@@ -53,9 +53,12 @@
                            </button>
                            <div class="dropdown-menu dropdown-menu-end">
 
-                              <Link class="dropdown-item" @click="view(props.rowData)">
-                              <i class="icon-base bx bxs-eye me-2"></i>view
-                              </Link>
+                              <a class="dropdown-item" href="#" @click.prevent="view(props.rowData)">
+                                 <i class="icon-base bx bxs-eye me-2"></i>View
+                              </a>
+                              <a class="dropdown-item" href="#" @click.prevent="view(props.rowData)">
+                                 <i class="icon-base bx bxs-edit me-2"></i>Edit
+                              </a>
                               <a class="dropdown-item text-danger" href="#" @click="deleteExam(props.rowData)">
                                  <i class="icon-base bx bx-trash me-2"></i>Delete
                               </a>
@@ -86,6 +89,38 @@
                         <div v-if="form.errors.name" class="text-danger">{{ form.errors.name }}</div>
                      </div>
 
+                      <div class="row mb-3">
+                        <div class="col-md-6">
+                           <label class="form-label">Term</label>
+                           <select v-model="form.term" class="form-select">
+                              <option value="">Select Term</option>
+                              <option value="Term 1">Term 1</option>
+                              <option value="Term 2">Term 2</option>
+                              <option value="Term 3">Term 3</option>
+                           </select>
+                        </div>
+                         <div class="col-md-6">
+                           <label class="form-label">Exam Type</label>
+                           <select v-model="form.exam_type" class="form-select">
+                              <option value="general">General</option>
+                              <option value="opening">Opening Exam</option>
+                              <option value="mid">Mid-Term Exam</option>
+                              <option value="end">End-Term Exam</option>
+                           </select>
+                        </div>
+                      </div>
+
+                      <div class="row mb-3">
+                        <div class="col-md-6">
+                           <label class="form-label">Publisher</label>
+                           <input type="text" v-model="form.publisher" class="form-control" placeholder="e.g. Jesma">
+                        </div>
+                        <div class="col-md-6">
+                           <label class="form-label">Exam Date</label>
+                           <input type="date" v-model="form.exam_date" class="form-control">
+                        </div>
+                      </div>
+
                      <div class="mb-3">
                         <label for="divisionId" class="form-label">Session</label>
                         <v-select id="divisionId" v-model="form.academic_year_id" :options="academicYears" label="display_name"
@@ -95,17 +130,17 @@
                      </div>
 
                      <div class="mb-3">
-                        <label for="streamId" class="form-label">Clascses</label>
+                        <label for="streamId" class="form-label">Classes</label>
                         <v-select id="streamId" multiple v-model="form.classes" :options="classes" label="name"
                            :reduce="option => option.id">
 
                            <template #option="{ name, stream }">
-                              <strong>{{ name }}</strong> - <small>{{ stream.name }}</small>
+                              <strong>{{ name }}</strong> - <small>{{ stream?.name || 'No Stream' }}</small>
                            </template>
 
 
                            <template #selected-option="props">
-                              {{ props.name }} - {{ props.stream?.name }}
+                              {{ props.name }} - {{ props.stream?.name || 'No Stream' }}
                            </template>
                         </v-select>
                         <div v-if="form.errors.classes" class="text-danger">{{ form.errors.classes }}</div>
@@ -121,10 +156,36 @@
 
                         <div v-for="classId in form.classes" :key="classId" class="border rounded p-3 mb-3">
                            <h6>{{ getClassName(classId) }}</h6>
+                           <button type="button" class="btn btn-sm btn-outline-secondary mb-2" @click="toggleAllSubjects(classId)">Toggle All Subjects</button>
 
-                           <v-select multiple :options="subjects" label="name" :reduce="option => option.id"
-                              v-model="form.classSubjects[classId]">
-                           </v-select>
+                           <div class="table-responsive">
+                              <table class="table table-sm table-borderless">
+                                 <thead>
+                                    <tr>
+                                       <th style="width: 5%">Select</th>
+                                       <th style="width: 40%">Subject</th>
+                                       <th style="width: 20%">Max Marks</th>
+                                    </tr>
+                                 </thead>
+                                 <tbody>
+                                    <tr v-for="subject in subjects" :key="subject.id">
+                                       <td>
+                                          <input type="checkbox" 
+                                             :checked="isSubjectSelected(classId, subject.id)"
+                                             @change="toggleSubject(classId, subject.id, $event.target.checked)"
+                                             class="form-check-input">
+                                       </td>
+                                       <td>{{ subject.name }}</td>
+                                       <td>
+                                          <input type="number" 
+                                             v-if="isSubjectSelected(classId, subject.id)"
+                                             v-model="getSubjectEntry(classId, subject.id).max_marks" 
+                                             class="form-control form-control-sm" placeholder="100">
+                                       </td>
+                                    </tr>
+                                 </tbody>
+                              </table>
+                           </div>
                         </div>
                      </div>
                   </form>
@@ -133,7 +194,7 @@
                   <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" @click="formCleanUp">
                      Close
                   </button>
-                  <button v-if="!editMode" type="button" class="btn btn-primary" @click.prevent="createExam">
+                  <button type="button" class="btn btn-primary" @click.prevent="submitForm">
                      {{ editMode ? 'Update' : 'Submit' }}
                   </button>
 
@@ -170,6 +231,22 @@ const fields = [
       title: 'ACADEMIC YEAR',
    },
    {
+      name: 'term',
+      title: 'TERM',
+   },
+   {
+      name: 'exam_type',
+      title: 'TYPE',
+   },
+   {
+      name: 'publisher',
+      title: 'PUBLISHER',
+   },
+   {
+      name: 'exam_date',
+      title: 'DATE',
+   },
+   {
       name: '__slot:actions',
       title: 'ACTIONS',
       titleClass: '5%',
@@ -186,8 +263,12 @@ const classes = ref([])
 const academicYears = ref([])
 const form = useForm({
    name: '',
+   term: '',
+   exam_type: 'general',
+   publisher: '',
+   exam_date: '',
    academic_year_id: '',
-   classSubjects: [],
+   classSubjects: {},
    classes: [],
    description: ''
 })
@@ -197,18 +278,13 @@ const openCreateExamModal = () => {
 }
 
 const fetchStreams = () => {
-   axios.get('/datatable/ranks', {
-      params: {
-         filter: {
-            activated: true,
-         }
-      }
-   })
+   axios.get('/datatable/ranks')
       .then(({ data }) => {
+         console.log('Fetched classes:', data.data);
          classes.value = data.data;
       }).catch((error) => {
          console.error(error)
-         this.$toast.error('An error occurred when fetching the streams.')
+         toast.error('An error occurred when fetching the streams.')
       })
 }
 const fetchSubjects = () => {
@@ -227,39 +303,46 @@ const fetchSubjects = () => {
       })
 }
 const fetchAcademicYears = () => {
-   axios.get('/datatable/academic-years', {
-      params: {
-         filter: {
-            is_active: true,
-         }
-      }
-   })
+   axios.get('/datatable/academic-years')
       .then(({ data }) => {
+         console.log('Fetched academic years:', data.data);
          academicYears.value = data.data
+         if (academicYears.value.length && !form.academic_year_id) {
+            form.academic_year_id = academicYears.value[0].id
+         }
       }).catch((error) => {
          console.error(error)
-         this.$toast.error('An error occurred when fetching the streams.')
+         toast.error('An error occurred when fetching the academic years.')
       })
 }
 const getClassName = (id) => {
    const cls = classes.value.find(c => c.id === id);
-   return cls ? cls.name + '-' + cls.stream?.name : '';
+   return cls ? cls.name + '-' + (cls.stream?.name || 'No Stream') : '';
 }
 const view = (rowData) => {
+   console.log('Viewing exam:', rowData);
    editMode.value = true
    selectedExamId.value = rowData.id
    form.name = rowData.name
    form.academic_year_id = rowData.academic_year_id
+   form.term = rowData.term || ''
+   form.exam_type = rowData.exam_type || 'general'
    form.description = rowData.description ?? ''
 
    const uniqueClassIds = [...new Set(rowData.subjects.map(s => s.class_id))]
    form.classes = uniqueClassIds
 
-   form.classSubjects = {}
+   form.publisher = rowData.publisher || ''
+   form.exam_date = rowData.exam_date || ''
+
    uniqueClassIds.forEach(classId => {
+      // Logic for pre-filling subjects
       form.classSubjects[classId] = rowData.subjects
          .filter(sub => sub.class_id === classId)
-         .map(sub => sub.subject_id)
+         .map(sub => ({
+            id: sub.subject_id,
+            max_marks: sub.max_marks || 100
+         }))
    })
 
    const modalInstance = Modal.getOrCreateInstance(createExamModal.value);
@@ -288,6 +371,30 @@ const createExam = () => {
       },
    });
 }
+const updateExam = () => {
+   form.put(route('admin.exams.manage.update', selectedExamId.value), {
+      onSuccess: () => {
+         form.reset();
+         form.clearErrors();
+         examsTable.value.reloadTable()
+         const modalInstance = Modal.getOrCreateInstance(createExamModal.value);
+         modalInstance.hide();
+         editMode.value = false;
+         selectedExamId.value = null;
+          toast.success('Exam updated successfully')
+      },
+      onError: (errors) => {
+          toast.error('Failed to update exam')
+      },
+   });
+}
+const submitForm = () => {
+    if (editMode.value) {
+        updateExam();
+    } else {
+        createExam();
+    }
+}
 const formCleanUp = () => {
    form.reset();
    form.clearErrors();
@@ -296,6 +403,78 @@ const formCleanUp = () => {
 function formatCurrency(amount) {
    return new Intl.NumberFormat('KES').format(amount)
 }
+
+// Helper to check if subject is selected
+const isSubjectSelected = (classId, subjectId) => {
+   return form.classSubjects[classId]?.some(s => s.id === subjectId)
+}
+
+// Helper to get subject entry for binding inputs
+const getSubjectEntry = (classId, subjectId) => {
+   return form.classSubjects[classId]?.find(s => s.id === subjectId)
+}
+
+// Toggle subject selection
+const toggleSubject = (classId, subjectId, isChecked) => {
+   if (!form.classSubjects[classId]) {
+      form.classSubjects[classId] = []
+   }
+   
+   if (isChecked) {
+      if (!isSubjectSelected(classId, subjectId)) {
+         form.classSubjects[classId].push({
+            id: subjectId,
+            max_marks: 100
+         })
+      }
+   } else {
+      const idx = form.classSubjects[classId].findIndex(s => s.id === subjectId)
+      if (idx !== -1) {
+         form.classSubjects[classId].splice(idx, 1)
+      }
+   }
+}
+
+// Toggle all subjects
+const toggleAllSubjects = (classId) => {
+    if (!form.classSubjects[classId]) {
+        form.classSubjects[classId] = []
+    }
+    
+    // Check if all are currently selected
+    const allSelected = subjects.value.every(sub => isSubjectSelected(classId, sub.id));
+    
+    if (allSelected) {
+        // Deselect all
+        form.classSubjects[classId] = [];
+    } else {
+        // Select all
+        // We want to preserve existing entries (to keep max_marks values if they were modified) and add missing ones
+        subjects.value.forEach(sub => {
+            if (!isSubjectSelected(classId, sub.id)) {
+                 form.classSubjects[classId].push({
+                    id: sub.id,
+                    max_marks: 100
+                 })
+            }
+        });
+    }
+}
+
+watch(() => form.classes, (newClasses) => {
+   newClasses.forEach(classId => {
+      if (!form.classSubjects[classId]) {
+         form.classSubjects[classId] = []
+      }
+   })
+   
+   // Clean up classSubjects for removed classes
+   Object.keys(form.classSubjects).forEach(classId => {
+       if (!newClasses.includes(parseInt(classId))) {
+           delete form.classSubjects[classId];
+       }
+   });
+}, { deep: true })
 onMounted(() => {
    fetchStreams()
    fetchAcademicYears()

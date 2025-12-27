@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class AcademicYearController extends Controller
 {
@@ -27,6 +28,7 @@ class AcademicYearController extends Controller
     */
    public function dataTable()
    {
+      \Log::info('AcademicYearController::dataTable called');
       // Ensure academic years exist, auto-generate if needed
       AcademicYear::ensureYearsExist();
 
@@ -37,6 +39,8 @@ class AcademicYearController extends Controller
          AllowedFilter::exact('is_active'),
          AllowedFilter::partial('name'),
       ])->jsonPaginate();
+
+      \Log::info('AcademicYearController found years: ' . $academicyears->count());
 
       return Resource::collection($academicyears);
    }

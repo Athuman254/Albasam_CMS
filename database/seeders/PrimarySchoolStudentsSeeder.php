@@ -9,6 +9,7 @@ use App\Models\Rank;
 use App\Models\Gender;
 use App\Models\Religion;
 use App\Models\Division;
+use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 class PrimarySchoolStudentsSeeder extends Seeder
@@ -136,7 +137,7 @@ class PrimarySchoolStudentsSeeder extends Seeder
 
                 // Create student admission record
                 $admission = StudentAdmission::create([
-                    'date' => Carbon::now()->subMonths(rand(1, 12)),
+                    'registered_at' => Carbon::now()->subMonths(rand(1, 12)),
                     'division_id' => $division->id,
                     'has_exit_school' => false,
                 ]);
@@ -144,17 +145,23 @@ class PrimarySchoolStudentsSeeder extends Seeder
                 // Create student with admission number format ADM01, ADM02, etc.
                 $admissionNumber = 'ADM' . str_pad($admissionCounter, 2, '0', STR_PAD_LEFT);
 
-                $student = Student::create([
-                    'student_admission_id' => $admission->id,
-                    'admission_number' => $admissionNumber,
-                    'rank_id' => $class->id,
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'gender_id' => $gender->id,
-                    'religion_id' => $religion->id,
-                    'date_of_birth' => $dateOfBirth->format('Y-m-d'),
-                    'citizenship' => 'Kenyan',
-                ]);
+                $student = Student::firstOrCreate(
+                    ['admission_number' => $admissionNumber],
+                    [
+                        'student_admission_id' => $admission->id,
+                        'rank_id' => $class->id,
+                        'first_name' => $firstName,
+                        'last_name' => $lastName,
+                        'gender_id' => $gender->id,
+                        'religion_id' => $religion->id,
+                        'date_of_birth' => $dateOfBirth->format('Y-m-d'),
+                        'citizenship' => 'Kenyan',
+                        'username' => $admissionNumber,
+                        'password' => Hash::make($admissionNumber . date('Y')),
+                        'user_type' => 'student',
+                        'force_password_change' => true,
+                    ]
+                );
 
                 $this->command->info("  ✓ {$admissionNumber}: {$firstName} {$lastName} - {$class->name}");
 

@@ -59,7 +59,7 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
                                             <div>
-                                                <h4 class="mb-0">{{ stats.total_payments?.toLocaleString() || 0 }}</h4>
+                                                <h4 class="mb-0">{{ stats?.total_payments?.toLocaleString() || 0 }}</h4>
                                                 <p class="mb-0">Total Payments</p>
                                             </div>
                                             <div class="align-self-center">
@@ -74,7 +74,7 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
                                             <div>
-                                                <h4 class="mb-0">KSh {{ formatCurrency(stats.total_amount) || 0 }}</h4>
+                                                <h4 class="mb-0">KSh {{ formatCurrency(stats?.total_amount) || 0 }}</h4>
                                                 <p class="mb-0">Total Amount</p>
                                             </div>
                                             <div class="align-self-center">
@@ -89,7 +89,7 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
                                             <div>
-                                                <h4 class="mb-0">{{ stats.today_payments?.toLocaleString() || 0 }}</h4>
+                                                <h4 class="mb-0">{{ stats?.today_payments?.toLocaleString() || 0 }}</h4>
                                                 <p class="mb-0">Today's Payments</p>
                                             </div>
                                             <div class="align-self-center">
@@ -104,7 +104,7 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
                                             <div>
-                                                <h4 class="mb-0">KSh {{ formatCurrency(stats.today_amount) || 0 }}</h4>
+                                                <h4 class="mb-0">KSh {{ formatCurrency(stats?.today_amount) || 0 }}</h4>
                                                 <p class="mb-0">Today's Amount</p>
                                             </div>
                                             <div class="align-self-center">
@@ -136,7 +136,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="payment in payments.data" :key="payment.id" class="align-middle">
+                                    <tr v-for="payment in payments?.data || []" :key="payment.id" class="align-middle">
                                         <td class="fw-bold">
                                             RCPT-{{ String(payment.id).padStart(6, '0') }}
                                         </td>
@@ -197,6 +197,14 @@
                                                 >
                                                     <i class="fas fa-undo"></i>
                                                 </button>
+                                                <button 
+                                                    v-if="payment.status === 'completed'"
+                                                    @click="showReallocateModal(payment)"
+                                                    class="btn btn-outline-info"
+                                                    title="Reallocate Payment"
+                                                >
+                                                    <i class="fas fa-exchange-alt"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -205,7 +213,7 @@
                         </div>
 
                         <!-- Empty State -->
-                        <div v-if="payments.data && payments.data.length === 0" class="text-center py-5">
+                        <div v-if="payments?.data && payments.data.length === 0" class="text-center py-5">
                             <i class="fas fa-receipt fa-4x text-muted mb-3"></i>
                             <h4 class="text-muted">No Payments Found</h4>
                             <p class="text-muted mb-4">No payment records match your current filters</p>
@@ -215,11 +223,11 @@
                         </div>
 
                         <!-- Pagination -->
-                        <div v-if="payments.meta && payments.meta.last_page > 1" class="mt-4">
+                        <div v-if="payments?.last_page > 1 || (payments?.meta && payments.meta.last_page > 1)" class="mt-4">
                             <nav aria-label="Payments pagination">
                                 <ul class="pagination justify-content-center mb-0">
                                     <li 
-                                        v-for="link in payments.meta.links" 
+                                        v-for="link in (payments?.links || payments?.meta?.links)" 
                                         :key="link.label"
                                         :class="['page-item', { 
                                             active: link.active, 
@@ -292,6 +300,90 @@
             </div>
         </div>
     </div>
+    
+    <!-- Reallocate Payment Modal -->
+    <div class="modal fade" id="reallocatePaymentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Reallocate Payment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Reallocating this payment will reverse its current allocation to <strong>{{ selectedPayment?.student?.full_name }}</strong> and apply it to a new student.
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Current Payment Details:</h6>
+                            <p class="mb-1"><strong>Reference:</strong> {{ selectedPayment?.reference_number }}</p>
+                            <p class="mb-1"><strong>Amount:</strong> KSh {{ formatCurrency(selectedPayment?.amount) }}</p>
+                            <p class="mb-1"><strong>Current Student:</strong> {{ selectedPayment?.student?.full_name }}</p>
+                        </div>
+                        <div class="col-md-6 border-start">
+                            <h6>Target Student:</h6>
+                            <div v-if="targetStudent" class="selected-student p-2 bg-light border rounded">
+                                <p class="mb-1"><strong>Name:</strong> {{ targetStudent.full_name }}</p>
+                                <p class="mb-1"><strong>Admission No:</strong> {{ targetStudent.admission_number }}</p>
+                                <button @click="targetStudent = null" class="btn btn-sm btn-link text-danger p-0 mt-1">
+                                    <i class="fas fa-times me-1"></i> Change Student
+                                </button>
+                            </div>
+                            <div v-else>
+                                <div class="input-group">
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        v-model="studentSearchSearch" 
+                                        placeholder="Search by name or admission number..."
+                                        @keyup.enter="searchStudents"
+                                    >
+                                    <button class="btn btn-outline-primary" @click="searchStudents" :disabled="searching">
+                                        <i v-if="searching" class="spinner-border spinner-border-sm me-1"></i>
+                                        <i v-else class="fas fa-search me-1"></i>
+                                        Search
+                                    </button>
+                                </div>
+                                <div v-if="searchResults.length > 0" class="search-results mt-2 border rounded shadow-sm overflow-auto" style="max-height: 200px;">
+                                    <div 
+                                        v-for="student in searchResults" 
+                                        :key="student.id"
+                                        class="p-2 border-bottom cursor-pointer hover-bg-light"
+                                        @click="selectTargetStudent(student)"
+                                    >
+                                        <div class="fw-bold">{{ student.full_name }}</div>
+                                        <div class="small text-muted">{{ student.admission_number }} - {{ student.rank?.name }}</div>
+                                    </div>
+                                </div>
+                                <div v-else-if="studentSearchSearch && !searching" class="mt-2 text-muted small">
+                                    No students found for "{{ studentSearchSearch }}"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="targetStudent" class="alert alert-warning">
+                        <strong>Important:</strong> This payment will be automatically distributed to <strong>{{ targetStudent.full_name }}'s</strong> outstanding fees.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button 
+                        type="button" 
+                        class="btn btn-info text-white" 
+                        @click="reallocatePayment"
+                        :disabled="!targetStudent || reallocating"
+                    >
+                        <span v-if="reallocating" class="spinner-border spinner-border-sm me-2"></span>
+                        <i class="fas fa-exchange-alt me-1"></i>
+                        {{ reallocating ? 'Reallocating...' : 'Confirm Reallocation' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
   </DefaultLayout>
 </template>
 
@@ -318,6 +410,11 @@ const filters = reactive({
 
 const selectedPayment = ref(null);
 const reversingPayment = ref(false);
+const reallocating = ref(false);
+const searching = ref(false);
+const studentSearchSearch = ref('');
+const searchResults = ref([]);
+const targetStudent = ref(null);
 
 const reverseForm = reactive({
     reason: '',
@@ -439,6 +536,84 @@ const reversePayment = async () => {
     }
 };
 
+const reallocatePayment = async () => {
+    if (!selectedPayment.value || !targetStudent.value) return;
+
+    if (!confirm(`Are you sure you want to reallocate this payment to ${targetStudent.value.full_name}? This will reverse previous allocations.`)) {
+        return;
+    }
+
+    reallocating.value = true;
+
+    try {
+        const response = await axios.post(route('admin.fees.payments.reallocate'), {
+            payment_id: selectedPayment.value.auto_recorded_payment_id, // We need the auto_recorded_payment_id
+            target_student_id: targetStudent.value.id
+        });
+
+        if (response.data.success) {
+            // Close modal
+            const modalElement = document.getElementById('reallocatePaymentModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                modal.hide();
+            }
+            
+            // Reload the page
+            router.reload();
+            
+            // Show success message
+            alert('Payment reallocated successfully!');
+        } else {
+            alert(response.data.message || 'Error reallocating payment');
+        }
+    } catch (error) {
+        const message = error.response?.data?.message || error.message;
+        alert('Error reallocating payment: ' + message);
+    } finally {
+        reallocating.value = false;
+    }
+};
+
+const showReallocateModal = (payment) => {
+    selectedPayment.value = payment;
+    targetStudent.value = null;
+    studentSearchSearch.value = '';
+    searchResults.value = [];
+    
+    // Show modal
+    const modalElement = document.getElementById('reallocatePaymentModal');
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+};
+
+const searchStudents = async () => {
+    if (!studentSearchSearch.value || studentSearchSearch.value.length < 2) return;
+    
+    searching.value = true;
+    try {
+        const response = await axios.get(route('admin.fees.students.search', { admissionNumber: studentSearchSearch.value }));
+        // The searchStudent route might return a single student or a list depending on implementation
+        // Let's check how admin.fees.students.search is implemented
+        if (response.data) {
+            searchResults.value = Array.isArray(response.data) ? response.data : [response.data];
+        }
+    } catch (error) {
+        console.error('Error searching students:', error);
+        searchResults.value = [];
+    } finally {
+        searching.value = false;
+    }
+};
+
+const selectTargetStudent = (student) => {
+    targetStudent.value = student;
+    searchResults.value = [];
+    studentSearchSearch.value = '';
+};
+
 const resetFilters = () => {
     filters.payment_method = '';
     filters.status = '';
@@ -497,5 +672,13 @@ onMounted(() => {
     padding: 1rem;
     border-radius: 0.375rem;
     border-left: 4px solid #667eea;
+}
+
+.hover-bg-light:hover {
+    background-color: #f8f9fa;
+}
+
+.cursor-pointer {
+    cursor: pointer;
 }
 </style>

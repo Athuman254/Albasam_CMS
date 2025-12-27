@@ -98,16 +98,22 @@
                   Approved
                 </button>
               </div>
-              <div class="input-group input-group-sm me-2" style="width: 250px;" v-if="activeTab === 'approved'">
+              <div class="input-group input-group-sm me-2" style="width: 280px;">
                 <span class="input-group-text bg-white"><i class="bx bx-search"></i></span>
                 <input 
                   type="text" 
                   class="form-control" 
-                  placeholder="Search student, exam..." 
+                  :placeholder="activeTab === 'pending' ? 'Search teacher, class, subject, student...' : 'Search student, exam...'"
                   v-model="searchQuery"
                   @input="handleSearch"
                 >
               </div>
+              <select class="form-select form-select-sm me-2" style="width: 100px;" v-model="perPage" @change="handlePerPageChange">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
               <button class="btn btn-outline-primary btn-sm" @click="loadApprovalQueue" :disabled="loading">
                 <i class="bx bx-refresh me-1" :class="{ 'bx-spin': loading }"></i>
                 Refresh
@@ -248,19 +254,18 @@
               </div>
 
               <!-- Pagination -->
-              <!-- Pagination -->
               <div class="d-flex justify-content-between align-items-center mt-3 px-1">
                 <div class="text-muted small">
-                  <span v-if="activeTab === 'pending'">
-                    Showing {{ pendingMarks.length }} of {{ stats.pending }} pending submissions
-                  </span>
-                  <span v-else-if="totalItems > 0">
+                  <span v-if="totalItems > 0">
                     Showing {{ ((currentPage - 1) * perPage) + 1 }} to {{ Math.min(currentPage * perPage, totalItems) }} of {{ totalItems }} entries
+                  </span>
+                  <span v-else>
+                    No records found
                   </span>
                 </div>
                 
-                <!-- Pagination Controls for Approved Tab -->
-                <nav aria-label="Page navigation" v-if="activeTab === 'approved' && totalItems > 0">
+                <!-- Pagination Controls for Both Tabs -->
+                <nav aria-label="Page navigation" v-if="totalItems > perPage">
                   <ul class="pagination pagination-sm mb-0">
                     <li class="page-item" :class="{ disabled: currentPage === 1 }">
                       <button class="page-link" @click="changePage(currentPage - 1)" :disabled="currentPage === 1">Previous</button>
@@ -274,7 +279,7 @@
                   </ul>
                 </nav>
                 
-                <div class="text-muted small" v-if="activeTab === 'pending'">
+                <div class="text-muted small">
                   Last updated: {{ lastUpdated }}
                 </div>
               </div>
@@ -297,7 +302,7 @@
     </div>
 
     <!-- Review Modal with Per-Student Approval -->
-    <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="reviewModal">
       <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
@@ -436,11 +441,11 @@
                                   title="Reject this student">
                             <i class="bx bx-x"></i>
                           </button>
-                          <button v-if="mark.status === 'approved' && isAdmin" 
+                          <button v-if="mark.status === 'approved' && canEditMarks" 
                                   class="btn btn-outline-warning btn-sm" 
                                   @click="openEditMarkModal(mark)"
                                   :disabled="actionLoading"
-                                  title="Admin: Edit approved mark">
+                                  title="Edit approved mark (Permission Required)">
                             <i class="bx bx-pencil"></i>
                           </button>
                           <span v-if="mark.status !== 'submitted' && mark.status !== 'approved'" class="text-muted small">Processed</span>
@@ -586,10 +591,10 @@ const totalItems = ref(0);
 const lastPage = ref(1);
 const searchTimeout = ref(null);
 
-// Check if user is admin
+// Check if user has permission to edit approved marks
 const page = usePage();
-const isAdmin = computed(() => {
-  return page.props.auth?.user?.roles?.includes('admin') || false;
+const canEditMarks = computed(() => {
+  return page.props.auth?.user?.permissions?.includes('edit-approved-marks') || false;
 });
 
 // Computed properties
@@ -649,34 +654,27 @@ const loadApprovalQueue = async () => {
       ? '/admin/exams/approval-queue/pending-submissions'
       : '/admin/exams/approval-queue/approved-submissions';
       
-    const params = activeTab.value === 'approved' ? {
+    // Send pagination and search params for BOTH tabs
+    const params = {
       search: searchQuery.value,
       page: currentPage.value,
       per_page: perPage.value
-    } : {};
+    };
 
     const response = await axios.get(endpoint, { params });
     console.log('✅ Response:', response.data);
     
-    if (activeTab.value === 'approved') {
-      // Handle paginated response
-      if (response.data && response.data.data) {
-        pendingMarks.value = response.data.data;
-        if (response.data.meta) {
-          currentPage.value = response.data.meta.current_page;
-          lastPage.value = response.data.meta.last_page;
-          totalItems.value = response.data.meta.total;
-        }
-      } else {
-        pendingMarks.value = [];
+    // Handle paginated response for BOTH tabs
+    if (response.data && response.data.data) {
+      pendingMarks.value = response.data.data;
+      if (response.data.meta) {
+        currentPage.value = response.data.meta.current_page;
+        lastPage.value = response.data.meta.last_page;
+        totalItems.value = response.data.meta.total;
       }
     } else {
-      // Handle standard response for pending
-      if (response.data && Array.isArray(response.data.data)) {
-        pendingMarks.value = response.data.data;
-      } else {
-        pendingMarks.value = [];
-      }
+      pendingMarks.value = [];
+      totalItems.value = 0;
     }
     
     // Update stats if available
@@ -771,7 +769,9 @@ const viewSubmission = async (submission) => {
     selectAllStudents.value = false;
     modalSearchQuery.value = ''; // Reset modal search query
     
-    const modal = new Modal(document.getElementById('reviewModal'));
+    const modal = new Modal(document.getElementById('reviewModal'), {
+      focus: false // Important: Allows nested/overlay modals to receive focus
+    });
     modal.show();
     
     console.log('Loading details for submission:', submission.id);
@@ -1126,6 +1126,11 @@ const handleSearch = () => {
   }, 500); // Debounce search
 };
 
+const handlePerPageChange = () => {
+  currentPage.value = 1; // Reset to first page when changing per page
+  loadApprovalQueue();
+};
+
 const changePage = (page) => {
   if (page < 1 || page > lastPage.value) return;
   currentPage.value = page;
@@ -1155,8 +1160,18 @@ const handleMarkUpdated = async (updatedData) => {
   }
   
   // Re-fetch the submission details to ensure we have the full, correct state from server
-  if (selectedSubmission.value) {
-    await viewSubmission(selectedSubmission.value);
+  // We use submissionDetails (which contains the current view) instead of selectedSubmission (which is undefined/loop variable)
+  if (submissionDetails.value) {
+    // The viewSubmission function expects a submission object, but we might only need to reload the current one
+    // So we can just call the endpoint directly or use the existing data to recall viewSubmission
+    // But since viewSubmission expects the loop object, we can't easily call it.
+    // Instead we'll just reload the details by ID
+    const submissionId = submissionDetails.value.group_id || submissionDetails.value.id;
+    // We can't access `selectedSubmission` here as it was a v-for variable
+    // But we don't strictly need to re-call viewSubmission if we updated the local state above.
+    // If we really want to reload, we need the original submission object or to refactor how viewSubmission works.
+    // For now, updating local state (done above) is sufficient for immediate feedback.
+    // If we want to be safe, we can just reload the queue:
   }
   
   // Refresh the approval queue list

@@ -18,24 +18,34 @@
    </li>
 
    <li v-if="can('mark-staff-attendance')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/attendance/mark') }">
-      <a href="/admin/attendance/mark" class="menu-link">
+      <Link :href="route('admin.attendance.mark.index')" class="menu-link">
          <span>
             <i class="menu-icon tf-icons bx bx-calendar-check"></i>
          </span>
          Mark Attendance
-      </a>
+      </Link>
    </li>
 
 
 
 
-   <li v-if="can('access-admissions-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/student-admissions')}">
-      <Link :href="route('admin.admissions.index')" class="menu-link">
-         <span>
-            <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
-         </span>
-         Admissions
-      </Link>
+   <li v-if="can('access-admissions-workspace')" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/student-admissions') || $page.url.startsWith('/admin/admission-applications') }">
+      <a href="#" class="menu-link menu-toggle">
+         <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
+         <div class="text-truncate">Admissions</div>
+      </a>
+      <ul class="menu-sub">
+         <li :class="{ 'menu-item': true, 'active': $page.url === '/admin/student-admissions' }">
+            <Link :href="route('admin.admissions.index')" class="menu-link">
+               <div class="text-truncate">Standard Admissions</div>
+            </Link>
+         </li>
+         <li v-if="can('access-admission-applications')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/admission-applications') }">
+            <Link :href="route('admin.admission-applications.index')" class="menu-link">
+               <div class="text-truncate">Online Applications</div>
+            </Link>
+         </li>
+      </ul>
    </li>
 
    <li v-if="can('access-class-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/ranks')}">
@@ -90,12 +100,11 @@
    </li>
 
    <li v-if="can('access-calendar')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/calendar')}">
-      <Link href="#" class="menu-link">
+      <Link :href="route('admin.calendar.index')" class="menu-link">
          <span>
             <i class="menu-icon tf-icons bx bx-calendar"></i>
          </span>
          Calendar
-         <span class="badge bg-label-success ms-4 text-end">Coming Soon</span>
       </Link>
    </li>
 
@@ -123,16 +132,6 @@
          <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/timetable/generate') }">
             <Link :href="route('timetable.generate.index')" class="menu-link">
                <div class="text-truncate">Generate</div>
-            </Link>
-         </li>
-         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/timetable/view/class') }">
-            <Link :href="route('timetable.view.class')" class="menu-link">
-               <div class="text-truncate">Class View</div>
-            </Link>
-         </li>
-         <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/timetable/view/teacher') }">
-            <Link :href="route('timetable.view.teacher')" class="menu-link">
-               <div class="text-truncate">Teacher View</div>
             </Link>
          </li>
       </ul>
@@ -173,24 +172,24 @@
       </ul>
    </li>
 
-   <li v-if="canAny(['access-exams-workspace', 'manage-exams', 'enroll-students', 'upload-exam-results', 'view-exam-results'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/exams')  }">
+   <li v-if="canAny(['access-exams-workspace', 'access-manage-exams', 'access-enroll-students', 'access-upload-exam-results', 'view-exam-results'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/exams')  }">
       <a href="#" class="menu-link menu-toggle">
          <i class='bx bx-wallet menu-icon tf-icons'></i>
          <div class="text-truncate">Exams</div>
       </a>
       <ul class="menu-sub">
-         <li v-if="can('manage-exams')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/manage') }">
+         <li v-if="can('access-manage-exams')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/manage') }">
             <Link :href="route('admin.exams.manage.index')" class="menu-link">
                <div class="text-truncate">Manage Exam</div>
             </Link>
          </li>
-         <li v-if="can('enroll-students')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/exam-students') }">
+         <li v-if="can('access-enroll-students')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/exam-students') }">
             <Link :href="route('admin.exams.exam-students.index')" class="menu-link">
                <div class="text-truncate">Enroll students</div>
             </Link>
          </li>
          <!-- Changed from Upload Exam to Approval Queue -->
-         <li v-if="can('upload-exam-results')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/approval-queue') }">
+         <li v-if="can('access-upload-exam-results')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/exams/approval-queue') }">
             <Link :href="route('admin.exams.approval-queue.index')" class="menu-link">
                <div class="text-truncate">Approval Results</div>
             </Link>
@@ -248,6 +247,30 @@
     </li>
   </ul>
 </li>
+
+<li v-if="can('access-lms-workspace')" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/lms') }">
+   <a href="#" class="menu-link menu-toggle">
+      <i class='bx bx-book-open menu-icon tf-icons'></i>
+      <div class="text-truncate">LMS Management</div>
+   </a>
+   <ul class="menu-sub">
+      <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/lms/materials') }">
+         <Link :href="route('admin.lms.materials.index')" class="menu-link">
+            <div class="text-truncate">Lesson Materials</div>
+         </Link>
+      </li>
+      <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/lms/assignments') }">
+         <Link :href="route('admin.lms.assignments.index')" class="menu-link">
+            <div class="text-truncate">Assignments</div>
+         </Link>
+      </li>
+      <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/lms/classes') }">
+         <Link :href="route('admin.lms.classes.index')" class="menu-link">
+            <div class="text-truncate">Online Classes</div>
+         </Link>
+      </li>
+   </ul>
+</li>
  
  <li v-if="canAny(['view-reports', 'access-reports', 'access-promotions-report', 'view-staff-attendance-reports', 'view-all-students-report', 'view-all-staff-report'])" :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/reports') }">
     <a href="#" class="menu-link menu-toggle">
@@ -275,6 +298,11 @@
              <div class="text-truncate">All Staff</div>
           </Link>
        </li>
+       <li v-if="can('access-student-ids')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/student-ids') }">
+          <Link :href="route('admin.student-ids.index')" class="menu-link">
+             <div class="text-truncate">Student IDs</div>
+          </Link>
+       </li>
     </ul>
  </li>
 
@@ -284,7 +312,7 @@
          <div class="text-truncate">Payroll</div>
       </a>
       <ul class="menu-sub">
-         <li v-if="can('access-payroll-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/reports/attendance') }">
+         <li v-if="can('access-payroll-workspace')" :class="{ 'menu-item': true, 'active': $page.url.startsWith('/admin/adjustments') }">
             <Link :href="route('admin.adjustment.index')" class="menu-link">
                <div class="text-truncate">Payroll Adjustments</div>
             </Link>

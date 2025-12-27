@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Jobs;
 
 use App\Models\Message;
@@ -17,7 +18,8 @@ class SendMessageJob implements ShouldQueue
     public $tries = 3;
     public $backoff = [60, 180, 300];
 
-    public function __construct(private Message $message) {
+    public function __construct(private Message $message)
+    {
         // dd($message);
     }
 
@@ -30,9 +32,9 @@ class SendMessageJob implements ShouldQueue
                 "data" => [
                     [
                         "message_bag" => [
-                            "numbers" => "0794239651",
-                            "message" => "test",
-                            "sender" => config('services.ujembe.sender_id', 'UjumbeSMS')
+                            "numbers" => $this->message->contact->phone_number,
+                            "message" => $this->message->content,
+                            "sender" => config('services.ujumbe.sender_id', 'UjumbeSMS')
                         ]
                     ]
                 ]
@@ -44,11 +46,12 @@ class SendMessageJob implements ShouldQueue
             // info( env('UJUMBE_API_KEY'));
 
             $response = Http::withHeaders([
-                'X-Authorization' => env('UJUMBE_API_KEY'),
-                'email' => 'info@ecobiz.co.ke',
+                'X-Authorization' => config('services.ujumbe.api_key'),
+                'email' => config('services.ujumbe.email', 'info@ecobiz.co.ke'),
                 'Cache-Control' => 'no-cache'
             ])->post('http://ujumbesms.co.ke/api/messaging', $payload);
-            info($response);
+
+            info('SMS Response:', ['response' => $response->json()]);
             if ($response->json('status.type') === 'success') {
                 // Update message status to sent
                 $this->message->update([

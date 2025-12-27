@@ -109,11 +109,18 @@
                                     
                                     <div class="col-md-6">
                                        <div class="form-group mb-3">
-                                          <label class="form-label-md mb-1">Admission Date</label>
-                                          <div class="form-control bg-light">
-                                             {{ studentAdmission?.formatted_date || 'N/A' }}
+                                          <label class="form-label-md mb-1" for="registeredAt">Registration Date</label>
+                                          <date-picker
+                                             id="registeredAt"
+                                             form-class="shadow-sm"
+                                             v-model="form.registration_details.registered_at"
+                                             :max-date="new Date()"
+                                             @on-change="function(dateObj, dateStr) { form.registration_details.registered_at = dateStr }"
+                                          ></date-picker>
+                                          <div v-if="form.errors['registration_details.registered_at']" class="text-danger">
+                                             {{ form.errors['registration_details.registered_at'] }}
                                           </div>
-                                          <small class="text-muted">Admission date cannot be changed</small>
+                                          <small class="text-muted">Edit registration date if necessary</small>
                                        </div>
                                     </div>
 
@@ -141,7 +148,79 @@
                                  <div class="row">
                                     <div class="mb-4">
                                        <h5 class="mb-0">Student Details</h5>
-                                       <small class="text-muted">Update student personal information</small>
+                                       <small class="text-muted">Update student personal and financial information</small>
+                                    </div>
+
+                                    <!-- Student Photo Section -->
+                                    <div class="col-md-12 mb-4">
+                                       <div class="card bg-light border-dashed">
+                                          <div class="card-body">
+                                             <div class="row align-items-center">
+                                                <div class="col-md-3 text-center">
+                                                   <div class="avatar-upload mb-3">
+                                                      <div class="avatar-preview mb-2">
+                                                         <img :src="photoPreview || student?.photo_url" class="rounded border shadow-sm" style="width: 150px; height: 150px; object-fit: cover;" alt="Student Photo">
+                                                      </div>
+                                                      <div class="btn-group btn-group-sm">
+                                                         <button type="button" class="btn btn-outline-primary" @click="$refs.photoInput.click()">
+                                                            <i class="bx bx-upload me-1"></i> Upload
+                                                         </button>
+                                                         <button type="button" class="btn btn-outline-info" @click="startCamera">
+                                                            <i class="bx bx-camera me-1"></i> Take Photo
+                                                         </button>
+                                                      </div>
+                                                      <input type="file" ref="photoInput" class="d-none" @change="handlePhotoUpload" accept="image/*">
+                                                   </div>
+                                                </div>
+                                                <div class="col-md-9" v-if="cameraActive">
+                                                   <div class="camera-container text-center">
+                                                      <video ref="video" width="320" height="240" autoplay class="rounded border mb-2"></video>
+                                                      <canvas ref="canvas" style="display:none;" width="320" height="240"></canvas>
+                                                      <div class="camera-controls">
+                                                         <button type="button" class="btn btn-sm btn-success me-2" @click="capturePhoto">
+                                                            <i class="bx bx-camera me-1"></i> Capture
+                                                         </button>
+                                                         <button type="button" class="btn btn-sm btn-danger" @click="stopCamera">
+                                                            <i class="bx bx-x me-1"></i> Stop
+                                                         </button>
+                                                      </div>
+                                                   </div>
+                                                </div>
+                                                <div class="col-md-9" v-else>
+                                                   <div class="p-3">
+                                                      <h6>Student Photo</h6>
+                                                      <p class="text-muted small">Upload a passport-size photo or capture one directly using your webcam. High-quality images (PNG/JPG) are recommended.</p>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+
+                                    <!-- Scholarship Information -->
+                                    <div class="col-md-12 mb-4">
+                                       <div class="card border-info">
+                                          <div class="card-body">
+                                             <h6 class="text-info mb-3"><i class="bx bx-award me-1"></i> Scholarship & Financial Aid</h6>
+                                             <div class="row">
+                                                <div class="col-md-6">
+                                                   <div class="form-group mb-3">
+                                                      <label class="form-label-md mb-1">Scholarship Type</label>
+                                                      <v-select
+                                                         v-model="form.student.scholarship_type"
+                                                         :options="['none', 'full', 'half', 'custom']"
+                                                      ></v-select>
+                                                   </div>
+                                                </div>
+                                                <div class="col-md-6" v-if="form.student.scholarship_type === 'custom'">
+                                                   <div class="form-group mb-3">
+                                                      <label class="form-label-md mb-1">Scholarship Rate (%)</label>
+                                                      <input type="number" class="form-control" v-model="form.student.scholarship_rate" min="0" max="100" />
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
                                     </div>
                                     
                                     <!-- Personal Information -->
@@ -252,16 +331,27 @@
                                           </div>
                                        </div>
                                     </div>
-                                    <div class="col-md-4">
-                                       <div class="form-group mb-3">
-                                          <label class="form-label-md mb-1" for="birthCertificateNumber">Birth Certificate Number</label>
-                                          <input type="text" id="birthCertificateNumber" class="form-control"
-                                                 v-model="form.student.birth_certificate_number"/>
-                                          <div v-if="form.errors['student.birth_certificate_number']" class="text-danger">
-                                             {{ form.errors['student.birth_certificate_number'] }}
-                                          </div>
+                                 <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                       <label class="form-label-md mb-1" for="birthCertificateNumber">Birth Certificate Number</label>
+                                       <input type="text" id="birthCertificateNumber" class="form-control"
+                                              v-model="form.student.birth_certificate_number"/>
+                                       <div v-if="form.errors['student.birth_certificate_number']" class="text-danger">
+                                          {{ form.errors['student.birth_certificate_number'] }}
                                        </div>
                                     </div>
+                                 </div>
+                                 <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                       <label class="form-label-md mb-1" for="assessmentNumber">Assessment Number</label>
+                                       <input type="text" id="assessmentNumber" class="form-control"
+                                              v-model="form.student.assessment_number" placeholder="Enter assessment number"/>
+                                       <div v-if="form.errors['student.assessment_number']" class="text-danger">
+                                          {{ form.errors['student.assessment_number'] }}
+                                       </div>
+                                       <small class="text-muted">Optional: National assessment number</small>
+                                    </div>
+                                 </div>
 
                                     <!-- Address Information -->
                                     <div class="col-md-4">
@@ -707,6 +797,7 @@ export default {
          form: useForm({
             registration_details: {
                division_id: null,
+               registered_at: null,
             },
             student: {
                first_name: '',
@@ -718,12 +809,16 @@ export default {
                religion_id: null,
                date_of_birth: null,
                birth_certificate_number: null,
+               assessment_number: null,
                citizenship: '',
                county: '',
                ward: '',
                permanent_address: '',
                kcpe_score: '',
                previous_school: '',
+               photo: null,
+               scholarship_type: 'none',
+               scholarship_rate: 0,
             },
             other_details: {
                siblings: [],
@@ -756,6 +851,9 @@ export default {
          
          currentStep: 1,
          routes: {},
+         photoPreview: null,
+         cameraActive: false,
+         videoStream: null,
          
          studentDataFetched: false,
          editingGuardianIndex: null,
@@ -810,30 +908,33 @@ export default {
     this.form.id = this.studentAdmission.id;
     
     // Populate registration details
-    this.form.registration_details.division_id = this.studentAdmission.division_id || null;
-    
-    // Populate student data
-    if (this.student) {
-      this.form.student.first_name = this.student.first_name || '';
-      this.form.student.middle_name = this.student.middle_name || '';
-      this.form.student.last_name = this.student.last_name || '';
-      this.form.student.admission_number = this.student.admission_number || '';
-      this.form.student.rank_id = this.student.rank_id || null;
-      this.form.student.gender_id = this.student.gender_id || null;
-      this.form.student.religion_id = this.student.religion_id || null;
-      this.form.student.date_of_birth = this.student.date_of_birth || null;
-      this.form.student.birth_certificate_number = this.student.birth_certificate_number || null;
-      this.form.student.citizenship = this.student.citizenship || '';
-      this.form.student.county = this.student.county || '';
-      this.form.student.ward = this.student.ward || '';
-      this.form.student.permanent_address = this.student.permanent_address || '';
-      this.form.student.kcpe_score = this.student.kcpe_score || '';
-      this.form.student.previous_school = this.student.previous_school || '';
-      this.form.other_details.physical_disability = this.student.physical_disability || '';
-      this.form.other_details.hobby = this.student.hobby || '';
-      this.form.other_details.medical_details = this.student.medical_details || '';
-      this.form.other_details.character_book = this.student.character_book || '';
-    }
+      this.form.registration_details.division_id = this.studentAdmission.division_id || null;
+      this.form.registration_details.registered_at = this.studentAdmission.registered_at || null;
+      
+      // Populate student data
+      if (this.student) {
+        this.form.student.first_name = this.student.first_name || '';
+        this.form.student.middle_name = this.student.middle_name || '';
+        this.form.student.last_name = this.student.last_name || '';
+        this.form.student.admission_number = this.student.admission_number || '';
+        this.form.student.rank_id = this.student.rank_id || null;
+        this.form.student.gender_id = this.student.gender_id || null;
+        this.form.student.religion_id = this.student.religion_id || null;
+        this.form.student.date_of_birth = this.student.date_of_birth || null;
+        this.form.student.birth_certificate_number = this.student.birth_certificate_number || null;
+        this.form.student.citizenship = this.student.citizenship || '';
+        this.form.student.county = this.student.county || '';
+        this.form.student.ward = this.student.ward || '';
+        this.form.student.permanent_address = this.student.permanent_address || '';
+        this.form.student.kcpe_score = this.student.kcpe_score || '';
+        this.form.student.previous_school = this.student.previous_school || '';
+        this.form.student.scholarship_type = this.student.scholarship_type || 'none';
+        this.form.student.scholarship_rate = this.student.scholarship_rate || 0;
+        this.form.other_details.physical_disability = this.student.physical_disability || '';
+        this.form.other_details.hobby = this.student.hobby || '';
+        this.form.other_details.medical_details = this.student.medical_details || '';
+        this.form.other_details.character_book = this.student.character_book || '';
+      }
 
     // Populate guardians
     if (this.guardians && this.guardians.length > 0) {
@@ -941,7 +1042,46 @@ export default {
             this.$toast?.error('An error occurred while fetching guardian details.')
          });
       },
-     submitForm() {
+      handlePhotoUpload(event) {
+         const file = event.target.files[0];
+         if (file) {
+            this.form.student.photo = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+               this.photoPreview = e.target.result;
+            };
+            reader.readAsDataURL(file);
+         }
+      },
+      async startCamera() {
+         this.cameraActive = true;
+         try {
+            this.videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            this.$refs.video.srcObject = this.videoStream;
+         } catch (err) {
+            console.error("Error accessing camera: ", err);
+            this.$toast?.error("Could not access camera.");
+            this.cameraActive = false;
+         }
+      },
+      stopCamera() {
+         if (this.videoStream) {
+            this.videoStream.getTracks().forEach(track => track.stop());
+            this.videoStream = null;
+         }
+         this.cameraActive = false;
+      },
+      capturePhoto() {
+         const video = this.$refs.video;
+         const canvas = this.$refs.canvas;
+         const context = canvas.getContext('2d');
+         context.drawImage(video, 0, 0, 320, 240);
+         const dataUrl = canvas.toDataURL('image/png');
+         this.photoPreview = dataUrl;
+         this.form.student.photo = dataUrl;
+         this.stopCamera();
+      },
+      submitForm() {
   if (!this.form.id) {
     this.$toast?.error('Invalid admission ID');
     return;
@@ -950,13 +1090,17 @@ export default {
   // Prepare the data in the correct structure
   const formData = {
     registration_details: {
-      division_id: this.form.registration_details.division_id
+      division_id: this.form.registration_details.division_id,
+      registered_at: this.form.registration_details.registered_at
     },
     student: {
       first_name: this.form.student.first_name,
       middle_name: this.form.student.middle_name || '',
       last_name: this.form.student.last_name,
       admission_number: this.form.student.admission_number,
+      photo: this.form.student.photo,
+      scholarship_type: this.form.student.scholarship_type,
+      scholarship_rate: this.form.student.scholarship_rate,
       rank_id: this.form.student.rank_id,
       gender_id: this.form.student.gender_id,
       religion_id: this.form.student.religion_id,

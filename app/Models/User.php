@@ -195,4 +195,12 @@ class User extends Authenticatable implements LaratrustUser
     {
         return $this->student?->rank?->name;
     }
+
+    /**
+     * Check if user is a teacher
+     */
+    public function isTeacher(): bool
+    {
+        return $this->is_teacher || $this->hasRole('teacher') || $this->teacher()->exists();
+    }
 }

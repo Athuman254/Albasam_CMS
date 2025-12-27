@@ -35,12 +35,53 @@
       </Link>
    </li>
 
+   <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/student/calendar') }">
+      <Link :href="route('student.calendar.index')" class="menu-link">
+         <span>
+            <i class="menu-icon tf-icons bx bx-calendar"></i>
+         </span>
+         Calendar
+      </Link>
+   </li>
+
    <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/student/notices') }">
       <Link :href="route('student.notices.index')" class="menu-link">
          <span>
             <i class="menu-icon tf-icons bx bx-bell"></i>
          </span>
          Announcements
+      </Link>
+   </li>
+
+   <li class="menu-header small text-uppercase">
+      <span class="menu-header-text">Learning Management</span>
+   </li>
+
+   <li :class="{ 'menu-item': true, 'active': $page.url === '/student/lms/dashboard' }">
+      <Link :href="route('student.lms.dashboard')" class="menu-link">
+         <i class="menu-icon tf-icons bx bx-desktop"></i>
+         <div>LMS Dashboard</div>
+      </Link>
+   </li>
+
+   <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/student/lms/materials') }">
+      <Link :href="route('student.lms.materials.index')" class="menu-link">
+         <i class="menu-icon tf-icons bx bx-book-open"></i>
+         <div>Materials</div>
+      </Link>
+   </li>
+
+   <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/student/lms/assignments') }">
+      <Link :href="route('student.lms.assignments.index')" class="menu-link">
+         <i class="menu-icon tf-icons bx bx-edit"></i>
+         <div>Assignments</div>
+      </Link>
+   </li>
+
+   <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/student/lms/classes') }">
+      <Link :href="route('student.lms.classes.index')" class="menu-link">
+         <i class="menu-icon tf-icons bx bx-video"></i>
+         <div>Online Classes</div>
       </Link>
    </li>
 

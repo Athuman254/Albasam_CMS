@@ -4,6 +4,11 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
+    server: {
+        watch: {
+            ignored: ['**/vendor/**', '**/node_modules/**'],
+        },
+    },
     plugins: [
         laravel({
             input: [

@@ -3,7 +3,45 @@
    
    <DefaultLayout>
       <div class="row">
-         <h3 class="mb-0">{{ student ? student.first_name + ' ' + student.last_name : 'Student Details' }}</h3>
+         <div class="row align-items-center d-print-none">
+            <div class="col-8">
+               <h3 class="mb-0">{{ student ? student.first_name + ' ' + student.last_name : 'Student Details' }}</h3>
+            </div>
+         </div>
+
+         <!-- Professional Print Header -->
+         <div class="d-none d-print-block mb-4">
+            <div class="row align-items-center border-bottom pb-3 mb-3">
+               <div class="col-2">
+                  <img v-if="institution?.logo_url || institution?.logo" :src="institution?.logo_url || '/logo.png'" 
+                       alt="School Logo" style="width: 80px; height: 80px; object-fit: contain;">
+                  <img v-else src="/logo.png" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
+               </div>
+               <div class="col-10 text-center">
+                  <h3 class="fw-bold mb-1 text-uppercase" style="font-size: 1.5rem; color: #333;">{{ institution?.name || 'School Management System' }}</h3>
+                  <p class="mb-0 text-muted" style="font-size: 0.9rem;">
+                     {{ institution?.physical_address || '' }} | {{ institution?.phone || '' }} | {{ institution?.email || '' }}
+                  </p>
+                  <h5 class="mt-2 fw-bold text-decoration-underline text-uppercase">Student Information Report</h5>
+               </div>
+            </div>
+            
+            <div class="row mb-4">
+               <div class="col-3 text-center">
+                   <img v-if="student.photo_url" :src="student.photo_url" alt="Student Photo" 
+                        class="img-thumbnail" style="width: 120px; height: 120px; object-fit: cover; border: 2px solid #ddd;">
+               </div>
+               <div class="col-9">
+                  <div class="row">
+                     <div class="col-6 mb-2"><strong>Full Name:</strong> {{ student.first_name }} {{ student.middle_name }} {{ student.last_name }}</div>
+                     <div class="col-6 mb-2"><strong>Admission No:</strong> {{ student.admission_number }}</div>
+                     <div class="col-6 mb-2"><strong>Class:</strong> {{ student.rank?.name || 'N/A' }}</div>
+                     <div class="col-6 mb-2"><strong>Gender:</strong> {{ student.gender?.name || 'N/A' }}</div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
          <nav class="mb-3">
             <ol class="breadcrumb">
                <li class="breadcrumb-item">
@@ -40,7 +78,9 @@
                   <div class="card mb-4">
                      <div class="card-body text-center">
                         <div class="student-avatar mb-3">
-                           <i class="bx bx-user-circle text-primary" style="font-size: 4rem;"></i>
+                           <img v-if="student.photo_url" :src="student.photo_url" alt="Student Photo" 
+                                class="rounded-circle img-thumbnail shadow-sm" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #696cff;">
+                           <i v-else class="bx bx-user-circle text-primary" style="font-size: 4rem;"></i>
                         </div>
                         <h4 class="card-title">{{ student.first_name }} {{ student.last_name }}</h4>
                         <p class="text-muted">{{ student.admission_number }}</p>
@@ -52,7 +92,7 @@
                      </div>
                   </div>
 
-                  <div class="card mb-4">
+                  <div class="card mb-4 quick-info-card">
                      <div class="card-header">
                         <h6 class="card-title mb-0">Quick Information</h6>
                      </div>
@@ -101,10 +141,13 @@
                   <div class="card">
                      <div class="card-body">
                         <div class="d-grid gap-2">
-                           <Link :href="route('admin.admissions.edit', admission?.hashid)" class="btn btn-primary" v-if="admission">
+                           <Link :href="route('admin.admissions.edit', admission?.hashid)" class="btn btn-primary d-print-none" v-if="admission">
                               <i class="bx bx-edit me-2"></i>Edit Details
                            </Link>
-                           <Link :href="route('admin.admissions.index')" class="btn btn-outline-secondary">
+                           <button @click="printReport" class="btn btn-outline-primary d-print-none">
+                              <i class="bx bx-printer me-2"></i>Print Details
+                           </button>
+                           <Link :href="route('admin.admissions.index')" class="btn btn-outline-secondary d-print-none">
                               <i class="bx bx-arrow-back me-2"></i>Back to List
                            </Link>
                         </div>
@@ -128,7 +171,7 @@
                            </button>
                         </h2>
                     <!-- General Details Body -->
-<div id="generalDetails" v-show="openAccordion === 'general-details'" aria-labelledby="headingOne" data-bs-parent="#studentDetailsAccordion">
+<div id="generalDetails" v-show="openAccordion === 'general-details' || isPrinting" aria-labelledby="headingOne" data-bs-parent="#studentDetailsAccordion">
     <div class="accordion-body fw-normal">
 
                               <div class="row">
@@ -142,6 +185,10 @@
                                        <tr>
                                           <td class="text-muted">Birth Certificate Number</td>
                                           <td class="fw-medium">{{ student.birth_certificate_number || 'N/A' }}</td>
+                                       </tr>
+                                       <tr>
+                                          <td class="text-muted">Assessment Number</td>
+                                          <td class="fw-medium">{{ student.assessment_number || 'N/A' }}</td>
                                        </tr>
                                        <tr>
                                           <td class="text-muted">Citizenship</td>
@@ -203,7 +250,7 @@
                            </button>
                         </h2>
                     <!-- Guardian Details Body -->
-<div id="guardianDetails" v-show="openAccordion === 'guardian-details'" aria-labelledby="headingTwo" data-bs-parent="#studentDetailsAccordion">
+<div id="guardianDetails" v-show="openAccordion === 'guardian-details' || isPrinting" aria-labelledby="headingTwo" data-bs-parent="#studentDetailsAccordion">
     <div class="accordion-body fw-normal">
 
                               <div class="table-responsive">
@@ -266,7 +313,7 @@
                               Medical & Other Details
                            </button>
                         </h2>
-                        <div id="medicalDetails" class="accordion-collapse collapse" :class="{ show: openAccordion === 'medical-details' }">
+                        <div id="medicalDetails" class="accordion-collapse collapse" :class="{ show: openAccordion === 'medical-details' || isPrinting }">
                            <div class="accordion-body">
                               <div class="row">
                                  <div class="col-md-6">
@@ -310,7 +357,7 @@
                            </button>
                         </h2>
                     <!-- Sibling Details Body -->
-<div id="siblingDetails" v-show="openAccordion === 'sibling-details'" aria-labelledby="headingFour" data-bs-parent="#studentDetailsAccordion">
+<div id="siblingDetails" v-show="openAccordion === 'sibling-details' || isPrinting" aria-labelledby="headingFour" data-bs-parent="#studentDetailsAccordion">
     <div class="accordion-body fw-normal">
 
                               <div class="table-responsive">
@@ -363,11 +410,16 @@ export default{
       student: {
          type: Object,
          default: null
+      },
+      institution: {
+         type: Object,
+         default: null
       }
    },
    data() {
       return {
          openAccordion: 'general-details',
+         isPrinting: false
       }
    },
    mounted() {
@@ -386,6 +438,23 @@ export default{
    methods: {
       toggleAccordion(section) {
          this.openAccordion = this.openAccordion === section ? null : section;
+      },
+      printReport() {
+         this.isPrinting = true;
+         // Store original title
+         const originalTitle = document.title;
+         // Set blank title to hide "Skaass SMS" from browser header
+         document.title = "";
+
+         // Give Vue a moment to expand all sections in the DOM
+         this.$nextTick(() => {
+            setTimeout(() => {
+               window.print();
+               // Restore title
+               document.title = originalTitle;
+               this.isPrinting = false;
+            }, 500);
+         });
       },
       safeDateFormat(dateValue) {
          if (!dateValue) return 'N/A';
@@ -474,5 +543,103 @@ export default{
 
 .accordion-body {
    padding: 1.5rem;
+}
+</style>
+<style>
+@media print {
+   @page {
+      margin: 0.5cm;
+   }
+   
+   .d-print-none, 
+   .layout-navbar,
+   .layout-menu,
+   .btn,
+   .breadcrumb,
+   nav,
+   .footer {
+      display: none !important;
+   }
+
+   .card {
+      border: none !important;
+      box-shadow: none !important;
+   }
+
+   .accordion-button::after {
+      display: none !important;
+   }
+
+   .accordion-button {
+      background: #f0f0f0 !important;
+      color: #000 !important;
+      border: 1px solid #ddd !important;
+      padding: 10px !important;
+      width: 100% !important;
+      text-align: left !important;
+   }
+
+   body {
+      background: white !important;
+      font-size: 11pt !important;
+      color: black !important;
+   }
+
+   .container-xxl, .row, .col-xl-4, .col-xl-8 {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      float: none !important;
+   }
+
+   .card-body {
+      padding: 10px 0 !important;
+   }
+
+   h3 {
+      text-align: center;
+      margin-bottom: 30px !important;
+      font-size: 18pt !important;
+   }
+
+   .table td {
+      padding: 4px !important;
+   }
+
+   /* Ensure all accordions are visible */
+   .accordion-collapse {
+      display: block !important;
+      height: auto !important;
+      visibility: visible !important;
+   }
+   
+   .accordion-body {
+      display: block !important;
+   }
+
+   .student-status-badge, .student-avatar {
+      display: none !important;
+   }
+
+   .quick-info-card {
+      display: none !important;
+   }
+
+   /* Professional Report Styling */
+   .table-borderless td {
+      padding: 8px 10px !important;
+      border-bottom: 1px solid #eee !important;
+   }
+   
+   .fw-medium {
+      color: #000 !important;
+   }
+
+   .accordion-item {
+      border: 1px solid #ddd !important;
+      margin-bottom: 20px !important;
+      page-break-inside: avoid;
+   }
 }
 </style>

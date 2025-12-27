@@ -33,6 +33,17 @@ Route::get('/sanctum/csrf-cookie', function () {
    return response()->json(['message' => 'CSRF cookie set']);
 });
 
+/********************************
+ * PUBLIC ADMISSION PORTAL
+ *******************************/
+Route::prefix('admission')->name('public.admission.')->group(function () {
+   Route::get('/', [\App\Http\Controllers\Public\PublicAdmissionController::class, 'index'])->name('index');
+   Route::post('/submit', [\App\Http\Controllers\Public\PublicAdmissionController::class, 'store'])->name('submit');
+   Route::get('/success/{applicationNumber}', [\App\Http\Controllers\Public\PublicAdmissionController::class, 'success'])->name('success');
+   Route::get('/track', [\App\Http\Controllers\Public\PublicAdmissionController::class, 'showTrackingForm'])->name('track.form');
+   Route::post('/track', [\App\Http\Controllers\Public\PublicAdmissionController::class, 'track'])->name('track');
+});
+
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
    /****
     * EMPLOYEES
@@ -126,6 +137,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
       // SMS DATATABLES
       Route::get('sms/outbox', [\App\Http\Controllers\SmsController::class, 'dataTable'])->name('sms.outbox.datatable');
+
+      // GRADING SCALES DATATABLE
+      Route::get('/grading-scales', [\App\Http\Controllers\Admin\GradingScaleController::class, 'dataTable']);
    });
 
    /********************************
@@ -137,6 +151,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
    ], function () {
 
       Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+
+      /********************************
+       * CALENDAR ROUTES
+       *******************************/
+      Route::prefix('calendar')->name('calendar.')->group(function () {
+         Route::get('/', [\App\Http\Controllers\Admin\CalendarController::class, 'index'])->name('index');
+         Route::post('/events', [\App\Http\Controllers\Admin\CalendarController::class, 'store'])->name('events.store');
+         Route::put('/events/{event}', [\App\Http\Controllers\Admin\CalendarController::class, 'update'])->name('events.update');
+         Route::delete('/events/{event}', [\App\Http\Controllers\Admin\CalendarController::class, 'destroy'])->name('events.destroy');
+         Route::get('/events/fetch', [\App\Http\Controllers\Admin\CalendarController::class, 'getEvents'])->name('events.fetch');
+      });
 
       /********************************
        * USER PROFILE ROUTES
@@ -231,15 +256,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          Route::get('/students/{student}', [\App\Http\Controllers\Fee\FeeController::class, 'studentFees'])->name('students.show');
          Route::post('/students/{student}/pay', [\App\Http\Controllers\Fee\FeeController::class, 'manualPayment'])->name('students.manual-payment');
 
-         // PARAMETERIZED ROUTES - MUST COME AFTER ALL SPECIFIC ROUTES
-         Route::get('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'show'])->name('show');
-         Route::get('/{fee}/edit', [\App\Http\Controllers\Fee\FeeController::class, 'edit'])->name('edit');
-         Route::put('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'update'])->name('update');
-         Route::delete('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'destroy'])->name('destroy');
-
-         // Bulk operations
-         Route::delete('/bulk-destroy', [\App\Http\Controllers\Fee\FeeController::class, 'bulkDestroy'])->name('bulk-destroy');
-
          // PAYMENT ROUTES - COMPLETE IMPROVED STRUCTURE
          Route::prefix('payments')->name('payments.')->group(function () {
             // Main payment routes
@@ -252,6 +268,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
             // LEGACY: Single fee confirmation route (backward compatibility)
             Route::post('/confirm-single', [\App\Http\Controllers\Fee\FeePaymentController::class, 'confirmSinglePayment'])->name('confirm.single');
+
+            // Reallocation Route
+            Route::post('/reallocate', [\App\Http\Controllers\Fee\FeePaymentController::class, 'reallocatePayment'])->name('reallocate');
 
             // Payment verification queue
             Route::get('/recorded-payments', [\App\Http\Controllers\Fee\FeePaymentController::class, 'recordedPayments'])->name('recorded.payments');
@@ -275,7 +294,23 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                ->name('students.all-outstanding-fees');
             Route::get('/students/{student}/outstanding-fees', [\App\Http\Controllers\Fee\FeePaymentController::class, 'getOutstandingFees'])
                ->name('students.outstanding-fees');
+
+            // M-Pesa STK Push
+            Route::post('/mpesa/initiate', [\App\Http\Controllers\Finance\MpesaController::class, 'initiateStkPush'])->name('mpesa.initiate');
+            Route::post('/mpesa/initiate-push', [\App\Http\Controllers\Finance\MpesaController::class, 'initiateStkPush'])->name('mpesa.initiate-push'); // Alias for the name expected by Frontend
+
+            // Cash Payment Recording
+            Route::post('/record-cash', [\App\Http\Controllers\Fee\FeePaymentController::class, 'recordCashPayment'])->name('record-cash');
          });
+
+         // Bulk operations
+         Route::delete('/bulk-destroy', [\App\Http\Controllers\Fee\FeeController::class, 'bulkDestroy'])->name('bulk-destroy');
+
+         // PARAMETERIZED ROUTES - MUST COME AFTER ALL SPECIFIC ROUTES
+         Route::get('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'show'])->name('show');
+         Route::get('/{fee}/edit', [\App\Http\Controllers\Fee\FeeController::class, 'edit'])->name('edit');
+         Route::put('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'update'])->name('update');
+         Route::delete('/{fee}', [\App\Http\Controllers\Fee\FeeController::class, 'destroy'])->name('destroy');
 
          // TRANSFER ROUTES - UPDATED WITH REASON VALIDATION AND APPROVAL WORKFLOW
          Route::prefix('transfers')->name('transfers.')->group(function () {
@@ -295,6 +330,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          Route::get('/reports/collection', [\App\Http\Controllers\Fee\FeeReportController::class, 'collectionReport'])->name('reports.collection');
          Route::get('/reports/outstanding', [\App\Http\Controllers\Fee\FeeReportController::class, 'outstandingReport'])->name('reports.outstanding');
          Route::get('/reports/export-collection', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportCollectionReport'])->name('reports.export-collection');
+         Route::get('/reports/export-collection-pdf', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportCollectionPdf'])->name('reports.export-collection-pdf');
          Route::get('/reports/export-outstanding', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportOutstandingReport'])->name('reports.export-outstanding');
          Route::get('/reports/export-student/{student}', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportStudentReport'])->name('reports.export-student');
          Route::get('/reports/export-overview', [\App\Http\Controllers\Fee\FeeReportController::class, 'exportOverviewReport'])->name('reports.export-overview');
@@ -397,6 +433,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          Route::get('/{employee}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
          Route::patch('/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
          Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
+         Route::get('/{employee}/export-pdf', [EmployeeController::class, 'exportPdf'])->name('employees.export-pdf');
 
          // SYSTEM ACCESS ROUTES
          Route::post('/system-access/{employee}', [EmployeeController::class, 'systemAccess'])->name('employees.system-access');
@@ -439,6 +476,33 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          Route::get('compose', [\App\Http\Controllers\SmsController::class, 'create'])->name('sms.compose');
          Route::post('send', [\App\Http\Controllers\SmsController::class, 'store'])->name('sms.send');
          Route::get('outbox', [\App\Http\Controllers\SmsController::class, 'index'])->name('sms.outbox');
+         Route::get('group-contacts', [\App\Http\Controllers\SmsController::class, 'getGroupContacts'])->name('sms.group-contacts');
+      });
+
+      // LMS Management
+      Route::prefix('lms')->name('lms.')->group(function () {
+         Route::get('/materials', [\App\Http\Controllers\Admin\LmsController::class, 'materials'])->name('materials.index');
+         Route::post('/materials', [\App\Http\Controllers\Admin\LmsController::class, 'storeMaterial'])->name('materials.store');
+         Route::delete('/materials/{material}', [\App\Http\Controllers\Admin\LmsController::class, 'destroyMaterial'])->name('materials.destroy');
+
+         Route::get('/assignments', [\App\Http\Controllers\Admin\LmsController::class, 'assignments'])->name('assignments.index');
+         Route::post('/assignments', [\App\Http\Controllers\Admin\LmsController::class, 'storeAssignment'])->name('assignments.store');
+         Route::delete('/assignments/{assignment}', [\App\Http\Controllers\Admin\LmsController::class, 'destroyAssignment'])->name('assignments.destroy');
+         Route::get('/classes', [\App\Http\Controllers\Admin\LmsController::class, 'classes'])->name('classes.index');
+         Route::post('/classes', [\App\Http\Controllers\Admin\LmsController::class, 'storeClass'])->name('classes.store');
+         Route::delete('/classes/{onlineClass}', [\App\Http\Controllers\Admin\LmsController::class, 'destroyClass'])->name('classes.destroy');
+      });
+
+      // Online Admissions
+      Route::prefix('admission-applications')->name('admission-applications.')->group(function () {
+         Route::get('/', [\App\Http\Controllers\Admin\AdmissionApplicationController::class, 'index'])->name('index');
+         Route::put('/{application}', [\App\Http\Controllers\Admin\AdmissionApplicationController::class, 'update'])->name('update');
+         Route::post('/{application}/approve', [\App\Http\Controllers\Admin\AdmissionApplicationController::class, 'approve'])->name('approve');
+      });
+
+      Route::prefix('student-ids')->group(function () {
+         Route::get('/', [\App\Http\Controllers\Admin\StudentIdCardController::class, 'index'])->name('student-ids.index');
+         Route::post('/generate', [\App\Http\Controllers\Admin\StudentIdCardController::class, 'generate'])->name('student-ids.generate');
       });
 
       /********************************
@@ -519,6 +583,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          Route::resource('exam-students', \App\Http\Controllers\Exams\ExamStudentController::class);
          Route::resource('upload-results', \App\Http\Controllers\Exams\UploadExamResultController::class);
          Route::resource('results', ExamResultController::class);
+         Route::get('get-results', [ExamResultController::class, 'getResults'])->name('get-results');
 
          /********************************
           * APPROVAL QUEUE ROUTES
@@ -542,6 +607,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::post('/bulk-approve-exam-class', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'bulkApproveExamClass'])->name('bulk-approve-exam-class');
             Route::post('/fix-missing-grades', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'fixMissingGrades'])->name('fix-missing-grades');
 
+            // Admin edit approved marks
+            Route::post('/update-approved-mark', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'updateApprovedMark'])->name('update-approved-mark');
+
             // Additional API routes
             Route::get('/submission-history', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'getSubmissionHistory'])->name('submission-history');
             Route::get('/analytics', [\App\Http\Controllers\Exams\ApprovalQueueController::class, 'getAnalytics'])->name('analytics');
@@ -554,6 +622,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          Route::post('/reject-marks-old', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'rejectMarks'])->name('reject-marks-old');
          Route::post('/publish-marks', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'publishMarks'])->name('publish-marks');
          Route::post('/generate-bulk-report', [ExamResultController::class, 'generateBulkReport'])->name('generate-bulk-report');
+         Route::post('/generate-term-analysis', [ExamResultController::class, 'generateTermAnalysisReport'])->name('generate-term-analysis');
          Route::get('/marks-statistics', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'getStatistics'])->name('marks-statistics');
          Route::get('/available-students', [ExamResultController::class, 'getReportStudents'])->name('available-students');
          Route::get('/reports/student/{student}', [ExamResultController::class, 'generateStudentReport'])->name('reports.student');
@@ -561,6 +630,29 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          // Admin mark editing route
          Route::put('/marks/{mark}/admin-update', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'adminUpdateMark'])->name('marks.admin-update');
       });
+
+      /********************************
+       * LEARNING MANAGEMENT SYSTEM (LMS)
+       *******************************/
+      Route::prefix('lms')->name('lms.')->group(function () {
+         // Materials
+         Route::get('/materials', [\App\Http\Controllers\Admin\LmsController::class, 'materials'])->name('materials.index');
+         Route::post('/materials', [\App\Http\Controllers\Admin\LmsController::class, 'storeMaterial'])->name('materials.store');
+         Route::delete('/materials/{material}', [\App\Http\Controllers\Admin\LmsController::class, 'destroyMaterial'])->name('materials.destroy');
+
+         // Assignments
+         Route::get('/assignments', [\App\Http\Controllers\Admin\LmsController::class, 'assignments'])->name('assignments.index');
+         Route::post('/assignments', [\App\Http\Controllers\Admin\LmsController::class, 'storeAssignment'])->name('assignments.store');
+         Route::delete('/assignments/{assignment}', [\App\Http\Controllers\Admin\LmsController::class, 'destroyAssignment'])->name('assignments.destroy');
+         Route::get('/assignments/{assignment}/submissions', [\App\Http\Controllers\Admin\LmsController::class, 'submissions'])->name('assignments.submissions');
+         Route::post('/submissions/{submission}/grade', [\App\Http\Controllers\Admin\LmsController::class, 'gradeSubmission'])->name('submissions.grade');
+
+         // Online Classes
+         Route::get('/classes', [\App\Http\Controllers\Admin\LmsController::class, 'classes'])->name('classes.index');
+         Route::post('/classes', [\App\Http\Controllers\Admin\LmsController::class, 'storeClass'])->name('classes.store');
+         Route::delete('/classes/{onlineClass}', [\App\Http\Controllers\Admin\LmsController::class, 'destroyClass'])->name('classes.destroy');
+      });
+
 
       /********************************
        * WEBSITE MANAGEMENT ROUTES
@@ -598,6 +690,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
          Route::resource('/customisations', \App\Http\Controllers\Website\CustomisationController::class)->names('customisations');
          Route::resource('/sections-cta-buttons', \App\Http\Controllers\Website\SectionCtaButtonController::class)->names('cta-buttons')->only('store', 'update', 'destroy');
          Route::resource('/seo-metas', \App\Http\Controllers\Website\SeoMetaController::class)->names('seo-metas')->except('create', 'edit', 'show');
+
+         // GRADING SCALES
+         Route::resource('/grading-scales', \App\Http\Controllers\Admin\GradingScaleController::class)->names('grading-scales');
+         Route::get('/grading-scales/{grading_scale}/entries', [\App\Http\Controllers\Admin\GradingScaleController::class, 'getEntries']);
+         Route::post('/grading-scales/{grading_scale}/sync-entries', [\App\Http\Controllers\Admin\GradingScaleController::class, 'syncEntries']);
       });
    });
 
@@ -609,6 +706,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
       'as' => 'teacher.'
    ], function () {
       Route::get('/my-timetable', [\App\Http\Controllers\Teacher\TeacherTimetableController::class, 'index'])->name('timetable');
+      Route::resource('/exam-papers', \App\Http\Controllers\Exams\ExamPaperController::class)->names('exam-papers');
    });
 });
 
@@ -646,6 +744,12 @@ Route::group([
    // Attendance
    Route::get('/attendance', [\App\Http\Controllers\Student\StudentAttendanceController::class, 'index'])->name('attendance.index');
 
+   // Calendar
+   Route::prefix('calendar')->name('calendar.')->group(function () {
+      Route::get('/', [\App\Http\Controllers\Student\StudentCalendarController::class, 'index'])->name('index');
+      Route::get('/events/fetch', [\App\Http\Controllers\Student\StudentCalendarController::class, 'getEvents'])->name('events.fetch');
+   });
+
    // Notices
    Route::get('/notices', [\App\Http\Controllers\Student\StudentNoticeController::class, 'index'])->name('notices.index');
 
@@ -660,6 +764,18 @@ Route::group([
 
    Route::put('/change-password', [\App\Http\Controllers\Student\Auth\StudentPasswordChangeController::class, 'update'])
       ->name('password.update');
+
+   // Student M-Pesa Payment
+   Route::post('/mpesa/initiate', [\App\Http\Controllers\Finance\MpesaController::class, 'initiateStkPush'])->name('mpesa.initiate');
+
+   // Student LMS Portal Routes
+   Route::prefix('lms')->name('lms.')->group(function () {
+      Route::get('/dashboard', [\App\Http\Controllers\Student\StudentLmsController::class, 'index'])->name('dashboard');
+      Route::get('/materials', [\App\Http\Controllers\Student\StudentLmsController::class, 'materials'])->name('materials.index');
+      Route::get('/assignments', [\App\Http\Controllers\Student\StudentLmsController::class, 'assignments'])->name('assignments.index');
+      Route::post('/assignments/{assignment}/submit', [\App\Http\Controllers\Student\StudentLmsController::class, 'submitAssignment'])->name('assignments.submit');
+      Route::get('/classes', [\App\Http\Controllers\Student\StudentLmsController::class, 'classes'])->name('classes.index');
+   });
 });
 
 // Student Logout (outside middleware to allow logout)

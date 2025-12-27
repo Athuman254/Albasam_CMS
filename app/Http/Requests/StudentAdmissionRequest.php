@@ -11,10 +11,12 @@ class StudentAdmissionRequest extends FormRequest
     {
         return [
             'registration_details.division_id' => ['required', Rule::exists('divisions', 'id')],
+            'registration_details.registered_at' => ['nullable', 'date'],
             'student.first_name' => ['required', 'string', 'max:255'],
             'student.middle_name' => ['nullable', 'string', 'max:255'],
             'student.last_name' => ['required', 'string', 'max:255'],
             'student.admission_number' => ['required', 'string', 'max:255'],
+            'student.assessment_number' => ['nullable', 'string', 'max:255'],
             'student.rank_id' => ['required', Rule::exists('ranks', 'id')],
             'student.date_of_birth' => ['nullable', 'date', 'max:255'],
             'student.birth_certificate_number' => ['nullable', 'string', 'max:255'],
@@ -25,12 +27,9 @@ class StudentAdmissionRequest extends FormRequest
             'student.ward' => ['nullable', 'string', 'max:255'],
             'student.permanent_address' => ['nullable', 'string', 'max:255'],
             'student.kcpe_score' => ['nullable', 'string', 'max:255'],
-            //            'student.kpsea_score' => ['nullable', 'string', 'max:255'],
-            //            'student.kjsea_score' => ['nullable', 'string', 'max:255'],
-            //            'student.index_number' => ['nullable', 'string', 'max:255'],
-            //            'student.upi_number' => ['nullable', 'string', 'max:255'],
-            //            'student.nemis' => ['nullable', 'string', 'max:255'],
-            //            'student.assessment_number' => ['nullable', 'string', 'max:255'],
+            'student.photo' => ['nullable'], // Base64 or File
+            'student.scholarship_type' => ['nullable', 'string', Rule::in(['none', 'full', 'half', 'custom'])],
+            'student.scholarship_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'student.previous_school' => ['nullable', 'string', 'max:255'],
             'student.specialization' => ['nullable', 'string', 'max:255'],
             'guardians' => ['required', 'array'], // Ensure at least one guardian is provided

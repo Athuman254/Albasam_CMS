@@ -39,6 +39,19 @@
                      </select>
                   </div>
                   
+                  <!-- Class Selection -->
+                  <div class="mb-4" v-if="selectedGroup && selectedGroup.includes('Class')">
+                     <label class="form-label d-flex align-items-center">
+                        <i class="bi bi-mortarboard me-2"></i>Select Class
+                     </label>
+                     <select v-model="selectedRankId" class="form-select">
+                        <option value="">Select a class</option>
+                        <option v-for="rank in classes" :key="rank.id" :value="rank.id">
+                           {{ rank.name }}
+                        </option>
+                     </select>
+                  </div>
+                  
                   <!-- Templates -->
                   <!-- <div class="mb-4">
                       <label class="form-label d-flex align-items-center">
@@ -132,6 +145,12 @@ import {Head, Link} from '@inertiajs/vue3';
 export default {
    name: 'BulkMessageComposer',
    components: {DefaultLayout, Head, Link},
+   props: {
+      classes: {
+         type: Array,
+         default: () => []
+      }
+   },
    data() {
       return {
          recipients: '',
@@ -145,7 +164,10 @@ export default {
             {id: 1, name: 'All Contacts'},
             {id: 2, name: 'Parents'},
             {id: 3, name: 'Teachers'},
+            {id: 5, name: 'Staff/Admin'},
+            {id: 6, name: 'Class Parents'},
          ],
+         selectedRankId: '',
          templates: [
             {id: 1, name: 'Default Template'},
             {id: 2, name: 'Sales Follow-up'},
@@ -159,7 +181,54 @@ export default {
          }
       }
    },
+   watch: {
+      selectedGroup(newGroup) {
+         if (newGroup && !newGroup.includes('Class')) {
+            this.fetchGroupContacts();
+         } else if (!newGroup) {
+            this.recipients = '';
+         }
+      },
+      selectedRankId(newRankId) {
+         if (newRankId && this.selectedGroup && this.selectedGroup.includes('Class')) {
+            this.fetchGroupContacts();
+         }
+      }
+   },
    methods: {
+      async fetchGroupContacts() {
+         try {
+            this.loading = true;
+            const response = await axios.get('/admin/sms/group-contacts', {
+               params: {
+                  group: this.selectedGroup,
+                  rank_id: this.selectedRankId
+               }
+            });
+            
+            if (response.data.phones && response.data.phones.length > 0) {
+               this.recipients = response.data.phones.join(', ');
+               this.status = {
+                  message: `Successfully loaded ${response.data.count} contacts.`,
+                  type: 'success'
+               };
+            } else {
+               this.recipients = '';
+               this.status = {
+                  message: 'No contacts found for this group.',
+                  type: 'warning'
+               };
+            }
+         } catch (error) {
+            console.error('Error fetching group contacts:', error);
+            this.status = {
+               message: 'Failed to load group contacts.',
+               type: 'danger'
+            };
+         } finally {
+            this.loading = false;
+         }
+      },
       validateForm() {
          if (!this.recipients.trim() && !this.selectedGroup.trim()) {
             this.status = {
@@ -232,45 +301,62 @@ export default {
             
             const messageCount = response.data.message_count;
             
+            // Show success notification
             if (this.scheduleDate) {
-               this.status = {
+               window.iziToast.success({
+                  title: 'Success!',
                   message: `${messageCount} messages scheduled for sending`,
-                  type: 'success'
-               };
+                  position: 'topRight'
+               });
             } else {
-               this.status = {
-                  message: `${messageCount} messages queued for sending`,
-                  type: 'success'
-               };
+               window.iziToast.success({
+                  title: 'Success!',
+                  message: `${messageCount} messages queued for sending. Check the Outbox to monitor delivery.`,
+                  position: 'topRight',
+                  timeout: 5000
+               });
             }
             
+            // Clear form
             this.recipients = '';
             this.messageContent = '';
             this.scheduleDate = '';
+            this.selectedGroup = '';
+            this.selectedRankId = '';
             
+            // Redirect to outbox after 2 seconds
+            setTimeout(() => {
+               window.location.href = '/admin/sms/outbox';
+            }, 2000);
          } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Error sending messages';
-            
-            if (error.response?.status === 422) {
-               const errors = error.response.data.errors;
-               const firstError = Object.values(errors)[0][0];
-               this.status = {
-                  message: firstError,
-                  type: 'danger'
-               };
-            } else if (error.response?.status === 429) {
-               // Rate limiting
-               this.status = {
-                  message: 'Please wait before sending more messages',
-                  type: 'warning'
-               };
-            } else {
-               this.status = {
-                  message: errorMessage,
-                  type: 'danger'
-               };
-            }
-         } finally {
+             console.error('SMS Send Error:', error);
+             console.error('Error Response:', error.response);
+             
+             const errorMessage = error.response?.data?.message || 'Error sending messages';
+             
+             if (error.response?.status === 422) {
+                const errors = error.response.data.errors;
+                const firstError = Object.values(errors)[0][0];
+                this.status = {
+                   message: firstError,
+                   type: 'danger'
+                };
+                alert(`Validation Error: ${firstError}`);
+             } else if (error.response?.status === 429) {
+                // Rate limiting
+                this.status = {
+                   message: 'Please wait before sending more messages',
+                   type: 'warning'
+                };
+                alert('Rate limit exceeded. Please wait before sending more messages.');
+             } else {
+                this.status = {
+                   message: errorMessage,
+                   type: 'danger'
+                };
+                alert(`Error: ${errorMessage}`);
+             }
+          } finally {
             this.loading = false;
          }
       }

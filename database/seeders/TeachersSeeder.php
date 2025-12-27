@@ -98,14 +98,15 @@ class TeachersSeeder extends Seeder
             );
 
             // Create or Update Employee
+            $staffNumber = 'EMP-' . str_pad($index + 1, 7, '0', STR_PAD_LEFT);
             $employee = Employee::updateOrCreate(
-                ['email' => $user->email],
+                ['staff_number' => $staffNumber],
                 [
                     'user_id' => $user->id,
-                    'staff_number' => 'EMP-' . str_pad($index + 1, 7, '0', STR_PAD_LEFT),
                     'first_name' => $teacherData['first_name'],
                     'middle_name' => $teacherData['middle_name'],
                     'last_name' => $teacherData['last_name'],
+                    'email' => $user->email,
                     'gender_id' => $teacherData['gender']->id,
                     'religion_id' => $teacherData['religion']->id,
                     'honorific_id' => $teacherData['honorific']?->id,
@@ -119,6 +120,7 @@ class TeachersSeeder extends Seeder
                     'date_of_hire' => now()->subYears($teacherData['experience'])->format('Y-m-d'),
                     'has_system_access' => true,
                     'in_payroll' => true,
+                    'password' => Hash::make('password'),
                 ]
             );
 
@@ -152,16 +154,17 @@ class TeachersSeeder extends Seeder
                     $subject = $subjects->random();
 
                     // First class assignment makes them a class teacher
-                    $isClassTeacher = ($classIndex == 0 && $index < 8); 
+                    $isClassTeacher = ($classIndex == 0 && $index < 8);
 
                     EmployeeClass::firstOrCreate(
                         [
-                            'employee_id' => $employee->id,
+                            'teacher_id' => $teacher->id,
                             'class_id' => $class->id,
                             'subject_id' => $subject->id,
                             'academic_year_id' => $currentAcademicYear->id,
                         ],
                         [
+                            'employee_id' => $employee->id,
                             'is_class_teacher' => $isClassTeacher,
                             'notes' => $isClassTeacher ? 'Class Teacher for ' . $class->name : null,
                         ]

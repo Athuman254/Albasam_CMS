@@ -13,6 +13,8 @@ use App\Models\Subject;
 use Illuminate\Http\Request;
 use App\Http\Resources\Resource;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -74,8 +76,12 @@ class UploadExamResultController extends Controller
                 }),
                 AllowedFilter::callback('search', function ($query, $value) {
                     $query->whereHas('student', function ($q) use ($value) {
-                        $q->where('name', 'like', "%{$value}%")
-                            ->orWhere('admission_number', 'like', "%{$value}%");
+                        $q->where(function ($sq) use ($value) {
+                            $sq->where('first_name', 'like', "%{$value}%")
+                                ->orWhere('middle_name', 'like', "%{$value}%")
+                                ->orWhere('last_name', 'like', "%{$value}%")
+                                ->orWhere('admission_number', 'like', "%{$value}%");
+                        });
                     });
                 }),
             ])
@@ -132,60 +138,88 @@ class UploadExamResultController extends Controller
      */
     public function store(Request $request)
     {
-        // FIX: Convert frontend array format to backend object format
-        $convertedMarks = [];
-        if ($request->has('marks') && is_array($request->marks)) {
-            if (isset($request->marks[0]) && is_array($request->marks[0])) {
-                // Frontend format: [{student_id: 1, marks: 85}, {student_id: 2, marks: 90}]
-                foreach ($request->marks as $markData) {
-                    if (isset($markData['student_id']) && isset($markData['marks'])) {
-                        $studentId = (int)$markData['student_id'];
-                        $convertedMarks[$studentId] = $markData['marks'];
-                    }
+        // 1. Data Transformation: Convert various frontend formats to a unified structure
+
+        // Handle 'overall_marks' (EnterMarks.vue format)
+        if ($request->has('overall_marks') && is_array($request->overall_marks)) {
+            $convertedMarks = [];
+            foreach ($request->overall_marks as $markData) {
+                if (isset($markData['student_id']) && isset($markData['marks'])) {
+                    $convertedMarks[(int)$markData['student_id']] = $markData['marks'];
                 }
-            } else {
-                // Backend format: {1: 85, 2: 90} - keep as is
-                $convertedMarks = $request->marks;
+            }
+            $request->merge(['marks' => $convertedMarks]);
+        }
+
+        // Handle legacy 'marks' array-of-objects format
+        if ($request->has('marks') && is_array($request->marks) && isset($request->marks[0]) && is_array($request->marks[0])) {
+            $convertedMarks = [];
+            foreach ($request->marks as $markData) {
+                if (isset($markData['student_id']) && isset($markData['marks'])) {
+                    $convertedMarks[(int)$markData['student_id']] = $markData['marks'];
+                }
             }
             $request->merge(['marks' => $convertedMarks]);
         }
 
         // FIX: Convert all numeric fields to proper types before validation
         $request->merge([
-            'exam_id' => (int)$request->exam_id,
-            'class_id' => (int)$request->class_id,
-            'subject_id' => (int)$request->subject_id,
+            'exam_id' => $request->has('exam_id') ? (int)$request->exam_id : null,
+            'class_id' => $request->has('class_id') ? (int)$request->class_id : null,
+            'subject_id' => $request->has('subject_id') ? (int)$request->subject_id : null,
         ]);
 
         $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'class_id' => 'required|integer|exists:ranks,id',
             'subject_id' => 'required|exists:subjects,id',
-            'marks' => 'required|array',
+            'marks' => 'required_without:skill_marks|array',
             'marks.*' => 'nullable|numeric|min:0',
+            'skill_marks' => 'sometimes|array',
+            'skill_marks.*.student_id' => 'required_with:skill_marks|exists:students,id',
+            'skill_marks.*.exam_subject_skill_id' => 'required_with:skill_marks|exists:exam_subject_skills,id',
+            'skill_marks.*.marks_obtained' => 'required_with:skill_marks|numeric|min:0',
             'submit_for_approval' => 'sometimes|boolean',
             'remarks' => 'nullable|string|max:500',
             'is_bulk_upload' => 'sometimes|boolean',
+            'skill_mode' => 'sometimes|boolean',
         ]);
 
         $examId = $validated['exam_id'];
         $classId = $validated['class_id'];
         $subjectId = $validated['subject_id'];
-        $marks = $validated['marks'];
+        $marks = $validated['marks'] ?? [];
+        $skillMarks = $validated['skill_marks'] ?? [];
         $submitForApproval = $validated['submit_for_approval'] ?? false;
         $remarks = $validated['remarks'] ?? null;
         $isBulkUpload = $validated['is_bulk_upload'] ?? false;
+        $skillMode = $validated['skill_mode'] ?? false;
+
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+        $employeeId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->id : null;
+        $userId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->user_id : ($currentUser ? $currentUser->id : null);
+        $isAdmin = $currentUser && $currentUser->hasRole('admin');
 
         // Verify teacher has access to this subject in this class
-        $hasAccess = EmployeeClass::where('employee_id', auth()->id())
-            ->where('class_id', $classId)
-            ->where('subject_id', $subjectId)
-            ->exists();
+        $hasAccess = false;
+        if ($employeeId) {
+            $hasAccess = EmployeeClass::where('employee_id', $employeeId)
+                ->where('class_id', $classId)
+                ->where('subject_id', $subjectId)
+                ->exists();
+        }
 
-        if (!$hasAccess) {
+        if (!$hasAccess && !$isAdmin) {
+            Log::warning('Unauthorized mark upload attempt blocked', [
+                'user_id' => $userId,
+                'employee_id' => $employeeId,
+                'class_id' => $classId,
+                'subject_id' => $subjectId,
+                'is_admin' => $isAdmin
+            ]);
             return response()->json([
                 'status' => 'error',
-                'message' => 'You do not have access to enter marks for this subject in this class.',
+                'message' => 'You are not authorized to upload marks for this class/subject.',
             ], 403);
         }
 
@@ -204,7 +238,7 @@ class UploadExamResultController extends Controller
                     'class_id' => $classId,
                     'subject_id' => $subjectId,
                     'max_marks' => 100, // Default maximum marks
-                    'created_by' => auth()->id(),
+                    'created_by' => $userId,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -212,15 +246,15 @@ class UploadExamResultController extends Controller
                 // Reload with subject relationship
                 $examSubject->load('subject');
 
-                \Log::info('Auto-created ExamSubject', [
+                Log::info('Auto-created ExamSubject', [
                     'exam_id' => $examId,
                     'class_id' => $classId,
                     'subject_id' => $subjectId,
                     'exam_subject_id' => $examSubject->id,
-                    'teacher_id' => auth()->id()
+                    'user_id' => $userId
                 ]);
             } catch (\Exception $e) {
-                \Log::error('Failed to create ExamSubject', [
+                Log::error('Failed to create ExamSubject', [
                     'exam_id' => $examId,
                     'class_id' => $classId,
                     'subject_id' => $subjectId,
@@ -239,62 +273,93 @@ class UploadExamResultController extends Controller
         $maxMarks = $examSubject->max_marks;
         $now = now();
 
-        foreach ($marks as $studentId => $score) {
-            if ($score === '' || $score === null) {
-                // For bulk upload, we might want to delete existing marks if empty
-                if ($isBulkUpload) {
-                    ExamMark::where('exam_subject_id', $examSubject->id)
-                        ->where('student_id', $studentId)
-                        ->where('exam_id', $examId)
-                        ->where('class_id', $classId)
-                        ->delete();
+        // Process marks based on mode
+        if ($skillMode && !empty($skillMarks)) {
+            // Group skill marks by student
+            $groupedSkillMarks = [];
+            foreach ($skillMarks as $sm) {
+                $groupedSkillMarks[$sm['student_id']][] = $sm;
+            }
+
+            foreach ($groupedSkillMarks as $studentId => $studentSkills) {
+                $totalObtained = collect($studentSkills)->sum('marks_obtained');
+
+                if ($totalObtained > $maxMarks) {
+                    $errors["skill_marks.$studentId"] = ["Total marks obtained ({$totalObtained}) exceeds subject maximum ({$maxMarks})"];
+                    continue;
                 }
-                continue;
-            }
 
-            if (!is_numeric($score)) {
-                $errors[] = [
-                    'student_id' => (int)$studentId,
-                    'message' => "Mark must be a number.",
+                $percentage = ($totalObtained / $maxMarks) * 100;
+                $grade = $this->calculateGrade($percentage);
+                $status = $submitForApproval ? ExamMark::SUBMITTED : ExamMark::DRAFT;
+
+                $toSave[] = [
+                    'exam_subject_id' => $examSubject->id,
+                    'student_id' => $studentId,
+                    'exam_id' => $examId,
+                    'class_id' => $classId,
+                    'marks_obtained' => $totalObtained,
+                    'maximum_marks' => $maxMarks,
+                    'percentage' => round($percentage, 2),
+                    'grade' => $grade,
+                    'status' => $status,
+                    'remarks' => $remarks,
+                    'teacher_id' => $employeeId,
+                    'submitted_by' => $submitForApproval ? $userId : null,
+                    'submitted_at' => $submitForApproval ? $now : null,
+                    'approved_by' => null,
+                    'approved_at' => null,
                 ];
-                continue;
             }
+        } else {
+            // Overall marks mode
+            foreach ($marks as $studentId => $score) {
+                if ($score === '' || $score === null) {
+                    // For bulk upload, we might want to delete existing marks if empty
+                    if ($isBulkUpload) {
+                        ExamMark::where('exam_subject_id', $examSubject->id)
+                            ->where('student_id', $studentId)
+                            ->where('exam_id', $examId)
+                            ->where('class_id', $classId)
+                            ->delete();
+                    }
+                    continue;
+                }
 
-            $score = (float) $score;
+                if (!is_numeric($score)) {
+                    $errors["marks.$studentId"] = ["Mark must be a number."];
+                    continue;
+                }
 
-            if ($score < 0 || $score > $maxMarks) {
-                $errors[] = [
-                    'student_id' => (int)$studentId,
-                    'message' => "Mark must be between 0 and {$maxMarks}.",
+                $score = (float) $score;
+
+                if ($score < 0 || $score > $maxMarks) {
+                    $errors["marks.$studentId"] = ["Marks must be between 0 and {$maxMarks}"];
+                    continue;
+                }
+
+                $percentage = ($score / $maxMarks) * 100;
+                $grade = $this->calculateGrade($percentage);
+                $status = $submitForApproval ? ExamMark::SUBMITTED : ExamMark::DRAFT;
+
+                $toSave[] = [
+                    'exam_subject_id' => $examSubject->id,
+                    'student_id' => $studentId,
+                    'exam_id' => $examId,
+                    'class_id' => $classId,
+                    'marks_obtained' => $score,
+                    'maximum_marks' => $maxMarks,
+                    'percentage' => round($percentage, 2),
+                    'grade' => $grade,
+                    'status' => $status,
+                    'remarks' => $remarks,
+                    'teacher_id' => $employeeId,
+                    'submitted_by' => $submitForApproval ? $userId : null,
+                    'submitted_at' => $submitForApproval ? $now : null,
+                    'approved_by' => null,
+                    'approved_at' => null,
                 ];
-                continue;
             }
-
-            $status = $submitForApproval ? ExamMark::SUBMITTED : ExamMark::DRAFT;
-
-            // Calculate grade based on percentage
-            $percentage = ($score / $maxMarks) * 100;
-            $grade = $this->calculateGrade($percentage);
-
-            $toSave[] = [
-                'exam_subject_id' => $examSubject->id,
-                'student_id' => $studentId,
-                'marks_obtained' => $score,
-                'maximum_marks' => $maxMarks,
-                'percentage' => round($percentage, 2),
-                'grade' => $grade,
-                'status' => $status,
-                'remarks' => $remarks,
-                'exam_id' => $examId,
-                'class_id' => $classId,
-                'teacher_id' => auth()->id(),
-                'submitted_by' => $submitForApproval ? auth()->id() : null,
-                'submitted_at' => $submitForApproval ? $now : null,
-                'approved_by' => null,
-                'approved_at' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
         }
 
         if (!empty($errors)) {
@@ -305,9 +370,9 @@ class UploadExamResultController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($toSave, $examId, $classId, $examSubject) {
+        DB::transaction(function () use ($toSave, $examId, $classId, $examSubject, $skillMode, $skillMarks) {
             foreach ($toSave as $row) {
-                ExamMark::updateOrCreate(
+                $examMark = ExamMark::updateOrCreate(
                     [
                         'exam_subject_id' => $row['exam_subject_id'],
                         'student_id' => $row['student_id'],
@@ -316,6 +381,23 @@ class UploadExamResultController extends Controller
                     ],
                     $row
                 );
+
+                // If in skill mode, save individual skill marks
+                if ($skillMode && !empty($skillMarks)) {
+                    foreach ($skillMarks as $sm) {
+                        if ($sm['student_id'] == $row['student_id']) {
+                            \App\Models\ExamSkillMark::updateOrCreate(
+                                [
+                                    'exam_mark_id' => $examMark->id,
+                                    'exam_subject_skill_id' => $sm['exam_subject_skill_id'],
+                                ],
+                                [
+                                    'marks_obtained' => $sm['marks_obtained'],
+                                ]
+                            );
+                        }
+                    }
+                }
             }
         });
 
@@ -323,22 +405,15 @@ class UploadExamResultController extends Controller
             'Marks saved and submitted for approval successfully!' :
             'Marks saved as draft successfully!';
 
-        // Add info about auto-created exam subject if it was created
-        $additionalInfo = '';
-        if (!$examSubject->wasRecentlyCreated) {
-            $additionalInfo = ' Exam subject configuration was automatically created.';
-        }
-
         return response()->json([
             'status' => 'success',
-            'message' => $message . $additionalInfo,
+            'message' => $message,
             'data' => [
                 'submitted_for_approval' => $submitForApproval,
                 'students_updated' => count($toSave),
                 'subject' => $examSubject->subject->name,
                 'max_marks' => $maxMarks,
                 'exam_subject_id' => $examSubject->id,
-                'exam_subject_created' => $examSubject->wasRecentlyCreated
             ]
         ]);
     }
@@ -376,16 +451,24 @@ class UploadExamResultController extends Controller
         $submitForApproval = $validated['submit_for_approval'] ?? false;
         $remarks = $validated['remarks'] ?? null;
 
-        // Verify teacher has access to this subject in this class
-        $hasAccess = EmployeeClass::where('employee_id', auth()->id())
-            ->where('class_id', $classId)
-            ->where('subject_id', $subjectId)
-            ->exists();
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+        $employeeId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->id : null;
+        $userId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->user_id : ($currentUser ? $currentUser->id : null);
+        $isAdmin = $currentUser && $currentUser->hasRole('admin');
 
-        if (!$hasAccess) {
+        // Verify teacher has access to this subject in this class
+        $hasAccess = false;
+        if ($employeeId) {
+            $hasAccess = EmployeeClass::where('employee_id', $employeeId)
+                ->where('class_id', $classId)
+                ->where('subject_id', $subjectId)
+                ->exists();
+        }
+
+        if (!$hasAccess && !$isAdmin) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'You do not have access to enter marks for this subject in this class.',
+                'message' => 'You are not authorized to upload marks for this class/subject.',
             ], 403);
         }
 
@@ -403,20 +486,20 @@ class UploadExamResultController extends Controller
                     'class_id' => $classId,
                     'subject_id' => $subjectId,
                     'max_marks' => 100, // Default maximum marks
-                    'created_by' => auth()->id(),
+                    'created_by' => $userId,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
 
-                \Log::info('Auto-created ExamSubject for single mark', [
+                Log::info('Auto-created ExamSubject for single mark', [
                     'exam_id' => $examId,
                     'class_id' => $classId,
                     'subject_id' => $subjectId,
                     'exam_subject_id' => $examSubject->id,
-                    'teacher_id' => auth()->id()
+                    'user_id' => $userId
                 ]);
             } catch (\Exception $e) {
-                \Log::error('Failed to create ExamSubject for single mark', [
+                Log::error('Failed to create ExamSubject for single mark', [
                     'exam_id' => $examId,
                     'class_id' => $classId,
                     'subject_id' => $subjectId,
@@ -458,8 +541,8 @@ class UploadExamResultController extends Controller
                 'grade' => $grade,
                 'status' => $status,
                 'remarks' => $remarks,
-                'teacher_id' => auth()->id(),
-                'submitted_by' => $submitForApproval ? auth()->id() : null,
+                'teacher_id' => $employeeId,
+                'submitted_by' => $submitForApproval ? $userId : null,
                 'submitted_at' => $submitForApproval ? now() : null,
                 'approved_by' => null,
                 'approved_at' => null,
@@ -522,14 +605,15 @@ class UploadExamResultController extends Controller
                     'class_id' => $classId,
                     'subject_id' => $subjectId,
                     'max_marks' => 100,
-                    'created_by' => auth()->id(),
+                    'created_by' => $userId,
                 ]);
 
-                \Log::info('Auto-created ExamSubject for bulk submission', [
+                Log::info('Auto-created ExamSubject for bulk submission', [
                     'exam_id' => $examId,
                     'class_id' => $classId,
                     'subject_id' => $subjectId,
-                    'exam_subject_id' => $examSubject->id
+                    'exam_subject_id' => $examSubject->id,
+                    'user_id' => $userId
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
@@ -546,9 +630,12 @@ class UploadExamResultController extends Controller
             $query->whereIn('student_id', $studentIds);
         }
 
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+        $userId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->user_id : ($currentUser ? $currentUser->id : null);
+
         $updatedCount = $query->update([
             'status' => ExamMark::SUBMITTED,
-            'submitted_by' => auth()->id(),
+            'submitted_by' => $userId,
             'submitted_at' => now(),
         ]);
 
@@ -579,11 +666,14 @@ class UploadExamResultController extends Controller
         $markIds = $validated['mark_ids'];
         $remarks = $validated['remarks'] ?? null;
 
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+        $userId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->user_id : ($currentUser ? $currentUser->id : null);
+
         $updatedCount = ExamMark::whereIn('id', $markIds)
             ->where('status', ExamMark::SUBMITTED)
             ->update([
                 'status' => ExamMark::APPROVED,
-                'approved_by' => auth()->id(),
+                'approved_by' => $userId,
                 'approved_at' => now(),
                 'remarks' => $remarks ?: DB::raw('remarks'),
             ]);
@@ -611,12 +701,15 @@ class UploadExamResultController extends Controller
         $markIds = $validated['mark_ids'];
         $rejectionReason = $validated['rejection_reason'];
 
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+        $userId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->user_id : ($currentUser ? $currentUser->id : null);
+
         $updatedCount = ExamMark::whereIn('id', $markIds)
             ->where('status', ExamMark::SUBMITTED)
             ->update([
                 'status' => ExamMark::REJECTED,
                 'remarks' => $rejectionReason,
-                'approved_by' => auth()->id(),
+                'approved_by' => $userId,
                 'approved_at' => now(),
             ]);
 
@@ -676,8 +769,11 @@ class UploadExamResultController extends Controller
         $academicYearId = $request->academic_year_id;
         $examId = $request->exam_id;
 
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+        $employeeId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->id : null;
+
         $subjects = EmployeeClass::with('subject')
-            ->where('employee_id', auth()->id())
+            ->where('employee_id', $employeeId)
             ->where('class_id', $classId)
             ->whereNotNull('subject_id')
             ->when($academicYearId, function ($query) use ($academicYearId) {
@@ -720,8 +816,11 @@ class UploadExamResultController extends Controller
             // Single mark deletion
             $mark = ExamMark::findOrFail($id);
 
+            $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+            $employeeId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->id : null;
+
             // Check if user has permission to delete
-            if ($mark->teacher_id !== auth()->id() && !auth()->user()->hasRole('admin')) {
+            if ($mark->teacher_id !== $employeeId && (!$currentUser || !$currentUser->hasRole('admin'))) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'You are not authorized to delete this mark.',
@@ -745,9 +844,12 @@ class UploadExamResultController extends Controller
         $markIds = $validated['mark_ids'];
 
         // For bulk deletion, only allow if user is admin or owns all marks
-        if (!auth()->user()->hasRole('admin')) {
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+        $employeeId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->id : null;
+
+        if (!$currentUser || !$currentUser->hasRole('admin')) {
             $foreignMarks = ExamMark::whereIn('id', $markIds)
-                ->where('teacher_id', '!=', auth()->id())
+                ->where('teacher_id', '!=', $employeeId)
                 ->exists();
 
             if ($foreignMarks) {
@@ -780,12 +882,13 @@ class UploadExamResultController extends Controller
             'subject_id' => 'sometimes|exists:subjects,id',
         ]);
 
-        $teacherId = auth()->id();
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+        $employeeId = ($currentUser instanceof \App\Models\Employee) ? $currentUser->id : null;
         $examId = $request->exam_id;
         $classId = $request->class_id;
         $subjectId = $request->subject_id;
 
-        $query = ExamMark::where('teacher_id', $teacherId);
+        $query = ExamMark::where('teacher_id', $employeeId);
 
         if ($examId) {
             $query->where('exam_id', $examId);
@@ -882,8 +985,11 @@ class UploadExamResultController extends Controller
 
         $mark = ExamMark::with('examSubject')->findOrFail($id);
 
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+        $currentUserId = Auth::guard('employee')->id() ?? Auth::id();
+
         // Check permissions
-        if ($mark->teacher_id !== auth()->id() && !auth()->user()->hasRole('admin')) {
+        if ($mark->teacher_id !== $currentUserId && (!$currentUser || !$currentUser->hasRole('admin'))) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'You are not authorized to update this mark.',
@@ -928,8 +1034,10 @@ class UploadExamResultController extends Controller
      */
     public function adminUpdateMark(Request $request, $markId)
     {
+        $currentUser = Auth::guard('employee')->user() ?? Auth::user();
+
         // Verify admin role
-        if (!auth()->user()->hasRole('admin')) {
+        if (!$currentUser || !$currentUser->hasRole('admin')) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Only administrators can edit approved marks.'
@@ -970,7 +1078,7 @@ class UploadExamResultController extends Controller
         ]);
 
         // Log the change for audit trail
-        \Log::info('Admin edited mark', [
+        Log::info('Admin edited mark', [
             'mark_id' => $markId,
             'student_id' => $examMark->student_id,
             'student_name' => $examMark->student->name ?? 'Unknown',
@@ -982,8 +1090,8 @@ class UploadExamResultController extends Controller
             'new_grade' => $grade,
             'status' => $oldStatus,
             'reason' => $validated['edit_reason'],
-            'admin_id' => auth()->id(),
-            'admin_name' => auth()->user()->name,
+            'admin_id' => Auth::guard('employee')->id() ?? Auth::id(),
+            'admin_name' => (Auth::guard('employee')->user() ?? Auth::user())->name ?? 'Admin',
             'reason' => $validated['edit_reason']
         ]);
 

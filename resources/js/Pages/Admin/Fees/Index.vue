@@ -91,8 +91,20 @@
                       </div>
                       <div class="row mt-3">
                         <div class="col-12">
+                          <button @click="openPaymentModal(selectedStudent)" class="btn btn-success btn-sm me-2" :disabled="loading">
+                            <i class="fas fa-mobile-alt me-1"></i> M-Pesa Push
+                          </button>
+
+                          <button @click="openCashPaymentModal(selectedStudent)" class="btn btn-warning btn-sm me-2" :disabled="loading">
+                            <i class="fas fa-money-bill-wave me-1"></i> Record Cash
+                          </button>
+
                           <button @click="printStudentStatement(selectedStudent)" class="btn btn-primary btn-sm me-2" :disabled="loading">
                             <i class="fas fa-print me-1"></i> Print Statement
+                          </button>
+
+                          <button @click="openIndividualFeeModal(selectedStudent)" class="btn btn-info btn-sm me-2" :disabled="loading">
+                            <i class="fas fa-plus-circle me-1"></i> Add Individual Fee
                           </button>
 
                           <button @click="clearSelectedStudent" class="btn btn-outline-secondary btn-sm" :disabled="loading">
@@ -199,6 +211,7 @@
                         <th class="text-end">Balance</th>
                         <th>Status</th>
                         <th>Due Date</th>
+                        <th class="text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -217,9 +230,21 @@
                           </span>
                         </td>
                         <td>{{ formatDate(fee.due_date) }}</td>
+                        <td class="text-center">
+                          <button 
+                            v-if="fee.paid_amount === 0" 
+                            @click="deleteFee(fee.id)" 
+                            class="btn btn-sm btn-danger" 
+                            :disabled="loading"
+                            title="Delete this fee"
+                          >
+                            <i class="fas fa-trash"></i>
+                          </button>
+                          <span v-else class="text-muted small">-</span>
+                        </td>
                       </tr>
                       <tr v-if="!detailedStudent.fees || detailedStudent.fees.length === 0">
-                        <td colspan="8" class="text-center text-muted py-3">
+                        <td colspan="9" class="text-center text-muted py-3">
                           <i class="fas fa-info-circle me-2"></i>No fee records found
                         </td>
                       </tr>
@@ -272,10 +297,190 @@
             </div>
           </div>
           <div class="modal-footer">
+            <button @click="openPaymentModal(detailedStudent)" class="btn btn-success text-white" :disabled="loading">
+              <i class="fas fa-mobile-alt me-1"></i> Initiate M-Pesa Payment
+            </button>
+            <button @click="openCashPaymentModal(detailedStudent)" class="btn btn-warning text-white" :disabled="loading">
+              <i class="fas fa-money-bill-wave me-1"></i> Record Cash Payment
+            </button>
+            <button @click="openIndividualFeeModal(detailedStudent)" class="btn btn-info text-white" :disabled="loading">
+              <i class="fas fa-plus-circle me-1"></i> Add Individual Fee
+            </button>
             <button @click="printStudentStatement(detailedStudent)" class="btn btn-primary" :disabled="loading">
               <i class="fas fa-print me-1"></i> Print Statement
             </button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- M-Pesa Payment Modal (Admin) -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-mobile-alt me-2"></i>
+              Initiate M-Pesa Payment
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-info">
+              Using Paybill: <strong>{{ paybillNumber || 'Loading...' }}</strong>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Student</label>
+              <input type="text" class="form-control" :value="detailedStudent?.full_name" disabled>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Phone Number</label>
+              <input type="text" v-model="paymentForm.phone" class="form-control" placeholder="0712345678">
+              <small class="text-muted">Enter the phone number to receive the STK Push.</small>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Amount (KSh)</label>
+              <input type="number" v-model="paymentForm.amount" class="form-control">
+            </div>
+
+            <div v-if="paymentMessage" :class="{'alert-success': paymentSuccess, 'alert-danger': !paymentSuccess}" class="alert mt-3">
+              {{ paymentMessage }}
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" @click="initiatePayment" class="btn btn-success text-white" :disabled="processing">
+              <span v-if="processing" class="spinner-border spinner-border-sm me-1"></span>
+              {{ processing ? 'Processing...' : 'Send STK Push' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cash Payment Modal -->
+    <div class="modal fade" id="cashPaymentModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-money-bill-wave me-2"></i>
+              Record Cash Payment
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Student</label>
+              <input type="text" class="form-control" :value="detailedStudent?.full_name" disabled>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Amount (KSh)</label>
+              <input type="number" v-model="cashPaymentForm.amount" class="form-control" placeholder="0.00">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Payment Date</label>
+              <input type="date" v-model="cashPaymentForm.date" class="form-control">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Notes</label>
+              <textarea v-model="cashPaymentForm.notes" class="form-control" rows="2" placeholder="e.g. Receipt NO: 1234"></textarea>
+            </div>
+
+            <div v-if="cashPaymentMessage" :class="{'alert-success': cashPaymentSuccess, 'alert-danger': !cashPaymentSuccess}" class="alert mt-3">
+              {{ cashPaymentMessage }}
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" @click="submitCashPayment" class="btn btn-warning text-white" :disabled="processing">
+              <span v-if="processing" class="spinner-border spinner-border-sm me-1"></span>
+              {{ processing ? 'Recording...' : 'Record Payment' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Individual Fee Modal -->
+    <div class="modal fade" id="individualFeeModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-plus-circle me-2"></i>
+              Add Individual Fee
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Student</label>
+              <input type="text" class="form-control" :value="detailedStudent?.full_name" disabled>
+            </div>
+
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label">Academic Year</label>
+                <select v-model="individualFeeForm.academic_year" class="form-control">
+                  <option v-for="year in academic_years" :key="year.id" :value="year.name">{{ year.name }}</option>
+                </select>
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label">Term</label>
+                <select v-model="individualFeeForm.term" class="form-control">
+                  <option value="1">Term 1</option>
+                  <option value="2">Term 2</option>
+                  <option value="3">Term 3</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Fee Type</label>
+                <select v-model="individualFeeForm.fee_type" class="form-control">
+                  <option value="tuition">Tuition Fee</option>
+                  <option value="activity">Activity Fee</option>
+                  <option value="exam">Examination Fee</option>
+                  <option value="library">Library Fee</option>
+                  <option value="sports">Sports Fee</option>
+                  <option value="transport">Transport Fee</option>
+                  <option value="hostel">Hostel Fee</option>
+                  <option value="other">Other Fees</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Amount (KSh) <span class="text-danger">*</span></label>
+              <input type="number" v-model="individualFeeForm.amount" class="form-control" placeholder="0.00">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Due Date <span class="text-danger">*</span></label>
+              <input type="date" v-model="individualFeeForm.due_date" class="form-control">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Description (Optional)</label>
+              <textarea v-model="individualFeeForm.description" class="form-control" rows="2" placeholder="e.g. Uniform charges, etc."></textarea>
+            </div>
+
+            <div v-if="individualFeeMessage" :class="{'alert-success': individualFeeSuccess, 'alert-danger': !individualFeeSuccess}" class="alert mt-3">
+              {{ individualFeeMessage }}
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" @click="submitIndividualFee" class="btn btn-info text-white" :disabled="processing">
+              <span v-if="processing" class="spinner-border spinner-border-sm me-1"></span>
+              {{ processing ? 'Adding...' : 'Add Fee' }}
+            </button>
           </div>
         </div>
       </div>
@@ -307,6 +512,238 @@ const feeStats = ref(props.initial_stats || {});
 const loading = ref(false);
 const loadingMessage = ref('Loading student fee data...');
 const debugInfo = ref(null);
+
+// Payment State
+const paymentForm = reactive({
+  phone: '',
+  amount: ''
+});
+const cashPaymentForm = reactive({
+  amount: '',
+  date: new Date().toISOString().split('T')[0],
+  notes: ''
+});
+const processing = ref(false);
+const paymentMessage = ref('');
+const paymentSuccess = ref(false);
+const cashPaymentMessage = ref('');
+const cashPaymentSuccess = ref(false);
+const individualFeeMessage = ref('');
+const individualFeeSuccess = ref(false);
+const paybillNumber = ref('Loading...'); // Could fetch from config
+
+const individualFeeForm = reactive({
+  fee_type: 'other',
+  amount: '',
+  academic_year: '',
+  term: '',
+  due_date: new Date().toISOString().split('T')[0],
+  description: ''
+});
+
+const openIndividualFeeModal = (student = null) => {
+  if (student && student.id) {
+    detailedStudent.value = student;
+  }
+  
+  if (!detailedStudent.value) {
+    alert('No student selected');
+    return;
+  }
+
+  // Set defaults from current filters or sensible values
+  individualFeeForm.academic_year = academicYear.value || new Date().getFullYear().toString();
+  individualFeeForm.term = term.value || '1';
+  individualFeeForm.amount = '';
+  individualFeeForm.fee_type = 'other';
+  individualFeeForm.description = '';
+  individualFeeForm.due_date = new Date().toISOString().split('T')[0];
+  
+  individualFeeMessage.value = '';
+  individualFeeSuccess.value = false;
+  
+  const modalEl = document.getElementById('individualFeeModal');
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  modal.show();
+};
+
+const openPaymentModal = (student = null) => {
+  // If student is an event (from @click without args), don't use it
+  if (student && student.id) {
+    detailedStudent.value = student;
+  }
+  
+  if (!detailedStudent.value) {
+    alert('No student selected');
+    return;
+  }
+
+  paymentForm.phone = detailedStudent.value?.phone || '';
+  paymentForm.amount = '';
+  paymentMessage.value = '';
+  paymentSuccess.value = false;
+  
+  const modalEl = document.getElementById('paymentModal');
+  const paymentModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  paymentModal.show();
+};
+
+const openCashPaymentModal = (student = null) => {
+  // If student is an event, don't use it
+  if (student && student.id) {
+    detailedStudent.value = student;
+  }
+
+  if (!detailedStudent.value) {
+    alert('No student selected');
+    return;
+  }
+
+  cashPaymentForm.amount = '';
+  cashPaymentForm.date = new Date().toISOString().split('T')[0];
+  cashPaymentForm.notes = '';
+  cashPaymentMessage.value = '';
+  cashPaymentSuccess.value = false;
+  
+  const modalEl = document.getElementById('cashPaymentModal');
+  const cashModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  cashModal.show();
+};
+
+const initiatePayment = async () => {
+  if (!paymentForm.phone || !paymentForm.amount) {
+    alert('Please enter phone and amount');
+    return;
+  }
+  
+  processing.value = true;
+  paymentMessage.value = '';
+  
+  try {
+    const response = await axios.post(route('admin.fees.payments.mpesa.initiate-push'), {
+      phone_number: paymentForm.phone,
+      amount: paymentForm.amount,
+      student_id: detailedStudent.value.id,
+      account_reference: detailedStudent.value.admission_number
+    });
+
+    if (response.data.success) {
+      paymentSuccess.value = true;
+      paymentMessage.value = 'STK Push sent successfully!';
+      setTimeout(() => {
+        const modalEl = document.getElementById('paymentModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+      }, 3000);
+    } else {
+      paymentSuccess.value = false;
+      paymentMessage.value = response.data.message;
+    }
+  } catch (error) {
+    console.error(error);
+    paymentSuccess.value = false;
+    paymentMessage.value = error.response?.data?.message || 'Failed to initiate payment.';
+  } finally {
+    processing.value = false;
+  }
+};
+
+const submitCashPayment = async () => {
+  if (!cashPaymentForm.amount || !cashPaymentForm.date) {
+    alert('Please enter amount and date');
+    return;
+  }
+  
+  processing.value = true;
+  cashPaymentMessage.value = '';
+  
+  try {
+    const response = await axios.post(route('admin.fees.payments.record-cash'), {
+      amount: cashPaymentForm.amount,
+      payment_date: cashPaymentForm.date,
+      notes: cashPaymentForm.notes,
+      student_id: detailedStudent.value.id
+    });
+
+    if (response.data.success) {
+      cashPaymentSuccess.value = true;
+      cashPaymentMessage.value = 'Cash payment recorded successfully!';
+      
+      // Reload student data silently to show the new payment without re-opening modal
+      const detailedResponse = await axios.post(route('admin.fees.student-details'), {
+        student_id: detailedStudent.value.id,
+        academic_year: academicYear.value,
+        term: term.value
+      });
+      
+      if (detailedResponse.data.success) {
+        detailedStudent.value = detailedResponse.data.student;
+        // Also update selectedStudent if matches
+        if (selectedStudent.value && selectedStudent.value.id === detailedStudent.value.id) {
+            selectedStudent.value = { ...selectedStudent.value, ...detailedResponse.data.student };
+        }
+      }
+      
+      setTimeout(() => {
+        const modalEl = document.getElementById('cashPaymentModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+      }, 2000);
+    } else {
+      cashPaymentSuccess.value = false;
+      cashPaymentMessage.value = response.data.message;
+    }
+  } catch (error) {
+    console.error(error);
+    cashPaymentSuccess.value = false;
+    cashPaymentMessage.value = error.response?.data?.message || 'Failed to record cash payment.';
+  } finally {
+    processing.value = false;
+  }
+};
+
+const submitIndividualFee = async () => {
+  if (!individualFeeForm.amount || !individualFeeForm.academic_year || !individualFeeForm.term || !individualFeeForm.due_date) {
+    alert('Please fill in all required fields (Amount, Year, Term, Due Date)');
+    return;
+  }
+  
+  processing.value = true;
+  individualFeeMessage.value = '';
+  
+  try {
+    const response = await axios.post(route('admin.fees.store'), {
+      rank_id: detailedStudent.value.current_rank?.id,
+      student_id: detailedStudent.value.id,
+      fee_type: individualFeeForm.fee_type,
+      amount: individualFeeForm.amount,
+      academic_year: individualFeeForm.academic_year,
+      term: individualFeeForm.term,
+      due_date: individualFeeForm.due_date,
+      description: individualFeeForm.description
+    });
+
+    if (response.data.success || response.status === 200) {
+      individualFeeSuccess.value = true;
+      individualFeeMessage.value = response.data.message || 'Individual fee added successfully!';
+      
+      // Reload student data
+      await searchStudent();
+      
+      setTimeout(() => {
+        const modalEl = document.getElementById('individualFeeModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+      }, 2000);
+    }
+  } catch (error) {
+    console.error(error);
+    individualFeeSuccess.value = false;
+    individualFeeMessage.value = error.response?.data?.message || 'Failed to add individual fee.';
+  } finally {
+    processing.value = false;
+  }
+};
 
 // Computed properties
 const selectedClassName = computed(() => {
@@ -548,8 +985,9 @@ const viewStudentDetails = async (student) => {
     
     if (response.data.success) {
       detailedStudent.value = response.data.student;
-      await nextTick(); // Wait for DOM update
-      const modal = new bootstrap.Modal(document.getElementById('studentDetailsModal'));
+      await nextTick();
+      const modalEl = document.getElementById('studentDetailsModal');
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
       modal.show();
     }
   } catch (error) {
@@ -616,6 +1054,36 @@ const printAllClassStatements = async () => {
   } catch (error) {
     console.error('Error printing class statements:', error);
     alert('Error printing some statements. Please check the print queue.');
+  } finally {
+    loading.value = false;
+    loadingMessage.value = 'Loading student fee data...';
+  }
+};
+
+const deleteFee = async (feeId) => {
+  if (!confirm('Are you sure you want to delete this fee? This action cannot be undone.')) {
+    return;
+  }
+  
+  loading.value = true;
+  loadingMessage.value = 'Deleting fee...';
+  
+  try {
+    const response = await axios.delete(route('admin.fees.destroy', feeId));
+    
+    if (response.data.success) {
+      alert('Fee deleted successfully!');
+      
+      // Reload student data to reflect the deletion
+      if (selectedStudent.value) {
+        await searchStudent();
+      }
+    } else {
+      alert(response.data.message || 'Failed to delete fee.');
+    }
+  } catch (error) {
+    console.error('Error deleting fee:', error);
+    alert(error.response?.data?.message || 'Error deleting fee. Please try again.');
   } finally {
     loading.value = false;
     loadingMessage.value = 'Loading student fee data...';

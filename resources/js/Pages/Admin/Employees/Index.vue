@@ -282,7 +282,8 @@
         <div class="max-h-[80vh] overflow-y-auto pr-2">
            <!-- Header with Avatar and Basic Info -->
            <div class="flex items-center mb-6 pb-6 border-b border-gray-200">
-              <div class="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl font-bold mr-4">
+              <img v-if="selectedEmployee.photo_url" :src="selectedEmployee.photo_url" class="h-20 w-20 rounded-full object-cover border-4 border-white shadow-md mr-4" alt="" />
+              <div v-else class="h-20 w-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl font-bold mr-4 border-4 border-white shadow-md">
                  {{ selectedEmployee.first_name.charAt(0) }}{{ selectedEmployee.last_name.charAt(0) }}
               </div>
               <div>
@@ -319,6 +320,10 @@
                     <div class="flex justify-between">
                        <dt class="text-sm text-gray-500">Religion:</dt>
                        <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.religion?.name || 'N/A' }}</dd>
+                    </div>
+                    <div class="flex justify-between" v-if="selectedEmployee.tsc_number">
+                       <dt class="text-sm text-gray-500">TSC Number:</dt>
+                       <dd class="text-sm font-medium text-blue-600">{{ selectedEmployee.tsc_number }}</dd>
                     </div>
                  </dl>
               </div>
@@ -404,6 +409,14 @@
         </div>
 
         <div class="mt-6 flex justify-end space-x-3 pt-4 border-t border-gray-200">
+           <a
+             :href="route('admin.employees.export-pdf', selectedEmployee.id)"
+             target="_blank"
+             class="inline-flex items-center px-4 py-2 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+           >
+             <i class='bx bxs-file-pdf mr-2 text-lg'></i>
+             Export PDF
+           </a>
            <button
              type="button"
              class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

@@ -47,6 +47,14 @@ Route::prefix('employee')->name('employee.')->group(function () {
             Route::get('/history', [\App\Http\Controllers\Employee\StaffAttendanceController::class, 'getHistory'])->name('history');
         });
 
+        // =========================================================================
+        // SCHOOL CALENDAR ROUTES
+        // =========================================================================
+        Route::prefix('calendar')->name('calendar.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Employee\EmployeeCalendarController::class, 'index'])->name('index');
+            Route::get('/events/fetch', [\App\Http\Controllers\Employee\EmployeeCalendarController::class, 'getEvents'])->name('events.fetch');
+        });
+
 
         // =========================================================================
         // FIXED ROUTES FOR MARKS ENTRY FUNCTIONALITY
@@ -520,7 +528,7 @@ Route::prefix('employee')->name('employee.')->group(function () {
 
         // ADDED MISSING CURRENT ACADEMIC YEAR ROUTE
         Route::get('/current-academic-year', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'getCurrentAcademicYear'])->name('current-academic-year');
-        
+
         // ADDED MISSING EXAM SUBJECT SKILLS ROUTE
         Route::get('/exam-subject-skills', [\App\Http\Controllers\Exams\UploadExamResultController::class, 'examSubjectSkills'])->name('exam-subject-skills');
 

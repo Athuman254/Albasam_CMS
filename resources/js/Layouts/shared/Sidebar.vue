@@ -6,7 +6,7 @@
                <img :src="logo" alt="logo" >
             </span>
             <span v-else class="app-brand-logo demo">
-               <img src="/assets/img/skasssms.jpeg" alt="logo" style="max-width: 200px; height: auto;">
+               <img src="/assets/images/branding/skaas-schools-logo.png" alt="logo" style="max-width: 220px; height: auto;">
             </span>
          </a>
 

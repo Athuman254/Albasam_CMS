@@ -3,9 +3,27 @@
         <div class="container-xxl flex-grow-1 container-p-y">
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">Fee Report</h4>
+                    <!-- Navigation Tabs -->
+                    <div class="nav-align-top mb-4">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" role="tab">
+                                    <i class="tf-icons bx bx-wallet me-1"></i> Fee Balances
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <Link :href="route('admin.fees.reports.collection')" class="nav-link">
+                                    <i class="tf-icons bx bx-list-check me-1"></i> Collections Summary
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-transparent border-bottom py-3">
+                            <h4 class="card-title mb-0 fw-bold text-primary">
+                                <i class="bx bx-wallet me-2"></i>Fee Balances Report
+                            </h4>
                         </div>
                         <div class="card-body">
                             <form @submit.prevent="generateReport">
@@ -14,6 +32,7 @@
                                         <label for="class_id" class="form-label">Class *</label>
                                         <select id="class_id" v-model="form.class_id" class="form-select" required>
                                             <option value="">Select Class</option>
+                                            <option value="all">All Students (Entire School)</option>
                                             <option v-for="classItem in classes" :key="classItem.id" :value="classItem.id">
                                                 {{ getClassDisplayName(classItem) }}
                                             </option>
@@ -141,6 +160,7 @@
 
 <script>
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
+import { Head, Link } from '@inertiajs/vue3';
 
 export default {
     components: {

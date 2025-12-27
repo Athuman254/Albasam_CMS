@@ -71,6 +71,13 @@ class RolesAndPermissionsSeeder extends Seeder
         $this->assignPermissions();
 
         $this->command->info('Permissions assigned to roles successfully!');
+
+        // Assign Administrator role to default user
+        $user = \App\Models\User::where('email', 'admin@app.com')->first();
+        if ($user) {
+            $user->addRole('administrator');
+            $this->command->info('Administrator role assigned to admin@app.com');
+        }
     }
 
     /**
@@ -114,6 +121,9 @@ class RolesAndPermissionsSeeder extends Seeder
                 // SMS (for fee reminders)
                 'access-bulk-sms',
                 'access-sms-outbox',
+                'access-student-ids',
+                'view-student-ids',
+                'view-admission-applications',
 
                 // Staff Attendance
                 'mark-staff-attendance',
@@ -168,9 +178,15 @@ class RolesAndPermissionsSeeder extends Seeder
                 'edit-exams',
                 'delete-exams',
                 'view-exams',
+                'manage-exams',
+                'enroll-students',
                 'upload-exam-results',
                 'approve-exam-results',
                 'view-exam-results',
+                'view-admission-applications',
+                'access-admission-applications',
+                'edit-admission-applications',
+                'delete-admission-applications',
 
                 // Attendance
                 'access-attendance-workspace',
@@ -194,6 +210,35 @@ class RolesAndPermissionsSeeder extends Seeder
                 // SMS
                 'access-bulk-sms',
                 'access-sms-outbox',
+                'access-student-ids',
+                'view-student-ids',
+
+                // Online Admissions
+                'access-admission-applications',
+                'view-admission-applications',
+                'edit-admission-applications',
+                'delete-admission-applications',
+
+                // LMS
+                'access-lms-workspace',
+                'add-lesson-materials',
+                'edit-lesson-materials',
+                'view-lesson-materials',
+                'delete-lesson-materials',
+                'add-assignments',
+                'edit-assignments',
+                'view-assignments',
+                'delete-assignments',
+                'view-assignment-submissions',
+                'edit-assignment-submissions',
+                'add-revision-tools',
+                'edit-revision-tools',
+                'view-revision-tools',
+                'delete-revision-tools',
+                'add-online-classes',
+                'edit-online-classes',
+                'view-online-classes',
+                'delete-online-classes',
 
                 // Staff Attendance
                 'mark-staff-attendance',
@@ -264,6 +309,10 @@ class RolesAndPermissionsSeeder extends Seeder
                 'edit-guardians',
                 'view-guardians',
 
+                // Online Admissions
+                'access-admission-applications',
+                'view-admission-applications',
+
                 // Staff Attendance
                 'mark-staff-attendance',
             ])->pluck('id');
@@ -310,6 +359,15 @@ class RolesAndPermissionsSeeder extends Seeder
                 'access-employee-workspace',
                 'access-exams-workspace',
                 'access-fees-workspace',
+                'access-student-ids',
+                'view-student-ids',
+                'view-admission-applications',
+                'access-lms-workspace',
+                'view-lesson-materials',
+                'view-assignments',
+                'view-assignment-submissions',
+                'view-revision-tools',
+                'view-online-classes',
 
                 // Staff Attendance
                 'mark-staff-attendance',
@@ -334,6 +392,27 @@ class RolesAndPermissionsSeeder extends Seeder
 
                 // Timetable
                 'access-time-table',
+
+                // LMS - Full Access for their own stuff
+                'access-lms-workspace',
+                'add-lesson-materials',
+                'edit-lesson-materials',
+                'view-lesson-materials',
+                'delete-lesson-materials',
+                'add-assignments',
+                'edit-assignments',
+                'view-assignments',
+                'delete-assignments',
+                'view-assignment-submissions',
+                'edit-assignment-submissions',
+                'add-revision-tools',
+                'edit-revision-tools',
+                'view-revision-tools',
+                'delete-revision-tools',
+                'add-online-classes',
+                'edit-online-classes',
+                'view-online-classes',
+                'delete-online-classes',
 
                 // Staff Attendance
                 'mark-staff-attendance',

@@ -75,6 +75,15 @@
       </Link>
    </li>
 
+   <li :class="{ 'menu-item': true, 'active': $page.url.startsWith('/employee/calendar') }">
+      <Link :href="route('employee.calendar.index')" class="menu-link">
+         <span>
+            <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+         </span>
+         School Calendar
+      </Link>
+   </li>
+
    <!-- Remove or comment out the admin exams menu from employee sidebar -->
    <!--
    <li :class="{ 'menu-item': true, 'active open': $page.url.startsWith('/admin/exams')  }">

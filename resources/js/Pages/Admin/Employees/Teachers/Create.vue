@@ -64,6 +64,52 @@
                                        </div>
                                     </div>
                                  </div>
+
+                                 <!-- Teacher Photo Section -->
+                                 <div class="col-md-12 mb-4">
+                                    <div class="card bg-light border-dashed">
+                                       <div class="card-body">
+                                          <div class="row align-items-center">
+                                             <div class="col-md-3 text-center">
+                                                <div class="avatar-upload mb-3">
+                                                   <div class="avatar-preview mb-2">
+                                                      <img :src="photoPreview || '/img/default-avatar.png'" class="rounded border shadow-sm" style="width: 150px; height: 150px; object-fit: cover;" alt="Teacher Photo">
+                                                   </div>
+                                                   <div class="btn-group btn-group-sm">
+                                                      <button type="button" class="btn btn-outline-primary" @click="$refs.photoInput.click()">
+                                                         <i class="bx bx-upload me-1"></i> Upload
+                                                      </button>
+                                                      <button type="button" class="btn btn-outline-info" @click="startCamera">
+                                                         <i class="bx bx-camera me-1"></i> Take Photo
+                                                      </button>
+                                                   </div>
+                                                   <input type="file" ref="photoInput" class="d-none" @change="handlePhotoUpload" accept="image/*">
+                                                </div>
+                                             </div>
+                                             <div class="col-md-9" v-if="cameraActive">
+                                                <div class="camera-container text-center">
+                                                   <video ref="video" width="320" height="240" autoplay class="rounded border mb-2"></video>
+                                                   <canvas ref="canvas" style="display:none;" width="320" height="240"></canvas>
+                                                   <div class="camera-controls">
+                                                      <button type="button" class="btn btn-sm btn-success me-2" @click="capturePhoto">
+                                                         <i class="bx bx-camera me-1"></i> Capture
+                                                      </button>
+                                                      <button type="button" class="btn btn-sm btn-danger" @click="stopCamera">
+                                                         <i class="bx bx-x me-1"></i> Stop
+                                                      </button>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                             <div class="col-md-9" v-else>
+                                                <div class="p-3">
+                                                   <h6>Teacher Photo</h6>
+                                                   <p class="text-muted small">Upload a passport-size photo or capture one directly using your webcam. High-quality images (PNG/JPG) are recommended.</p>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
                                  <div class="col-md-4">
                                     <div class="form-group mb-3">
                                        <label class="form-label" for="middleName">Middle Name</label>
@@ -397,6 +443,28 @@
                                               v-model="form.other_details.tsc_number"/>
                                        <div v-if="form.errors['other_details.tsc_number']" class="text-danger">
                                           {{ form.errors['other_details.tsc_number'] }}
+                                       </div>
+                                    </div>
+                                 </div>
+
+                                 <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                       <label class="form-label" for="hobbies">Hobbies</label>
+                                       <textarea id="hobbies" class="form-control" rows="1"
+                                               v-model="form.other_details.hobbies"></textarea>
+                                       <div v-if="form.errors['other_details.hobbies']" class="text-danger">
+                                          {{ form.errors['other_details.hobbies'] }}
+                                       </div>
+                                    </div>
+                                 </div>
+
+                                 <div class="col-md-12 mb-4">
+                                    <div class="form-group mb-3">
+                                       <label class="form-label" for="documents">Supportive Documents (ID, Certificates, etc.)</label>
+                                       <input type="file" id="documents" class="form-control" multiple @change="handleDocumentsUpload"/>
+                                       <small class="text-muted">You can select multiple files.</small>
+                                       <div v-if="form.errors.documents" class="text-danger">
+                                          {{ form.errors.documents }}
                                        </div>
                                     </div>
                                  </div>
@@ -741,7 +809,12 @@ export default {
                ],
             },
             teaching_subjects: [],
+            photo: null,
+            documents: [],
          }),
+         photoPreview: null,
+         cameraActive: false,
+         videoStream: null,
 
          employmentTypes: [],
          employmentStatuses: [],
@@ -1029,6 +1102,46 @@ export default {
       },
       getWorkHistoryError(index, field) {
          return this.form.errors[`other_details.qualifications.${index}.${field}`];
+      },
+      handlePhotoUpload(event) {
+         const file = event.target.files[0];
+         if (file) {
+            this.form.photo = file;
+            this.photoPreview = URL.createObjectURL(file);
+         }
+      },
+      handleDocumentsUpload(event) {
+         this.form.documents = Array.from(event.target.files);
+      },
+      async startCamera() {
+         this.cameraActive = true;
+         try {
+            this.videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            this.$refs.video.srcObject = this.videoStream;
+         } catch (err) {
+            console.error("Error accessing camera: ", err);
+            this.$toast.error("Could not access camera");
+            this.cameraActive = false;
+         }
+      },
+      stopCamera() {
+         if (this.videoStream) {
+            this.videoStream.getTracks().forEach(track => track.stop());
+         }
+         this.cameraActive = false;
+      },
+      capturePhoto() {
+         const video = this.$refs.video;
+         const canvas = this.$refs.canvas;
+         const context = canvas.getContext('2d');
+         context.drawImage(video, 0, 0, 320, 240);
+         
+         canvas.toBlob((blob) => {
+            const file = new File([blob], "webcam-photo.jpg", { type: "image/jpeg" });
+            this.form.photo = file;
+            this.photoPreview = URL.createObjectURL(blob);
+            this.stopCamera();
+         }, 'image/jpeg');
       },
    },
 }

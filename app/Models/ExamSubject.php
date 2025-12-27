@@ -10,17 +10,10 @@ class ExamSubject extends Model
         'exam_id',
         'class_id',
         'subject_id',
-        'exam_date',
-        'start_time',
-        'end_time',
         'max_marks'
     ];
 
-    protected $casts = [
-        'exam_date' => 'date',
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
-    ];
+    protected $casts = [];
 
     /**
      * Relationship with subject
@@ -108,7 +101,7 @@ class ExamSubject extends Model
             'subject_id',
             'subject_id',
             'id'
-        )->whereHas('exams', function($query) {
+        )->whereHas('exams', function ($query) {
             $query->where('exam_id', $this->exam_id);
         })->withPivotValue('exam_skills.weightage');
     }
@@ -142,7 +135,7 @@ class ExamSubject extends Model
      */
     public function scopeBySkill($query, $skillId)
     {
-        return $query->whereHas('skills', function($query) use ($skillId) {
+        return $query->whereHas('skills', function ($query) use ($skillId) {
             $query->where('skills.id', $skillId);
         });
     }
@@ -154,7 +147,7 @@ class ExamSubject extends Model
     public function getAvailableSkillsAttribute()
     {
         $assignedSkillIds = $this->assignedSkills()->pluck('skills.id');
-        
+
         return $this->subject->skills()
             ->whereNotIn('id', $assignedSkillIds)
             ->active()
@@ -196,7 +189,7 @@ class ExamSubject extends Model
         $this->exam->skills()->updateExistingPivot($skillId, [
             'weightage' => $weightage
         ]);
-        
+
         return $this;
     }
 

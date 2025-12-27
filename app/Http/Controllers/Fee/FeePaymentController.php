@@ -13,10 +13,20 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\PaymentAllocationService;
+use App\Services\MessageService;
 
 class FeePaymentController extends Controller
 {
+    private $paymentAllocationService;
+    private $messageService;
     private $createdPayment;
+
+    public function __construct(PaymentAllocationService $paymentAllocationService, MessageService $messageService)
+    {
+        $this->paymentAllocationService = $paymentAllocationService;
+        $this->messageService = $messageService;
+    }
 
     public function verify()
     {
@@ -42,7 +52,7 @@ class FeePaymentController extends Controller
         ]);
 
         $autoPayment = AutoRecordedPayment::where('reference_number', $request->reference_number)
-            ->whereIn('status', ['recorded', 'unmatched'])
+            // ->whereIn('status', ['recorded', 'unmatched']) // Allow verified for reallocation check
             ->first();
 
         if (!$autoPayment) {
@@ -69,15 +79,45 @@ class FeePaymentController extends Controller
             ]);
         }
 
+        // Check if payment exists and to whom it belongs
         $existingPayment = FeePayment::where('reference_number', $request->reference_number)
             ->where('status', 'completed')
             ->first();
 
-        if ($existingPayment) {
+        // Check for mismatch (Payment exists/recorded for a different student)
+        if ($autoPayment->matched_student_id && $student && $autoPayment->matched_student_id != $student->id) {
+            $matchedStudent = Student::find($autoPayment->matched_student_id);
             return response()->json([
                 'success' => false,
-                'message' => 'Payment with this reference number already exists and has been processed.'
+                'status' => 'mismatch',
+                'message' => 'Payment is linked to another student: ' . ($matchedStudent ? $matchedStudent->full_name : 'Unknown') . ' (' . ($matchedStudent ? $matchedStudent->admission_number : 'N/A') . ').',
+                'auto_payment' => $autoPayment,
+                'matched_student' => $matchedStudent,
+                'student' => $student, // The one requested
+                'can_reallocate' => true
             ]);
+        }
+
+        if ($existingPayment) {
+            // If existing payment belongs to the SAME student, it's just a duplicate check
+            if ($existingPayment->student_id == $student->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment with this reference number already exists and has been processed for this student.'
+                ]);
+            } else {
+                // Should have been caught by mismatch check, but safety net
+                $matchedStudent = $existingPayment->student;
+                return response()->json([
+                    'success' => false,
+                    'status' => 'mismatch',
+                    'message' => 'Payment is linked to another student: ' . ($matchedStudent ? $matchedStudent->full_name : 'Unknown'),
+                    'auto_payment' => $autoPayment,
+                    'matched_student' => $matchedStudent,
+                    'student' => $student,
+                    'can_reallocate' => true
+                ]);
+            }
         }
 
         // Calculate total outstanding balance including all fee types
@@ -231,6 +271,15 @@ class FeePaymentController extends Controller
                 ]);
             });
 
+            // Send SMS Receipt
+            try {
+                $autoPayment = AutoRecordedPayment::find($request->auto_payment_id);
+                $student = Student::find($request->student_id);
+                $this->messageService->sendPaymentReceipt($student, $autoPayment->amount, $autoPayment->reference_number);
+            } catch (\Exception $e) {
+                Log::error("SMS Receipt error in confirmPayment: " . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Payment verified and applied successfully!',
@@ -361,6 +410,15 @@ class FeePaymentController extends Controller
                 // Normal case - payment within selected fee balance
                 $this->applyPaymentToSingleFee($student, $autoPayment, $selectedFee, $paymentAmount);
             });
+
+            // Send SMS Receipt
+            try {
+                $autoPayment = AutoRecordedPayment::find($request->auto_payment_id);
+                $student = Student::find($request->student_id);
+                $this->messageService->sendPaymentReceipt($student, $autoPayment->amount, $autoPayment->reference_number);
+            } catch (\Exception $e) {
+                Log::error("SMS Receipt error in confirmSinglePayment: " . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
@@ -1093,7 +1151,7 @@ class FeePaymentController extends Controller
             return redirect()->route('login');
         }
 
-        $payments = FeePayment::with(['student', 'fee.rank', 'verifiedBy'])
+        $payments = FeePayment::with(['student', 'fee.rank', 'verifiedBy', 'autoRecordedPayment'])
             ->when($request->has('payment_method') && $request->payment_method, function ($query) use ($request) {
                 $query->where('payment_method', $request->payment_method);
             })
@@ -1274,7 +1332,7 @@ class FeePaymentController extends Controller
             })
             ->latest();
 
-        return datatables()->eloquent($payments)
+        return \datatables()->eloquent($payments)
             ->addColumn('student_name', function ($payment) {
                 return $payment->student->full_name;
             })
@@ -1324,6 +1382,14 @@ class FeePaymentController extends Controller
                                 data-amount="' . $payment->amount . '"
                                 title="Reverse Payment">
                             <i class="fas fa-undo"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info reallocate-payment" 
+                                data-id="' . $payment->id . '"
+                                data-student="' . $payment->student->full_name . '"
+                                data-amount="' . $payment->amount . '"
+                                data-reference="' . $payment->reference_number . '"
+                                title="Reallocate Payment">
+                            <i class="fas fa-exchange-alt"></i>
                         </button>
                     ';
                 }
@@ -1742,5 +1808,165 @@ class FeePaymentController extends Controller
         if ($month >= 1 && $month <= 4) return 1;
         if ($month >= 5 && $month <= 8) return 2;
         return 3;
+    }
+    /**
+     * Reallocate a payment to a different student
+     */
+    public function reallocatePayment(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $request->validate([
+            'payment_id' => 'required|exists:auto_recorded_payments,id',
+            'target_student_id' => 'required|exists:students,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $autoPayment = AutoRecordedPayment::findOrFail($request->payment_id);
+            $targetStudent = Student::findOrFail($request->target_student_id);
+            $previousStudentId = $autoPayment->matched_student_id;
+            $previousStudent = $previousStudentId ? Student::find($previousStudentId) : null;
+
+            // 1. Reverse existing allocations if any
+            $existingFeePayments = FeePayment::where('auto_recorded_payment_id', $autoPayment->id)->get();
+
+            foreach ($existingFeePayments as $feePayment) {
+                $fee = Fee::find($feePayment->fee_id);
+                if ($fee) {
+                    // Reverse amount
+                    $fee->paid_amount -= $feePayment->amount;
+                    $fee->balance += $feePayment->amount;
+
+                    // Update status
+                    if ($fee->balance <= 0) {
+                        $fee->status = $fee->balance < 0 ? 'credit' : 'paid';
+                    } elseif ($fee->paid_amount > 0) {
+                        $fee->status = 'partial';
+                    } else {
+                        $fee->status = 'pending';
+                    }
+                    $fee->save();
+                }
+
+                // Delete the fee payment record
+                $feePayment->delete();
+            }
+
+            // 2. Update AutoRecordedPayment
+            $autoPayment->matched_student_id = $targetStudent->id;
+            $autoPayment->matched_admission_number = $targetStudent->admission_number;
+            $autoPayment->status = 'recorded'; // Reset status to allow new allocation
+            $autoPayment->verification_notes .= "\nReallocated from " . ($previousStudent ? $previousStudent->admission_number : 'Unknown') . " to " . $targetStudent->admission_number . " by " . Auth::user()->name;
+            $autoPayment->save();
+
+            // 3. Run Allocation for new student (Using PaymentAllocationService)
+            // We need to generate fees for the student first to be sure
+            $this->paymentAllocationService->generateStudentFees($targetStudent);
+
+            // Allocate found payment to the target student using the service
+            $result = $this->paymentAllocationService->allocatePaymentToStudent($autoPayment, $targetStudent);
+
+            DB::commit();
+
+            $paymentId = null;
+            if (!empty($result['allocated_fees'])) {
+                $paymentId = $result['allocated_fees'][0]['payment_id'] ?? null;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment reallocated successfully: ' . ($result['message'] ?? 'Allocated'),
+                'payment_id' => $paymentId,
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Payment reallocation error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error reallocating payment: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Record a manual cash payment and allocate it
+     */
+    public function recordCashPayment(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'amount' => 'required|numeric|min:1',
+            'payment_date' => 'required|date',
+            'notes' => 'nullable|string'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $student = Student::findOrFail($request->student_id);
+            $amount = $request->amount;
+
+            // Create a reference for the cash payment
+            $referenceNumber = 'CASH-' . strtoupper(uniqid());
+
+            // 1. Create AutoRecordedPayment record for tracking
+            $autoPayment = AutoRecordedPayment::create([
+                'reference_number' => $referenceNumber,
+                'amount' => $amount,
+                'payment_method' => 'cash',
+                'account_number' => 'CASH', // Required field
+                'payer_name' => $student->full_name,
+                'payer_phone' => $student->phone,
+                'payment_date' => $request->payment_date,
+                'narration' => $request->notes ?? 'Manual cash payment recording',
+                'matched_admission_number' => $student->admission_number,
+                'matched_student_id' => $student->id,
+                'status' => 'recorded', // Set to recorded to allow allocation
+                'verified_by' => Auth::id(),
+                'verified_at' => now(),
+                'verification_notes' => 'Recorded manually as cash payment by ' . Auth::user()->name
+            ]);
+
+            // 2. Run Allocation (Using PaymentAllocationService)
+            $this->paymentAllocationService->generateStudentFees($student);
+            $result = $this->paymentAllocationService->allocatePaymentToStudent($autoPayment, $student);
+
+            DB::commit();
+
+            // Send SMS Receipt
+            try {
+                $this->messageService->sendPaymentReceipt($student, $amount, $referenceNumber);
+            } catch (\Exception $e) {
+                Log::error("SMS Receipt error in recordCashPayment: " . $e->getMessage());
+            }
+
+            $paymentId = null;
+            if (!empty($result['allocated_fees'])) {
+                $paymentId = $result['allocated_fees'][0]['payment_id'] ?? null;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cash payment recorded and allocated successfully.',
+                'payment_id' => $paymentId,
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Cash payment recording error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error recording cash payment: ' . $e->getMessage()
+            ]);
+        }
     }
 }

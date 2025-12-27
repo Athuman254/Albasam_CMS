@@ -73,4 +73,10 @@ return [
         'account_number' => env('BANK_ACCOUNT_NUMBER'),
     ],
 
+    'ujumbe' => [
+        'api_key' => env('UJUMBE_API_KEY'),
+        'email' => env('UJUMBE_EMAIL', 'info@ecobiz.co.ke'),
+        'sender_id' => env('UJUMBE_SENDER_ID', 'UjumbeSMS'),
+    ],
+
 ];

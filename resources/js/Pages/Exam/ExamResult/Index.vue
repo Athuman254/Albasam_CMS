@@ -15,11 +15,11 @@
          </nav>
 
          <div class="col-lg-12">
-            <div class="card">
-               <div class="card-header flex-column flex-md-row">
-                  <div class="row row-gap-1 w-100">
+            <div class="card shadow-sm">
+               <div class="card-header bg-light border-bottom">
+                  <div class="row row-gap-3 w-100">
                      <div class="col-md-8">
-                        <h5>Select Exam & Class</h5>
+                        <h5 class="mb-3 fw-semibold">Select Exam & Class</h5>
                         <div class="d-flex gap-3">
                            <v-select class="flex-1" v-model="selectedExam" :options="exams" label="name"
                               :reduce="option => option.id" placeholder="Select Exam"></v-select>
@@ -41,7 +41,7 @@
                         </div>
                      </div>
                      <div class="col-md-4">
-                        <h5>Generate Reports</h5>
+                        <h5 class="mb-3 fw-semibold">Generate Reports</h5>
                         <div class="d-flex gap-2">
                            <v-select v-model="reportType" :options="reportTypes" label="label"
                               :reduce="option => option.value" placeholder="Report Type" 
@@ -56,10 +56,10 @@
                   </div>
 
                   <!-- Bulk Report Options -->
-                  <div class="row mt-3" v-if="students.length > 0 && reportType">
+                  <div class="row mt-4" v-if="students.length > 0 && reportType">
                      <div class="col-12">
-                        <div class="border rounded p-3 bg-white">
-                           <h6 class="mb-3">Bulk Report Options</h6>
+                        <div class="border rounded p-4 bg-light">
+                           <h6 class="mb-4 fw-semibold">Bulk Report Options</h6>
                            
                            <!-- Report Dates Section -->
                            <div class="row mb-3">
@@ -79,50 +79,17 @@
                            <div v-if="reportType === 'student'" class="mb-3">
                               <label class="form-label fw-semibold">Select Students:</label>
                               
-                              <!-- Search Input -->
-                              <div class="mb-2">
-                                 <input 
-                                    type="text" 
-                                    class="form-control form-control-sm" 
-                                    v-model="studentSearchQuery"
-                                    placeholder="🔍 Search by name or admission number..."
-                                 >
-                                 <small class="text-muted">
-                                    Showing {{ filteredStudents.length }} of {{ students.length }} students
-                                 </small>
-                              </div>
-                              
-                              <div class="d-flex align-items-center gap-2 mb-2">
-                                 <button class="btn btn-sm btn-outline-primary" @click="selectAllStudents" :disabled="!hasMarks">
-                                    Select All
+                              <div class="d-flex align-items-center gap-2">
+                                 <button class="btn btn-outline-primary" @click="showStudentModal = true" type="button">
+                                    <i class="bi bi-person-check me-2"></i>
+                                    Select Students
                                  </button>
-                                 <button class="btn btn-sm btn-outline-secondary" @click="clearSelection">
-                                    Clear All
-                                 </button>
-                                 <span class="text-muted ms-2">
+                                 <span class="text-muted">
                                     {{ selectedStudents.length }} student(s) selected
                                  </span>
-                                 <span v-if="!hasSelectedStudents && reportType === 'student'" class="text-danger ms-2">
+                                 <span v-if="!hasSelectedStudents && reportType === 'student'" class="text-danger">
                                     * Please select at least one student
                                  </span>
-                              </div>
-                              <div class="student-checkboxes" style="max-height: 150px; overflow-y: auto;">
-                                 <div v-if="filteredStudents.length === 0" class="text-muted text-center p-3">
-                                    <i class="bi bi-search"></i> No students found matching "{{ studentSearchQuery }}"
-                                 </div>
-                                 <div v-for="student in filteredStudents" :key="student.id" class="form-check">
-                                    <input class="form-check-input" type="checkbox" 
-                                           :id="`student-${student.id}`" 
-                                           :value="student.id" 
-                                           v-model="selectedStudents"
-                                           :disabled="!hasStudentMarks(student.id)">
-                                    <label class="form-check-label" :for="`student-${student.id}`" 
-                                           :class="{ 'text-muted': !hasStudentMarks(student.id) }">
-                                       {{ student.adm_no }} - {{ student.name }}
-                                       <span v-if="!hasStudentMarks(student.id)" class="badge bg-secondary ms-1">No Marks</span>
-                                       <span v-else class="badge bg-success ms-1">{{ getTotal(student.id) }} marks</span>
-                                    </label>
-                                 </div>
                               </div>
                            </div>
 
@@ -165,22 +132,22 @@
                   </div>
                </div>
 
-               <div class="card-body" id="results-section">
+               <div class="card-body p-4" id="results-section">
                   <!-- Statistics Cards -->
-                  <div v-if="students.length" class="row mb-4">
+                  <div v-if="students.length" class="row mb-4 g-3">
                      <div class="col-md-3">
-                        <div class="card bg-white border">
-                           <div class="card-body text-center p-3">
-                              <h6 class="card-title mb-1 text-muted">Total Students</h6>
-                              <h4 class="mb-0 text-dark">{{ students.length }}</h4>
+                        <div class="card bg-white border shadow-sm h-100">
+                           <div class="card-body text-center p-4">
+                              <h6 class="card-title mb-3 text-muted text-uppercase small">Total Students</h6>
+                              <h2 class="mb-0 text-dark fw-bold">{{ students.length }}</h2>
                            </div>
                         </div>
                      </div>
                      <div class="col-md-3">
-                        <div class="card bg-white border">
-                           <div class="card-body text-center p-3">
-                              <h6 class="card-title mb-1 text-muted">With Marks</h6>
-                              <h4 class="mb-0 text-dark">{{ statistics.studentsWithMarks }}</h4>
+                        <div class="card bg-white border shadow-sm h-100">
+                           <div class="card-body text-center p-4">
+                              <h6 class="card-title mb-3 text-muted text-uppercase small">With Marks</h6>
+                              <h2 class="mb-0 text-dark fw-bold">{{ statistics.studentsWithMarks }}</h2>
                            </div>
                         </div>
                      </div>
@@ -195,16 +162,16 @@
                      </div>
                      
                      <div class="table-responsive" v-else>
-                        <table class="table table-bordered align-middle">
-                           <thead>
+                        <table class="table table-bordered table-hover align-middle mb-0">
+                           <thead class="table-light">
                               <tr>
-                                 <th>Adm No</th>
-                                 <th>Student Name</th>
-                                 <th v-for="subject in subjects" :key="subject.id">
+                                 <th class="fw-semibold">Adm No</th>
+                                 <th class="fw-semibold">Student Name</th>
+                                 <th v-for="subject in subjects" :key="subject.id" class="fw-semibold">
                                     {{ subject.subject?.name || subject.name }} <br />
-                                    <small class="text-muted">/{{ subject.max_marks || 100 }}</small>
+                                    <small class="text-muted fw-normal">/{{ subject.max_marks || 100 }}</small>
                                  </th>
-                                 <th>Status</th>
+                                 <th class="fw-semibold">Status</th>
                               </tr>
                            </thead>
                            <tbody>
@@ -233,6 +200,92 @@
             </div>
          </div>
       </div>
+
+      <!-- Student Selection Modal -->
+      <div v-if="showStudentModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+         <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">
+                     <i class="bi bi-person-check me-2"></i>
+                     Select Students for Report
+                  </h5>
+                  <button type="button" class="btn-close" @click="showStudentModal = false"></button>
+               </div>
+               <div class="modal-body">
+                  <!-- Search Input -->
+                  <div class="mb-3">
+                     <input 
+                        type="text" 
+                        class="form-control" 
+                        v-model="studentSearchQuery"
+                        placeholder="🔍 Search by name or admission number..."
+                     >
+                     <small class="text-muted">
+                        Showing {{ filteredStudents.length }} of {{ students.length }} students
+                     </small>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="d-flex align-items-center gap-2 mb-3">
+                     <button class="btn btn-sm btn-outline-primary" @click="selectAllStudents" :disabled="!hasMarks">
+                        <i class="bi bi-check-all me-1"></i>
+                        Select All
+                     </button>
+                     <button class="btn btn-sm btn-outline-secondary" @click="clearSelection">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Clear All
+                     </button>
+                     <span class="badge bg-primary ms-auto">
+                        {{ selectedStudents.length }} selected
+                     </span>
+                  </div>
+
+                  <!-- Student List -->
+                  <div class="student-list">
+                     <div v-if="filteredStudents.length === 0" class="text-muted text-center p-4">
+                        <i class="bi bi-search fs-2 d-block mb-2"></i>
+                        <p>No students found matching "{{ studentSearchQuery }}"</p>
+                     </div>
+                     <div v-for="student in filteredStudents" :key="student.id" class="form-check student-item">
+                        <input 
+                           class="form-check-input" 
+                           type="checkbox" 
+                           :id="`modal-student-${student.id}`" 
+                           :value="student.id" 
+                           v-model="selectedStudents"
+                           :disabled="!hasStudentMarks(student.id)"
+                        >
+                        <label 
+                           class="form-check-label w-100" 
+                           :for="`modal-student-${student.id}`" 
+                           :class="{ 'text-muted': !hasStudentMarks(student.id) }"
+                        >
+                           <div class="d-flex align-items-center justify-content-between">
+                              <div>
+                                 <strong>{{ student.adm_no }}</strong> - {{ student.name }}
+                              </div>
+                              <div>
+                                 <span v-if="!hasStudentMarks(student.id)" class="badge bg-secondary">No Marks</span>
+                                 <span v-else class="badge bg-success">{{ getTotal(student.id) }} marks</span>
+                              </div>
+                           </div>
+                        </label>
+                     </div>
+                  </div>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" @click="showStudentModal = false">
+                     Close
+                  </button>
+                  <button type="button" class="btn btn-primary" @click="showStudentModal = false" :disabled="selectedStudents.length === 0">
+                     <i class="bi bi-check-lg me-1"></i>
+                     Confirm Selection ({{ selectedStudents.length }})
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
    </DefaultLayout>
 </template>
 
@@ -244,8 +297,25 @@ import 'vue3-toastify/dist/index.css';
 import { ref, onMounted, computed, watch } from "vue";
 import axios from "axios";
 
-const exams = ref([]);
-const classes = ref([]);
+// Define props to receive initial data from controller
+const props = defineProps({
+   initialExams: {
+      type: Array,
+      default: () => []
+   },
+   initialClasses: {
+      type: Array,
+      default: () => []
+   },
+   initialAcademicYears: {
+      type: Array,
+      default: () => []
+   }
+});
+
+// Initialize with data from props
+const exams = ref(props.initialExams || []);
+const classes = ref(props.initialClasses || []);
 const students = ref([]);
 const subjects = ref([]);
 const marks = ref({});
@@ -253,6 +323,7 @@ const studentStatuses = ref({});
 const selectedStudents = ref([]);
 const loading = ref(false);
 const studentSearchQuery = ref('');
+const showStudentModal = ref(false);
 
 const selectedExam = ref(null);
 const selectedClass = ref(null);
@@ -684,34 +755,93 @@ watch(reportType, (newType) => {
 });
 
 onMounted(() => {
-   fetchExams();
-   fetchClasses();
+
+   if (exams.value.length > 0) {
+      console.log(`Loaded ${exams.value.length} exams from controller`);
+   }
+   if (classes.value.length > 0) {
+      console.log(`Loaded ${classes.value.length} classes from controller`);
+   }
 });
 </script>
 
 <style scoped>
-.student-checkboxes {
-   border: 1px solid #dee2e6;
-   border-radius: 0.375rem;
-   padding: 10px;
-   background-color: white;
+/* Layout and Spacing Improvements */
+
+/* Page Header */
+h3 {
+   font-size: 1.75rem;
+   line-height: 1.2;
 }
 
-.table-responsive {
-   max-height: 70vh;
-   overflow-y: auto;
-}
-
-.badge {
-   font-size: 0.75em;
-}
-
+/* Card Improvements */
 .card {
-   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-   background-color: white;
+   border-radius: 0.5rem;
+   margin-bottom: 1.5rem;
 }
 
-.card-title {
+.card-header {
+   padding: 1.5rem;
+}
+
+.card-header h5 {
+   font-size: 1.125rem;
+   line-height: 1.5;
+   margin-bottom: 0;
+}
+
+.card-body {
+   padding: 1.5rem;
+}
+
+/* Statistics Cards */
+.card.bg-white.border {
+   border-radius: 0.5rem;
+}
+
+.card.bg-white.border .card-body {
+   padding: 1.5rem;
+}
+
+.card.bg-white.border .card-title {
+   font-size: 0.75rem;
+   letter-spacing: 0.05em;
+   margin-bottom: 0.75rem;
+}
+
+.card.bg-white.border h2 {
+   font-size: 2.5rem;
+   line-height: 1;
+}
+
+/* Form Controls */
+.form-control {
+   padding: 0.625rem 0.875rem;
+   font-size: 0.9375rem;
+   line-height: 1.5;
+}
+
+.form-label {
+   margin-bottom: 0.5rem;
+   font-size: 0.9375rem;
+}
+
+.form-text {
+   font-size: 0.8125rem;
+   margin-top: 0.375rem;
+   line-height: 1.4;
+}
+
+/* Buttons */
+.btn {
+   padding: 0.625rem 1.25rem;
+   font-size: 0.9375rem;
+   font-weight: 500;
+   line-height: 1.5;
+}
+
+.btn-sm {
+   padding: 0.375rem 0.875rem;
    font-size: 0.875rem;
 }
 
@@ -720,20 +850,353 @@ onMounted(() => {
    opacity: 0.6;
 }
 
-.form-text {
-   font-size: 0.8rem;
+/* Checkboxes */
+.form-check {
+   padding-left: 1.75rem;
+   margin-bottom: 0.625rem;
 }
 
-.table td, .table th {
+.form-check-input {
+   margin-top: 0.25rem;
+}
+
+.form-check-label {
+   font-size: 0.9375rem;
+   line-height: 1.5;
+}
+
+.student-checkboxes {
+   border: 1px solid #dee2e6;
+   border-radius: 0.5rem;
+   padding: 1rem;
+   background-color: #fff;
+}
+
+.student-checkboxes .form-check {
+   padding: 0.5rem;
+   margin-bottom: 0.5rem;
+}
+
+.student-checkboxes .form-check:hover {
+   background-color: #f8f9fa;
+   border-radius: 0.25rem;
+}
+
+/* Table Styling */
+.table-responsive {
+   max-height: 70vh;
+   overflow-y: auto;
+   border-radius: 0.5rem;
+}
+
+.table {
+   font-size: 0.9375rem;
+}
+
+.table thead {
+   position: sticky;
+   top: 0;
+   z-index: 10;
+}
+
+.table thead th {
+   padding: 1rem 0.875rem;
+   font-size: 0.875rem;
+   line-height: 1.4;
+   white-space: nowrap;
    vertical-align: middle;
 }
 
+.table tbody td {
+   padding: 0.875rem;
+   line-height: 1.5;
+   vertical-align: middle;
+}
+
+.table tbody tr {
+   transition: background-color 0.15s ease-in-out;
+}
+
+.table-hover tbody tr:hover {
+   background-color: #f8f9fa;
+}
+
+/* Badges */
+.badge {
+   font-size: 0.8125rem;
+   padding: 0.375rem 0.625rem;
+   font-weight: 500;
+   line-height: 1;
+}
+
+/* Alerts */
+.alert {
+   padding: 1rem 1.25rem;
+   font-size: 0.9375rem;
+   line-height: 1.5;
+}
+
+/* Spacing Utilities */
+.gap-2 {
+   gap: 0.5rem;
+}
+
+.gap-3 {
+   gap: 1rem;
+}
+
+.row-gap-3 {
+   row-gap: 1rem;
+}
+
+.g-3 {
+   gap: 1rem;
+}
+
+/* Flex Utilities */
+.flex-1 {
+   flex: 1;
+}
+
+/* Background Utilities */
 .bg-white {
    background-color: white !important;
 }
 
-/* Remove colored backgrounds and use white with borders */
+.bg-light {
+   background-color: #f8f9fa !important;
+}
+
+/* Border Utilities */
+.border-bottom {
+   border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Shadow Utilities */
+.shadow-sm {
+   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+/* Height Utilities */
+.h-100 {
+   height: 100% !important;
+}
+
+/* Text Utilities */
+.text-uppercase {
+   text-transform: uppercase !important;
+}
+
+.small {
+   font-size: 0.875rem !important;
+}
+
+.fw-bold {
+   font-weight: 700 !important;
+}
+
+.fw-semibold {
+   font-weight: 600 !important;
+}
+
+.fw-normal {
+   font-weight: 400 !important;
+}
+
+/* Remove colored backgrounds from table */
 .table-success, .table-warning {
    background-color: white !important;
+}
+
+/* Scrollbar Styling */
+.table-responsive::-webkit-scrollbar {
+   width: 8px;
+   height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+   background: #f1f1f1;
+   border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+   background: #888;
+   border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+   background: #555;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+   h3 {
+      font-size: 1.5rem;
+   }
+   
+   .card-header {
+      padding: 1rem;
+   }
+   
+   .card-body {
+      padding: 1rem;
+   }
+   
+   .table thead th,
+   .table tbody td {
+      padding: 0.625rem 0.5rem;
+      font-size: 0.875rem;
+   }
+}
+
+/* Student Selection Modal Styling */
+.modal.show {
+   display: block;
+}
+
+.modal-dialog-scrollable {
+   max-height: calc(100vh - 3.5rem);
+}
+
+.modal-dialog-scrollable .modal-body {
+   overflow-y: auto;
+   max-height: calc(100vh - 250px);
+}
+
+.modal-header {
+   background-color: #f8f9fa;
+   border-bottom: 2px solid #dee2e6;
+   padding: 1.25rem 1.5rem;
+}
+
+.modal-title {
+   font-weight: 600;
+   font-size: 1.25rem;
+}
+
+.modal-body {
+   padding: 1.5rem;
+}
+
+.modal-footer {
+   background-color: #f8f9fa;
+   border-top: 2px solid #dee2e6;
+   padding: 1rem 1.5rem;
+}
+
+/* Student List Styling */
+.student-list {
+   max-height: 500px;
+   overflow-y: auto;
+   border: 1px solid #dee2e6;
+   border-radius: 0.5rem;
+   background-color: #fff;
+   padding: 0.5rem;
+}
+
+.student-item {
+   padding: 1rem 1.25rem;
+   border-bottom: 1px solid #f1f1f1;
+   transition: all 0.2s ease;
+   cursor: pointer;
+   margin-bottom: 0;
+   display: flex;
+   align-items: center;
+   gap: 1rem;
+}
+
+.student-item:last-child {
+   border-bottom: none;
+}
+
+.student-item:hover {
+   background-color: #f8f9fa;
+}
+
+.student-item input[type="checkbox"] {
+   width: 1.25rem;
+   height: 1.25rem;
+   cursor: pointer;
+   flex-shrink: 0;
+   margin-top: 0;
+}
+
+.student-item input[type="checkbox"]:checked ~ label {
+   background-color: #e7f3ff;
+}
+
+.student-item label {
+   cursor: pointer;
+   margin-bottom: 0;
+   padding: 0.5rem;
+   border-radius: 0.25rem;
+   transition: all 0.2s ease;
+}
+
+.student-item label:hover {
+   background-color: #f8f9fa;
+}
+
+.student-item strong {
+   color: #495057;
+   font-weight: 600;
+}
+
+/* Custom Scrollbar for Student List */
+.student-list::-webkit-scrollbar {
+   width: 10px;
+}
+
+.student-list::-webkit-scrollbar-track {
+   background: #f1f1f1;
+   border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.student-list::-webkit-scrollbar-thumb {
+   background: #888;
+   border-radius: 5px;
+}
+
+.student-list::-webkit-scrollbar-thumb:hover {
+   background: #555;
+}
+
+/* Badge in Modal */
+.badge.bg-primary {
+   font-size: 0.875rem;
+   padding: 0.5rem 0.875rem;
+}
+
+/* Empty State */
+.student-list .text-center {
+   color: #6c757d;
+}
+
+.student-list .bi-search {
+   color: #adb5bd;
+}
+
+/* Modal Backdrop */
+.modal {
+   backdrop-filter: blur(2px);
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+   .modal-dialog {
+      margin: 0.5rem;
+   }
+   
+   .modal-body {
+      padding: 1rem;
+   }
+   
+   .student-item {
+      padding: 0.75rem 1rem;
+   }
+   
+   .student-list {
+      max-height: 400px;
+   }
 }
 </style>

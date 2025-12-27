@@ -48,6 +48,7 @@ class Student extends Authenticatable implements HasMedia
         'user_id',
         'student_admission_id',
         'admission_number',
+        'assessment_number',
         'rank_id',
         'first_name',
         'middle_name',
@@ -71,6 +72,8 @@ class Student extends Authenticatable implements HasMedia
         'user_type',
         'password_changed_at',
         'force_password_change',
+        'scholarship_type',
+        'scholarship_rate',
     ];
 
     protected $hidden = [
@@ -262,7 +265,7 @@ class Student extends Authenticatable implements HasMedia
     public function primaryGuardian(): BelongsTo
     {
         return $this->belongsTo(Guardian::class, 'id', 'student_id')
-            ->where('is_primary', true)
+            ->orderBy('id', 'asc') // Fallback: first guardian
             ->withDefault();
     }
 
@@ -710,19 +713,26 @@ class Student extends Authenticatable implements HasMedia
     }
 
     /**
-     * Generate unique admission number
+     * Generate unique admission number (Format: ADM01, ADM02, etc.)
      */
-    protected static function generateAdmissionNumber(): string
+    public static function generateAdmissionNumber(): string
     {
-        $prefix = 'STD';
-        $year = date('Y');
+        // Get the latest student to find the next sequential number
+        $latestStudent = static::whereRaw("admission_number REGEXP '^ADM[0-9]+$'")
+            ->orderByRaw('CAST(SUBSTRING(admission_number, 4) AS UNSIGNED) DESC')
+            ->first();
 
-        do {
-            $number = mt_rand(1000, 9999);
-            $admissionNumber = "{$prefix}{$year}{$number}";
-        } while (static::where('admission_number', $admissionNumber)->exists());
+        if ($latestStudent && !empty($latestStudent->admission_number)) {
+            $latestNumber = (int) substr($latestStudent->admission_number, 3);
+            $nextNumber = $latestNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
 
-        return $admissionNumber;
+        // Format with leading zeros (at least 2 digits)
+        $formattedNumber = str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+
+        return "ADM{$formattedNumber}";
     }
 
     /**

@@ -1,4 +1,5 @@
-import 'bootstrap';
+import * as bootstrap from 'bootstrap';
+window.bootstrap = bootstrap;
 import './bootstrap';
 import 'perfect-scrollbar/dist/perfect-scrollbar.min.js';
 import '@plugins/index.js';

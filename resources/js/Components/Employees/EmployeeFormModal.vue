@@ -123,6 +123,86 @@
                             <label for="tax_identification_pin" class="block text-sm font-medium text-gray-700">KRA PIN</label>
                             <input type="text" id="tax_identification_pin" v-model="form.tax_identification_pin" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                         </div>
+                        <div v-if="isTeacherRole">
+                            <label for="tsc_number" class="block text-sm font-medium text-gray-700">TSC Number</label>
+                            <input type="text" id="tsc_number" v-model="form.tsc_number" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g. 123456" />
+                            <p v-if="form.errors.tsc_number" class="mt-1 text-sm text-red-600">{{ form.errors.tsc_number }}</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="hobbies" class="block text-sm font-medium text-gray-700">Hobbies</label>
+                            <textarea id="hobbies" v-model="form.hobbies" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g. Reading, swimming, etc."></textarea>
+                            <p v-if="form.errors.hobbies" class="mt-1 text-sm text-red-600">{{ form.errors.hobbies }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Uploads -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3 pb-1 border-b">Media & Documents</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Photo Section -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Employee Photo</label>
+                            <div class="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                                <div v-if="!cameraActive" class="relative group">
+                                    <img v-if="photoPreview || employee?.photo_url" :src="photoPreview || employee?.photo_url" class="w-32 h-32 object-cover rounded-full border-4 border-white shadow-md" alt=""/>
+                                    <div v-else class="w-32 h-32 flex items-center justify-center rounded-full bg-blue-100 text-blue-500 border-4 border-white shadow-sm">
+                                        <i class='bx bx-user text-5xl'></i>
+                                    </div>
+                                    <button type="button" @click="$refs.photoInput.click()" class="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition">
+                                        <i class='bx bx-camera text-xl'></i>
+                                    </button>
+                                </div>
+
+                                <div v-if="cameraActive" class="w-full">
+                                    <video ref="videoElement" autoplay playsinline class="w-full h-48 object-cover rounded-lg bg-black mb-2"></video>
+                                    <div class="flex justify-center space-x-2">
+                                        <button type="button" @click="capturePhoto" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">Capture</button>
+                                        <button type="button" @click="stopCamera" class="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">Cancel</button>
+                                    </div>
+                                </div>
+
+                                <div v-if="!cameraActive" class="mt-3 flex space-x-2">
+                                    <button type="button" @click="startCamera" class="text-xs text-blue-600 font-medium hover:underline">
+                                        <i class="bx bx-camera mr-1"></i> Use Camera
+                                    </button>
+                                    <span class="text-gray-300">|</span>
+                                    <button type="button" @click="$refs.photoInput.click()" class="text-xs text-blue-600 font-medium hover:underline">
+                                        Upload File
+                                    </button>
+                                </div>
+                                <input type="file" ref="photoInput" @change="handlePhotoUpload" accept="image/*" class="hidden" />
+                                <p v-if="form.errors.photo" class="mt-1 text-xs text-red-600">{{ form.errors.photo }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Documents Section -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Supportive Documents</label>
+                            <div class="flex flex-col p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 h-full">
+                                <div class="flex items-center justify-center h-24 mb-3">
+                                    <div class="text-center">
+                                        <i class='bx bx-file-blank text-4xl text-gray-400'></i>
+                                        <p class="text-xs text-gray-500 mt-1">ID, Certificates, CV, etc.</p>
+                                    </div>
+                                </div>
+                                <input type="file" @change="handleDocumentsUpload" multiple class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                                <p class="mt-2 text-[10px] text-gray-400">PDF, JPG, PNG (Max 5MB each)</p>
+                                <p v-if="form.errors.documents" class="mt-1 text-xs text-red-600">{{ form.errors.documents }}</p>
+                                <div v-if="employee?.document_details?.length" class="mt-4 space-y-2">
+                                    <p class="text-[10px] font-bold text-gray-500 uppercase">Existing Documents:</p>
+                                    <div v-for="doc in employee.document_details" :key="doc.id" class="flex items-center justify-between p-2 bg-white rounded border border-gray-100 shadow-sm">
+                                        <div class="flex items-center overflow-hidden">
+                                            <i class='bx bx-file text-blue-500 mr-2'></i>
+                                            <span class="text-[10px] truncate max-w-[120px]">{{ doc.name }}</span>
+                                        </div>
+                                        <a :href="doc.url" target="_blank" class="text-blue-600 hover:text-blue-800">
+                                            <i class='bx bx-download'></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -322,6 +402,10 @@ const form = useForm({
     pays_nssf: false,
     nssf_no: '',
     pays_housing_levy: false,
+    tsc_number: '',
+    hobbies: '',
+    photo: null,
+    documents: [],
 });
 
 // Watch for changes in the employee prop to populate the form
@@ -372,6 +456,11 @@ watch(() => props.employee, (newEmployee) => {
         form.pays_nssf = newEmployee.pays_nssf ? true : false;
         form.nssf_no = newEmployee.nssf_no;
         form.pays_housing_levy = newEmployee.pays_housing_levy ? true : false;
+        form.tsc_number = newEmployee.tsc_number || '';
+        form.hobbies = newEmployee.hobbies || '';
+        form.photo = null;
+        form.documents = [];
+        photoPreview.value = null;
     } else {
         // Create Mode
         form.reset();
@@ -392,6 +481,68 @@ const isTeacherRole = computed(() => {
 const selectedRoleDescription = computed(() => {
     return selectedRole.value?.description || '';
 });
+
+// Photo & Camera Handling
+const photoInput = ref(null);
+const photoPreview = ref(null);
+const videoElement = ref(null);
+const cameraActive = ref(false);
+const videoStream = ref(null);
+
+const handlePhotoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        form.photo = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            photoPreview.value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const handleDocumentsUpload = (event) => {
+    form.documents = Array.from(event.target.files);
+};
+
+const startCamera = async () => {
+    try {
+        videoStream.value = await navigator.mediaDevices.getUserMedia({ video: true });
+        cameraActive.value = true;
+        setTimeout(() => {
+            if (videoElement.value) {
+                videoElement.value.srcObject = videoStream.value;
+            }
+        }, 100);
+    } catch (err) {
+        console.error("Error accessing camera: ", err);
+        alert("Could not access camera. Please ensure permissions are granted.");
+    }
+};
+
+const stopCamera = () => {
+    if (videoStream.value) {
+        videoStream.value.getTracks().forEach(track => track.stop());
+        videoStream.value = null;
+    }
+    cameraActive.value = false;
+};
+
+const capturePhoto = () => {
+    const video = videoElement.value;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    canvas.toBlob((blob) => {
+        const file = new File([blob], 'captured-photo.jpg', { type: 'image/jpeg' });
+        form.photo = file;
+        photoPreview.value = canvas.toDataURL('image/jpeg');
+        stopCamera();
+    }, 'image/jpeg');
+};
 
 const submit = () => {
     if (editMode.value) {

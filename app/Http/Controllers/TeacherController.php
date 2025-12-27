@@ -104,10 +104,26 @@ class TeacherController extends Controller
                 'identification_number' => $validatedData['personal_details']['identification_number'],
                 'tax_identification_pin' => $validatedData['personal_details']['tax_identification_pin'],
                 'staff_number' => Employee::generateStaffNumber(),
+                'tsc_number' => $validatedData['other_details']['tsc_number'] ?? null,
+                'hobbies' => $validatedData['other_details']['hobbies'] ?? null,
                 'date_of_hire' => $validatedData['employee_details']['date_of_hire'],
                 'employment_status_id' => $validatedData['employee_details']['employment_status_id'],
                 'employment_type_id' => $validatedData['employee_details']['employment_type_id'],
             ]);
+
+            // Handle Photo Upload
+            if ($request->hasFile('photo')) {
+                $employee->addMediaFromRequest('photo')
+                    ->toMediaCollection('employee_photos');
+            }
+
+            // Handle Documents Upload
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $employee->addMedia($file)
+                        ->toMediaCollection('employee_documents');
+                }
+            }
 
             Log::info('✅ Employee created with ID: ' . $employee->id);
 
@@ -276,6 +292,8 @@ class TeacherController extends Controller
                 'secondary_physical_address' => $validated['personal_details']['secondary_physical_address'],
                 'postal_address' => $validated['personal_details']['postal_address'],
                 'identification_number' => $validated['personal_details']['identification_number'],
+                'tsc_number' => $validated['other_details']['tsc_number'] ?? null,
+                'hobbies' => $validated['other_details']['hobbies'] ?? null,
                 'tax_identification_pin' => $validated['personal_details']['tax_identification_pin'],
                 'date_of_hire' => $validated['employee_details']['date_of_hire'],
                 'employment_status_id' => $validated['employee_details']['employment_status_id'],
@@ -288,6 +306,22 @@ class TeacherController extends Controller
                 'nssf_no' => $validated['other_details']['nssf_no'] ?? '',
                 'pays_housing_levy' => $validated['other_details']['pays_housing_levy']
             ]);
+
+            // Handle Photo Upload
+            if ($request->hasFile('photo')) {
+                $employee->clearMediaCollection('employee_photos');
+                $employee->addMediaFromRequest('photo')
+                    ->toMediaCollection('employee_photos');
+            }
+
+            // Handle Documents Upload
+            if ($request->hasFile('documents')) {
+                // For updates, we might want to append or replace. Let's append for now.
+                foreach ($request->file('documents') as $file) {
+                    $employee->addMedia($file)
+                        ->toMediaCollection('employee_documents');
+                }
+            }
 
             Log::info('🔄 Updating teacher record...');
             $teacher->update([

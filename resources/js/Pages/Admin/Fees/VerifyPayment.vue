@@ -82,6 +82,34 @@
                             </div>
                         </div>
 
+                        <!-- Reallocation Alert -->
+                        <div v-if="mismatchedPayment" class="row mb-4">
+                            <div class="col-12">
+                                <div class="alert alert-warning border-0 shadow-sm">
+                                    <h4 class="alert-heading display-6 fs-5"><i class="fas fa-exclamation-triangle me-2"></i>Payment Mismatch Detected</h4>
+                                    <p>
+                                        The payment with reference <strong>{{ mismatchedPayment.reference_number }}</strong> 
+                                        is currently linked to <strong>{{ mismatchedStudent?.full_name }} ({{ mismatchedStudent?.admission_number }})</strong>.
+                                    </p>
+                                    <p>
+                                        You are searching for <strong>{{ student?.full_name }} ({{ student?.admission_number }})</strong>.
+                                    </p>
+                                    <hr>
+                                    <p class="mb-0">
+                                        Do you want to reallocate this payment to <strong>{{ student?.full_name }}</strong>?
+                                        This will reverse the previous allocation and apply it to this student.
+                                    </p>
+                                    <div class="mt-3">
+                                        <button @click="startReallocation" class="btn btn-warning text-white me-2" :disabled="reallocating">
+                                            <span v-if="reallocating" class="spinner-border spinner-border-sm me-2"></span>
+                                            <i class="fas fa-exchange-alt me-1"></i> Confirm Reallocation
+                                        </button>
+                                        <button @click="resetForm" class="btn btn-outline-dark">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Success Message -->
                         <div v-if="successMessage" class="row mb-4">
                             <div class="col-12">
@@ -963,6 +991,11 @@ const verificationModal = ref(null);
 const bulkVerificationModal = ref(null);
 const receiptModal = ref(null);
 
+// Reallocation state
+const mismatchedPayment = ref(null);
+const mismatchedStudent = ref(null);
+const reallocating = ref(false);
+
 // New payment options
 const applyToOtherFees = ref(false);
 const acceptOverpayment = ref(false);
@@ -1195,6 +1228,8 @@ const checkPayment = async () => {
     errors.value = {};
     autoPayment.value = null;
     selectedFeeIds.value = [];
+    mismatchedPayment.value = null;
+    mismatchedStudent.value = null;
     
     try {
         const response = await axios.post(route('admin.fees.payments.check'), form);
@@ -1209,6 +1244,11 @@ const checkPayment = async () => {
             if (autoPayment.value.amount >= response.data.total_outstanding_balance) {
                 selectedFeeIds.value = outstandingFees.value.map(fee => fee.id);
             }
+        } else if (response.data.status === 'mismatch') {
+             mismatchedPayment.value = response.data.auto_payment;
+             mismatchedStudent.value = response.data.matched_student;
+             student.value = response.data.student;
+             // Don't show error, show reallocation UI
         } else {
             errorMessage.value = response.data.message;
             resetStudentData();
@@ -1236,6 +1276,72 @@ const selectAllFees = () => {
 
 const deselectAllFees = () => {
     selectedFeeIds.value = [];
+};
+
+const startReallocation = async () => {
+    if (!mismatchedPayment.value || !student.value) return;
+
+    if (!confirm(`Are you sure you want to reallocate this payment from ${mismatchedStudent.value?.full_name} to ${student.value.full_name}? This will reverse previous allocations.`)) {
+        return;
+    }
+
+    reallocating.value = true;
+    errorMessage.value = '';
+    
+    try {
+        const response = await axios.post(route('admin.fees.payments.reallocate'), {
+            payment_id: mismatchedPayment.value.id,
+            target_student_id: student.value.id
+        });
+
+        if (response.data.success) {
+            successMessage.value = response.data.message;
+            
+            const reallocatedPaymentId = response.data.payment_id;
+            
+            // Clear mismatch state
+            mismatchedPayment.value = null;
+            mismatchedStudent.value = null;
+            
+            if (reallocatedPaymentId) {
+                // Fetch detailed receipt data and show modal
+                try {
+                    const receiptResponse = await axios.get(route('admin.fees.payments.receipt.data', { payment: reallocatedPaymentId }));
+                    if (receiptResponse.data.success) {
+                        // Prepare receipt data
+                        receiptData.receipt_number = 'RCPT-' + reallocatedPaymentId.toString().padStart(6, '0');
+                        receiptData.student_name = student.value.full_name;
+                        receiptData.admission_number = student.value.admission_number;
+                        receiptData.class = student.value.current_rank?.name;
+                        receiptData.amount_paid = receiptResponse.data.payment.amount;
+                        receiptData.payment_method = receiptResponse.data.payment.payment_method.toUpperCase();
+                        receiptData.reference_number = receiptResponse.data.payment.reference_number;
+                        receiptData.payment_date = formatDate(receiptResponse.data.payment.payment_date);
+                        receiptData.fee_breakdown = receiptResponse.data.fee_breakdown || {};
+                        receiptData.credit_balance = Math.abs(Math.min(0, receiptData.fee_breakdown.summary.new_balance));
+                        
+                        // Show receipt modal
+                        setTimeout(() => {
+                            receiptModal.value.show();
+                        }, 500);
+                    }
+                } catch (receiptError) {
+                    console.error('Error fetching receipt data after reallocation:', receiptError);
+                    // Fallback: just re-check if receipt fails
+                    checkPayment();
+                }
+            } else {
+                // Re-check payment to load it correctly for the new student if no payment_id returned
+                checkPayment();
+            }
+        } else {
+            errorMessage.value = response.data.message;
+        }
+    } catch (error) {
+        errorMessage.value = error.response?.data?.message || 'Error reallocating payment';
+    } finally {
+        reallocating.value = false;
+    }
 };
 
 const openVerificationModal = async (fee) => {
@@ -1536,6 +1642,8 @@ const resetStudentData = () => {
     applyToOtherFees.value = false;
     acceptOverpayment.value = false;
     distributionType.value = 'auto_distribute';
+    mismatchedPayment.value = null;
+    mismatchedStudent.value = null;
 };
 
 const resetForm = () => {

@@ -10,7 +10,9 @@
 
    <link rel="shortcut icon" type="image/x-icon" href="{{ $favicon ?? '' }}" />
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="{{ asset('website/css/fonts.css') }}">
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@200;300;400;500;600;700;800&family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
    <link rel="stylesheet" href="{{ asset('website/css/custom.css') }}">
    <link rel="stylesheet" href="{{ asset('website/css/bootstrap.min.css') }}">
    <link rel="stylesheet" href="{{ asset('/website/css/style.css') }}">
@@ -27,13 +29,10 @@
       :root {
          font-family: 'Dosis', 'Roboto', sans-serif !important;
          font-feature-settings: 'liga' 1, 'calt' 1;
+
          /* fix for Chrome */
-         --ecbz-primary:
-            {{ $customisation->primary_color ?? '#25615a' }}
-         ;
-         --ecbz-secondary:
-            {{ $customisation->secondary_color ?? '#333' }}
-         ;
+         --ecbz-primary: #25615a !important;
+         --ecbz-secondary: #333 !important;
       }
 
       body {
@@ -63,6 +62,26 @@
       <div class="loader"></div>
       <div class="loa-shadow"></div>
    </div>
+
+   <script>
+      // Force hide preloader if it stays too long
+      (function() {
+         var preloader = document.getElementById('page-preloader');
+         if (preloader) {
+            // Wait max 3 seconds, then force show the page
+            setTimeout(function() {
+               if (preloader.style.display !== 'none') {
+                  console.log('Force hiding preloader...');
+                  preloader.style.transition = 'opacity 0.5s ease';
+                  preloader.style.opacity = '0';
+                  setTimeout(function() {
+                     preloader.style.display = 'none';
+                  }, 500);
+               }
+            }, 3000);
+         }
+      })();
+   </script>
 
    @include('website.template-1.layouts.shared.header')
 
@@ -111,6 +130,114 @@
          font-size: 24px;
       }
    </style>
+   <!-- Online Admission Modal -->
+   <div class="modal fade" id="admissionModal" tabindex="-1" aria-labelledby="admissionModalLabel" aria-hidden="true" style="z-index: 99999;">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+         <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="modal-header text-white px-4 py-3" style="background: linear-gradient(135deg, #25615a 0%, #3b82f6 100%);">
+               <h5 class="modal-title fw-bold" id="admissionModalLabel">
+                  <i class="fas fa-graduation-cap me-2"></i> Online Admission Portal
+               </h5>
+               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+               <div id="modalLoader" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status">
+                     <span class="visually-hidden">please Wait...</span>
+                  </div>
+                  <p class="mt-2 text-muted">Loading Admission Form...</p>
+               </div>
+               <iframe src="" id="admissionIframe" frameborder="0" style="width: 100%; height: 80vh; display: none;"></iframe>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <script>
+      $(document).ready(function() {
+         console.log('Admission popup script loaded');
+
+         // Intercept clicks on links pointing to /admission
+         $(document).on('click', 'a', function(e) {
+            var href = $(this).attr('href');
+            var text = $(this).text().trim().toLowerCase();
+
+            // Check if it's the public admission link
+            if (href && (href.indexOf('/admission') !== -1 || text.indexOf('admission') !== -1) && !href.includes('/admin/')) {
+               console.log('Admission link clicked:', href || text);
+               e.preventDefault();
+
+               var modalUrl = href;
+               if (!modalUrl || modalUrl === '#') {
+                  modalUrl = '/admission';
+               }
+
+               if (modalUrl.indexOf('modal=1') === -1) {
+                  modalUrl += (modalUrl.indexOf('?') !== -1 ? '&' : '?') + 'modal=1';
+               }
+
+               console.log('Loading modal URL:', modalUrl);
+               $('#modalLoader').show();
+               $('#admissionIframe').hide().attr('src', modalUrl);
+
+               try {
+                  var admissionModalEl = document.getElementById('admissionModal');
+                  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                     var myModal = new bootstrap.Modal(admissionModalEl);
+                     myModal.show();
+                  } else {
+                     $(admissionModalEl).modal('show');
+                  }
+               } catch (err) {
+                  console.log('Modal error:', err);
+                  $('#admissionModal').modal('show');
+               }
+
+               $('#admissionIframe').off('load').on('load', function() {
+                  console.log('Admission iframe loaded successfully');
+                  $('#modalLoader').hide();
+                  $(this).fadeIn();
+               });
+            }
+         });
+
+         // Clear iframe src when modal is closed to avoid state issues
+         $('#admissionModal').on('hidden.bs.modal', function() {
+            $('#admissionIframe').attr('src', '').hide();
+         });
+
+         // Listen for messages from iframe to close modal
+         window.addEventListener('message', function(event) {
+            if (event.data === 'closeAdmissionModal') {
+               console.log('Close message received from iframe');
+               try {
+                  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                     var admissionModalEl = document.getElementById('admissionModal');
+                     var modalInstance = bootstrap.Modal.getInstance(admissionModalEl);
+                     if (modalInstance) {
+                        modalInstance.hide();
+                     } else {
+                        $('#admissionModal').modal('hide');
+                     }
+                  } else {
+                     $('#admissionModal').modal('hide');
+                  }
+               } catch (e) {
+                  $('#admissionModal').modal('hide');
+               }
+            }
+         });
+
+         // Preloader Fallback: Hide it after 5 seconds if scripts.js fails to do so
+         setTimeout(function() {
+            var preloader = document.getElementById('page-preloader');
+            if (preloader && preloader.style.display !== 'none') {
+               console.log('Preloader fallback triggered');
+               $(preloader).fadeOut(500);
+            }
+         }, 1000); // Reduced to 1 second for faster recovery
+      });
+   </script>
 </body>
 
 </html>

@@ -19,6 +19,8 @@ class AcademicYear extends Model
         'end_date' => 'date',
     ];
 
+    protected $appends = ['display_name'];
+
     /**
      * Get the display name (start year only) for the academic year.
      * Converts "2025-2026" to "2025"

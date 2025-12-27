@@ -884,7 +884,7 @@ const saveAllMarks = async () => {
         `Successfully submitted marks for admin approval!` :
         `Successfully saved marks as draft.`;
       
-      toast.success(message);
+      // toast.success(message);
       
     } else {
       toast.error(response.data.message || "Failed to save marks");

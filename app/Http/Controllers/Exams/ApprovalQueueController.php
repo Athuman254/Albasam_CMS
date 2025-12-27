@@ -37,10 +37,19 @@ class ApprovalQueueController extends Controller
     public function getPendingSubmissions(Request $request): JsonResponse
     {
         try {
-            Log::info('Loading pending submissions from exam_marks...');
+            // Get pagination and search parameters
+            $search = $request->input('search');
+            $perPage = $request->input('per_page', 10);
+            $page = $request->input('page', 1);
+
+            Log::info('Loading pending submissions from exam_marks...', [
+                'search' => $search,
+                'per_page' => $perPage,
+                'page' => $page
+            ]);
 
             // Get all submitted marks that need approval with proper relationships
-            $pendingMarks = ExamMark::with([
+            $query = ExamMark::with([
                 'examSubject.exam:id,name',
                 'examSubject.class:id,name',
                 'examSubject.subject:id,name,code',
@@ -49,32 +58,41 @@ class ApprovalQueueController extends Controller
             ])
                 ->where('status', 'submitted')
                 ->whereNotNull('submitted_by')
-                ->whereNotNull('submitted_at')
-                ->get();
+                ->whereNotNull('submitted_at');
+
+            // Apply search filter
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    // Search by teacher name
+                    $q->whereHas('submittedBy', fn($q) => $q->where('name', 'like', "%{$search}%"))
+                        // Search by exam, class, or subject
+                        ->orWhereHas('examSubject', function ($q) use ($search) {
+                            $q->whereHas('exam', fn($q) => $q->where('name', 'like', "%{$search}%"))
+                                ->orWhereHas('class', fn($q) => $q->where('name', 'like', "%{$search}%"))
+                                ->orWhereHas('subject', fn($q) => $q->where('name', 'like', "%{$search}%")
+                                    ->orWhere('code', 'like', "%{$search}%"));
+                        })
+                        // Search by student admission number or name
+                        ->orWhereHas('student', fn($q) => $q->where('admission_number', 'like', "%{$search}%")
+                            ->orWhere('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%"));
+                });
+            }
+
+            $pendingMarks = $query->get();
 
             Log::info('Total submitted marks found: ' . $pendingMarks->count());
-
-            // Debug: Check the data and relationships
-            if ($pendingMarks->count() > 0) {
-                foreach ($pendingMarks->take(3) as $index => $mark) {
-                    Log::info("Mark {$index} debug:", [
-                        'mark_id' => $mark->id,
-                        'submitted_by' => $mark->submitted_by,
-                        'has_submittedBy' => !is_null($mark->submittedBy),
-                        'teacher_name' => $mark->submittedBy->name ?? 'NULL',
-                        'teacher_email' => $mark->submittedBy->email ?? 'NULL',
-                        'grade' => $mark->grade,
-                        'marks_obtained' => $mark->marks_obtained,
-                        'maximum_marks' => $mark->maximum_marks,
-                        'calculated_grade' => $mark->calculateGrade(),
-                    ]);
-                }
-            }
 
             // If no marks found, return empty array
             if ($pendingMarks->isEmpty()) {
                 return response()->json([
                     'data' => [],
+                    'meta' => [
+                        'current_page' => (int)$page,
+                        'per_page' => (int)$perPage,
+                        'total' => 0,
+                        'last_page' => 1
+                    ],
                     'debug' => [
                         'source' => 'exam_marks_direct',
                         'total_marks' => 0,
@@ -90,7 +108,7 @@ class ApprovalQueueController extends Controller
                 $classId = $mark->examSubject->class_id ?? 'unknown';
                 $subjectId = $mark->examSubject->subject_id ?? 'unknown';
                 return $examId . '_' . $classId . '_' . $subjectId . '_' . $mark->submitted_by;
-            })->map(function ($marks, $key) {
+            })->map(function ($marks, $key) use ($search) {
                 $firstMark = $marks->first();
                 $examSubject = $firstMark->examSubject;
 
@@ -130,14 +148,16 @@ class ApprovalQueueController extends Controller
                     }
                 }
 
-                // Log if teacher is still unknown
-                if ($teacherName === 'Unknown Teacher') {
-                    Log::warning('Teacher not found for submission:', [
-                        'submission_key' => $key,
-                        'submitted_by' => $firstMark->submitted_by,
-                        'teacher_id' => $firstMark->teacher_id,
-                        'exam_subject_id' => $firstMark->exam_subject_id
-                    ]);
+                // Identify matched students if searching
+                $matchedStudents = [];
+                if ($search) {
+                    $matchedStudents = $marks->filter(function ($mark) use ($search) {
+                        return stripos($mark->student->first_name, $search) !== false ||
+                            stripos($mark->student->last_name, $search) !== false ||
+                            stripos($mark->student->admission_number, $search) !== false;
+                    })->map(function ($mark) {
+                        return $mark->student->first_name . ' ' . $mark->student->last_name . ' (' . $mark->student->admission_number . ')';
+                    })->unique()->values()->toArray();
                 }
 
                 return [
@@ -156,22 +176,29 @@ class ApprovalQueueController extends Controller
                     'total_marks' => $totalMarks,
                     'submitted_date' => $firstMark->submitted_at->format('Y-m-d H:i:s'),
                     'submitted_at_formatted' => $firstMark->submitted_at->format('M j, Y g:i A'),
-                    'debug_info' => [
-                        'submitted_by_exists' => !is_null($firstMark->submittedBy),
-                        'teacher_id' => $firstMark->teacher_id,
-                    ]
+                    'matched_students' => $matchedStudents, // Show matched students if searching
                 ];
             })->values();
 
             Log::info('Virtual submissions created: ' . $groupedSubmissions->count());
 
+            // Manual Pagination of the grouped results
+            $total = $groupedSubmissions->count();
+            $paginatedItems = $groupedSubmissions->forPage($page, $perPage)->values();
+
             return response()->json([
-                'data' => $groupedSubmissions,
+                'data' => $paginatedItems,
+                'meta' => [
+                    'current_page' => (int)$page,
+                    'per_page' => (int)$perPage,
+                    'total' => $total,
+                    'last_page' => ceil($total / $perPage)
+                ],
                 'debug' => [
                     'source' => 'exam_marks_direct',
                     'total_marks' => $pendingMarks->count(),
-                    'virtual_submissions' => $groupedSubmissions->count(),
-                    'sample_submission' => $groupedSubmissions->first() ?? 'No submissions'
+                    'virtual_submissions' => $total,
+                    'paginated_items' => $paginatedItems->count()
                 ]
             ]);
         } catch (\Exception $e) {
@@ -744,6 +771,9 @@ class ApprovalQueueController extends Controller
     /**
      * Fix missing grades for submitted marks
      */
+    /**
+     * Fix missing grades for submitted marks
+     */
     public function fixMissingGrades(): JsonResponse
     {
         try {
@@ -777,6 +807,104 @@ class ApprovalQueueController extends Controller
             Log::error('Error fixing missing grades: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Failed to fix grades',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update approved mark (Admin only) - for correcting errors
+     */
+    public function updateApprovedMark(Request $request): JsonResponse
+    {
+        DB::beginTransaction();
+
+        try {
+            // Validate request
+            $validated = $request->validate([
+                'mark_id' => 'required|exists:exam_marks,id',
+                'new_marks' => 'required|numeric|min:0',
+                'reason' => 'required|string|min:10|max:500'
+            ]);
+
+            // Check if user is admin
+            $user = auth()->user();
+            if (!$user->isAbleTo('edit-approved-marks')) {
+                return response()->json(['error' => 'Unauthorized. Missing edit-approved-marks permission.'], 403);
+            }
+
+            // Get the mark
+            $mark = ExamMark::findOrFail($validated['mark_id']);
+
+            // Validate mark status
+            if ($mark->status !== 'approved') {
+                return response()->json([
+                    'error' => 'Invalid status',
+                    'message' => 'Only approved marks can be edited'
+                ], 400);
+            }
+
+            // Validate new marks is within range
+            $maxMarks = $mark->maximum_marks ?? $mark->examSubject->max_marks ?? 100;
+            if ($validated['new_marks'] > $maxMarks) {
+                return response()->json([
+                    'error' => 'Invalid marks',
+                    'message' => "Marks cannot exceed maximum marks ({$maxMarks})"
+                ], 400);
+            }
+
+            // Store old values for audit log
+            $oldMarks = $mark->marks_obtained;
+            $oldGrade = $mark->grade;
+            $oldPercentage = $maxMarks > 0 ? round(($oldMarks / $maxMarks) * 100, 2) : 0;
+
+            // Update marks
+            $mark->marks_obtained = $validated['new_marks'];
+
+            // Recalculate grade and percentage
+            $newPercentage = $maxMarks > 0 ? round(($validated['new_marks'] / $maxMarks) * 100, 2) : 0;
+            $newGrade = $mark->calculateGrade();
+            $mark->grade = $newGrade;
+
+            // Add edit reason to remarks
+            $editNote = "\n[ADMIN EDIT by {$user->name} on " . now()->format('Y-m-d H:i') . "]: {$validated['reason']}";
+            $mark->remarks = ($mark->remarks ?? '') . $editNote;
+
+            $mark->save();
+
+            // Log the change
+            Log::info('Admin edited approved mark', [
+                'admin_id' => $user->id,
+                'admin_name' => $user->name,
+                'mark_id' => $mark->id,
+                'student_id' => $mark->student_id,
+                'old_marks' => $oldMarks,
+                'new_marks' => $validated['new_marks'],
+                'old_grade' => $oldGrade,
+                'new_grade' => $newGrade,
+                'reason' => $validated['reason']
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Mark updated successfully',
+                'data' => [
+                    'id' => $mark->id,
+                    'old_marks' => $oldMarks,
+                    'new_marks' => $validated['new_marks'],
+                    'old_grade' => $oldGrade,
+                    'new_grade' => $newGrade,
+                    'old_percentage' => $oldPercentage,
+                    'new_percentage' => $newPercentage,
+                    'maximum_marks' => $maxMarks
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating approved mark: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to update mark',
                 'message' => $e->getMessage()
             ], 500);
         }

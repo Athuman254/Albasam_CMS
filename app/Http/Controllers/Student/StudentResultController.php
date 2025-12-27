@@ -23,7 +23,7 @@ class StudentResultController extends Controller
         // Get exams where the student has published marks
         $exams = Exam::whereHas('marks', function ($query) use ($student) {
             $query->where('student_id', $student->id)
-                ->where('status', ExamMark::PUBLISHED);
+                ->whereIn('status', [ExamMark::PUBLISHED, ExamMark::APPROVED]);
         })
             ->with(['academicYear'])
             ->orderBy('start_date', 'desc')
@@ -32,7 +32,7 @@ class StudentResultController extends Controller
                 // Calculate summary for this exam
                 $marks = ExamMark::where('exam_id', $exam->id)
                     ->where('student_id', $student->id)
-                    ->where('status', ExamMark::PUBLISHED)
+                    ->whereIn('status', [ExamMark::PUBLISHED, ExamMark::APPROVED])
                     ->get();
 
                 $totalMarks = $marks->sum('marks_obtained');
@@ -71,7 +71,7 @@ class StudentResultController extends Controller
         $marks = ExamMark::with(['examSubject.subject'])
             ->where('exam_id', $examId)
             ->where('student_id', $student->id)
-            ->where('status', ExamMark::PUBLISHED)
+            ->whereIn('status', [ExamMark::PUBLISHED, ExamMark::APPROVED])
             ->get();
 
         if ($marks->isEmpty()) {
@@ -124,12 +124,26 @@ class StudentResultController extends Controller
     {
         $student = Auth::guard('student')->user();
 
+        // Determine the class_id from the marks themselves
+        // This handles cases where the student has moved to a new class but wants to download past results
+        $mark = ExamMark::where('student_id', $student->id)
+            ->where('exam_id', $examId)
+            ->whereIn('status', [ExamMark::PUBLISHED, ExamMark::APPROVED])
+            ->with('examSubject')
+            ->first();
+
+        if (!$mark) {
+            return back()->with('error', 'No published results found for this exam.');
+        }
+
+        $classId = $mark->examSubject->class_id;
+
         // Reuse the existing ExamResultController logic
         // We need to construct a request that mimics what generateStudentReport expects
         $request->merge([
             'exam_id' => $examId,
-            'class_id' => $student->rank_id, // Assuming current class, might need history if we track it
-            'only_published' => true,
+            'class_id' => $classId,
+            'only_published' => false,
         ]);
 
         $controller = app(ExamResultController::class);

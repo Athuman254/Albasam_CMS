@@ -11,9 +11,10 @@ use App\Models\Stream;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class FeeReportController extends Controller
 {
@@ -51,8 +52,8 @@ class FeeReportController extends Controller
     public function generateReport(Request $request)
     {
         $request->validate([
-            'class_id' => 'required|exists:ranks,id',
-            'term' => 'nullable|string',
+            'class_id' => 'required',
+            'term' => 'nullable',
             'include_zero_balance' => 'boolean'
         ]);
 
@@ -61,16 +62,43 @@ class FeeReportController extends Controller
             $term = $request->term;
             $includeZeroBalance = $request->boolean('include_zero_balance');
 
-            // Get the class with stream information
-            $class = Rank::with(['stream'])->find($classId);
-            $className = $class->stream ? $class->name . ' ' . $class->stream->name : $class->name;
+            // Handle "All Students" option
+            if ($classId === 'all') {
+                $className = 'All Students (Entire School)';
 
-            // Build query for fees
-            $feeQuery = Fee::where('rank_id', $classId)
-                ->where('status', '!=', 'carried_over')
-                ->with(['student' => function ($query) {
-                    $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
-                }, 'rank.stream']);
+                // Build query for all fees across all classes
+                $feeQuery = Fee::where('status', '!=', 'carried_over')
+                    ->with(['student' => function ($query) {
+                        $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
+                    }, 'rank.stream']);
+            } else {
+                // Get the specific class with stream information
+                $class = Rank::with(['stream'])->find($classId);
+
+                if (!$class) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Class not found',
+                        'reportData' => [],
+                        'summary' => [
+                            'total_amount' => 0,
+                            'total_paid' => 0,
+                            'total_balance' => 0,
+                            'collection_rate' => 0,
+                            'collection_rate_class' => 'text-danger'
+                        ]
+                    ], 404);
+                }
+
+                $className = $class->stream ? $class->name . ' ' . $class->stream->name : $class->name;
+
+                // Build query for specific class fees
+                $feeQuery = Fee::where('rank_id', $classId)
+                    ->where('status', '!=', 'carried_over')
+                    ->with(['student' => function ($query) {
+                        $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
+                    }, 'rank.stream']);
+            }
 
             // Fix term filtering - handle both numeric and formatted terms
             if ($term) {
@@ -88,16 +116,26 @@ class FeeReportController extends Controller
             $totalBalance = 0;
 
             foreach ($fees as $fee) {
+                // Skip if student or rank is somehow missing
+                if (!$fee->student || !$fee->rank) {
+                    continue;
+                }
+
                 $studentId = $fee->student_id;
 
                 if (!isset($studentFees[$studentId])) {
                     // Get student full name by combining first, middle, and last names
                     $studentFullName = $this->getStudentFullName($fee->student);
 
+                    // Get class name for this student
+                    $studentClassName = $fee->rank->stream ?
+                        $fee->rank->name . ' ' . $fee->rank->stream->name :
+                        $fee->rank->name;
+
                     $studentFees[$studentId] = [
-                        'admission_number' => $fee->student->admission_number,
+                        'admission_number' => $fee->student->admission_number ?? 'N/A',
                         'student_name' => $studentFullName,
-                        'class_name' => $className,
+                        'class_name' => $classId === 'all' ? $studentClassName : $className,
                         'total_amount' => 0,
                         'paid_amount' => 0,
                         'balance' => 0,
@@ -440,9 +478,24 @@ class FeeReportController extends Controller
             DB::raw('COUNT(*) as total_transactions')
         )->first();
 
+        // For AJAX requests, return JSON
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'collections' => $collections,
+                'summary' => $summary,
+                'filters' => $request->only(['date_from', 'date_to', 'payment_method']),
+            ]);
+        }
+
+        $dbMethods = FeePayment::distinct()->pluck('payment_method')->filter()->toArray();
+        $standardMethods = ['cash', 'mpesa', 'bank', 'check', 'other'];
+        $paymentMethods = collect(array_unique(array_merge($standardMethods, array_map('strtolower', $dbMethods))))->values();
+
         return Inertia::render('Admin/Fees/Reports/CollectionReport', [
             'collections' => $collections,
             'summary' => $summary,
+            'paymentMethods' => $paymentMethods,
             'filters' => $request->only(['date_from', 'date_to', 'payment_method']),
         ]);
     }
@@ -616,6 +669,52 @@ class FeeReportController extends Controller
         return new StreamedResponse($callback, 200, $headers);
     }
 
+    /**
+     * Export collection report to professional PDF
+     */
+    public function exportCollectionPdf(Request $request)
+    {
+        $query = FeePayment::with(['student' => function ($query) {
+            $query->select('id', 'first_name', 'middle_name', 'last_name', 'admission_number');
+        }, 'fee.rank.stream', 'verifiedBy'])
+            ->where('status', 'completed');
+
+        // Apply filters
+        if ($request->has('date_from') && $request->date_from) {
+            $query->where('payment_date', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to') && $request->date_to) {
+            $query->where('payment_date', '<=', $request->date_to);
+        }
+
+        if ($request->has('payment_method') && $request->payment_method) {
+            $query->where('payment_method', $request->payment_method);
+        }
+
+        $collections = $query->latest()->get();
+        $institution = \App\Models\Institution::first();
+
+        $summary = [
+            'total_amount' => $collections->sum('amount'),
+            'total_transactions' => $collections->count(),
+            'period' => ($request->date_from ? Carbon::parse($request->date_from)->format('d M Y') : 'Start') .
+                ' to ' .
+                ($request->date_to ? Carbon::parse($request->date_to)->format('d M Y') : 'Today')
+        ];
+
+        $pdf = Pdf::loadView('reports.collection-pdf', [
+            'collections' => $collections,
+            'summary' => $summary,
+            'institution' => $institution,
+            'filters' => $request->only(['date_from', 'date_to', 'payment_method'])
+        ]);
+
+        $pdf->setPaper('a4', 'landscape');
+
+        $fileName = 'collection_report_' . now()->format('Y_m_d_His') . '.pdf';
+        return $pdf->download($fileName);
+    }
     /**
      * Export outstanding fees report to CSV
      */
@@ -909,7 +1008,7 @@ class FeeReportController extends Controller
             'Expires' => '0'
         ];
 
-        $callback = function () use ($totalExpected, $totalCollected, $totalBalance, $collectionRate, $paymentMethods, $monthlyCollection) {
+        $callback = function () use ($totalExpected, $totalCollected, $totalBalance, $collectionRate, $paymentMethods, $monthlyCollection, $currentYear) {
             $file = fopen('php://output', 'w');
 
             // Add BOM for UTF-8

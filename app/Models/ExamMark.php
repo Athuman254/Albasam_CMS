@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
+use App\Services\GradingService;
 
 class ExamMark extends Model
 {
@@ -57,16 +58,24 @@ class ExamMark extends Model
                 $model->maximum_marks = $model->examSubject->max_marks;
             }
 
-            // Calculate grade if marks are provided
+            // Calculate grade and remarks if marks are provided
             if ($model->marks_obtained && $model->maximum_marks) {
+                $percentage = ($model->marks_obtained / $model->maximum_marks) * 100;
                 $model->grade = $model->calculateGrade();
+
+                // Auto-generate remarks if empty
+                if (!$model->remarks) {
+                    $gradingScaleId = $model->exam?->grading_scale_id;
+                    $model->remarks = GradingService::getRemarks($percentage, $gradingScaleId);
+                }
             }
         });
 
         // Auto-set teacher_id if not provided
         static::creating(function ($model) {
-            if (!$model->teacher_id && Auth::check() && Auth::user()->isTeacher()) {
-                $model->teacher_id = Auth::id();
+            $user = Auth::user();
+            if (!$model->teacher_id && $user instanceof \App\Models\User && $user->isTeacher()) {
+                $model->teacher_id = $user->id;
             }
         });
     }
@@ -262,7 +271,9 @@ class ExamMark extends Model
             return 'N/A';
         }
 
-        return \App\Services\GradingService::getGrade($percentage);
+        $gradingScaleId = $this->exam ? $this->exam->grading_scale_id : null;
+
+        return \App\Services\GradingService::getGrade($percentage, $gradingScaleId);
     }
 
     /**

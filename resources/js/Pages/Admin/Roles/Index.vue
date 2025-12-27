@@ -74,7 +74,7 @@
             aria-hidden="true"
             ref="createRoleModal"
          >
-            <div class="modal-dialog modal-lg modal-body-simple">
+            <div class="modal-dialog modal-xl modal-body-simple">
                <div class="modal-content">
                   <div class="modal-header">
                      <h5 class="modal-title" id="create-role-modal-label">Add Role</h5>
@@ -109,11 +109,11 @@
                               <label for="permissions" class="h5 form-label mb-3">Permissions</label>
                               <div class="row">
                                  <div v-for="permission in permissions" :key="permission.id"
-                                      class="col-md-4 col-6 text-md-nowrap">
+                                      class="col-md-3 col-6 text-md-nowrap">
                                     <label class="form-check form-check-inline">
                                        <input class="form-check-input" type="checkbox" :value="permission.id"
                                               v-model="form.permissions">
-                                       <span class="form-check-label">{{ permission.name }}</span>
+                                       <span class="form-check-label">{{ permission.display_name || permission.name }}</span>
                                     </label>
                                  </div>
                               </div>
@@ -159,7 +159,7 @@
             aria-hidden="true"
             ref="editRoleModal"
          >
-            <div class="modal-dialog modal-lg modal-body-simple">
+            <div class="modal-dialog modal-xl modal-body-simple">
                <div class="modal-content">
                   <div class="modal-header">
                      <h5 class="modal-title" id="create-role-modal-label">Edit Role</h5>
@@ -190,11 +190,11 @@
                            <label for="permissions" class="h5 form-label mb-3">Permissions</label>
                            <div class="row">
                               <div v-for="permission in permissions" :key="permission.id"
-                                   class="col-md-4 col-sm-6 text-md-nowrap">
+                                   class="col-md-3 col-sm-6 text-md-nowrap">
                                  <label class="form-check form-check-inline">
                                     <input class="form-check-input" type="checkbox" :value="permission.id"
                                            v-model="editForm.permissions">
-                                    <span class="form-check-label">{{ permission.name }}</span>
+                                    <span class="form-check-label">{{ permission.display_name || permission.name }}</span>
                                  </label>
                               </div>
                            </div>

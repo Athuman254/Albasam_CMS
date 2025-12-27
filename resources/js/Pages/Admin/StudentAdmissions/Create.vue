@@ -20,8 +20,8 @@
             </nav>
 
             <div class="card">
-               <div class="card-header border-bottom">
-                  <div class="form-header">
+               <div class="card-header border-bottom py-3">
+                  <div class="form-header d-flex flex-wrap justify-content-between align-items-center gap-2">
                      <div class="stepIndicator"
                           :class="{ 'active': currentStep === 1, 'finish': currentStep > 1 }">
                         <div class="square">1</div>
@@ -79,20 +79,20 @@
                                  </div>
 
                                  <div class="col-md-6">
-                                    <div class="card bg-light">
-                                       <div class="card-body">
-                                          <h6 class="card-title">Admission Information</h6>
-                                          <ul class="list-unstyled mb-0">
-                                             <li class="d-flex justify-content-between py-1">
-                                                <span class="text-muted">Admission Date:</span>
-                                                <span class="fw-medium">{{ currentDate }}</span>
-                                             </li>
-                                             <li class="d-flex justify-content-between py-1">
-                                                <span class="text-muted">Status:</span>
-                                                <span class="badge bg-success">New Admission</span>
-                                             </li>
-                                          </ul>
+                                    <div class="form-group mb-3">
+                                       <label class="form-label-md mb-1" for="registeredAt">Registration Date <span class="text-danger ms-1">*</span></label>
+                                       <date-picker
+                                          id="registeredAt"
+                                          form-class="shadow-sm"
+                                          v-model="form.registration_details.registered_at"
+                                          :max-date="new Date()"
+                                          placeholder="Select registration date"
+                                          @on-change="function(dateObj, dateStr) { form.registration_details.registered_at = dateStr }"
+                                       ></date-picker>
+                                       <div v-if="form.errors['registration_details.registered_at']" class="text-danger">
+                                          {{ form.errors['registration_details.registered_at'] }}
                                        </div>
+                                       <small class="text-muted">You can adjust this date if necessary</small>
                                     </div>
                                  </div>
                               </div>
@@ -108,6 +108,78 @@
                                     <small class="text-muted">Enter student personal and academic information</small>
                                  </div>
                                  
+                                 <!-- Student Photo Section -->
+                                 <div class="col-md-12 mb-4">
+                                    <div class="card bg-light border-dashed">
+                                       <div class="card-body">
+                                          <div class="row align-items-center">
+                                             <div class="col-md-3 text-center">
+                                                <div class="avatar-upload mb-3">
+                                                   <div class="avatar-preview mb-2">
+                                                      <img :src="photoPreview || '/img/default-avatar.png'" class="rounded border shadow-sm" style="width: 150px; height: 150px; object-fit: cover;" alt="Student Photo">
+                                                   </div>
+                                                   <div class="btn-group btn-group-sm">
+                                                      <button type="button" class="btn btn-outline-primary" @click="$refs.photoInput.click()">
+                                                         <i class="bx bx-upload me-1"></i> Upload
+                                                      </button>
+                                                      <button type="button" class="btn btn-outline-info" @click="startCamera">
+                                                         <i class="bx bx-camera me-1"></i> Take Photo
+                                                      </button>
+                                                   </div>
+                                                   <input type="file" ref="photoInput" class="d-none" @change="handlePhotoUpload" accept="image/*">
+                                                </div>
+                                             </div>
+                                             <div class="col-md-9" v-if="cameraActive">
+                                                <div class="camera-container text-center">
+                                                   <video ref="video" width="320" height="240" autoplay class="rounded border mb-2"></video>
+                                                   <canvas ref="canvas" style="display:none;" width="320" height="240"></canvas>
+                                                   <div class="camera-controls">
+                                                      <button type="button" class="btn btn-sm btn-success me-2" @click="capturePhoto">
+                                                         <i class="bx bx-camera me-1"></i> Capture
+                                                      </button>
+                                                      <button type="button" class="btn btn-sm btn-danger" @click="stopCamera">
+                                                         <i class="bx bx-x me-1"></i> Stop
+                                                      </button>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                             <div class="col-md-9" v-else>
+                                                <div class="p-3">
+                                                   <h6>Student Photo</h6>
+                                                   <p class="text-muted small">Upload a passport-size photo or capture one directly using your webcam. High-quality images (PNG/JPG) are recommended.</p>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+
+                                 <!-- Scholarship Information -->
+                                 <div class="col-md-12 mb-4">
+                                    <div class="card border-info">
+                                       <div class="card-body">
+                                          <h6 class="text-info mb-3"><i class="bx bx-award me-1"></i> Scholarship & Financial Aid</h6>
+                                          <div class="row">
+                                             <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                   <label class="form-label-md mb-1">Scholarship Type</label>
+                                                   <v-select
+                                                      v-model="form.student.scholarship_type"
+                                                      :options="['none', 'full', 'half', 'custom']"
+                                                   ></v-select>
+                                                </div>
+                                             </div>
+                                             <div class="col-md-6" v-if="form.student.scholarship_type === 'custom'">
+                                                <div class="form-group mb-3">
+                                                   <label class="form-label-md mb-1">Scholarship Rate (%)</label>
+                                                   <input type="number" class="form-control" v-model="form.student.scholarship_rate" min="0" max="100" />
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+
                                  <!-- Personal Information -->
                                  <div class="col-md-4">
                                     <div class="form-group mb-3">
@@ -247,6 +319,17 @@
                                        <div v-if="form.errors['student.birth_certificate_number']" class="text-danger">
                                           {{ form.errors['student.birth_certificate_number'] }}
                                        </div>
+                                    </div>
+                                 </div>
+                                 <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                       <label class="form-label-md mb-1" for="assessmentNumber">Assessment Number</label>
+                                       <input type="text" id="assessmentNumber" class="form-control"
+                                              v-model="form.student.assessment_number" placeholder="Enter assessment number"/>
+                                       <div v-if="form.errors['student.assessment_number']" class="text-danger">
+                                          {{ form.errors['student.assessment_number'] }}
+                                       </div>
+                                       <small class="text-muted">Optional: National assessment number</small>
                                     </div>
                                  </div>
 
@@ -580,12 +663,14 @@ export default {
          form: useForm({
             registration_details: {
                division_id: null,
+               registered_at: new Date().toISOString().split('T')[0],
             },
             student: {
                first_name: '',
                middle_name: '',
                last_name: '',
                admission_number: '',
+               assessment_number: '',
                rank_id: null,
                date_of_birth: '',
                birth_certificate_number: '',
@@ -596,6 +681,9 @@ export default {
                ward: '',
                permanent_address: '',
                previous_school: '',
+               photo: null,
+               scholarship_type: 'none',
+               scholarship_rate: 0,
             },
             guardians: [
                {
@@ -633,6 +721,9 @@ export default {
          relationships: [],
          generatingAdmissionNumber: false,
          currentStep: 1,
+         photoPreview: null,
+         cameraActive: false,
+         videoStream: null,
          routes: {
             1: "/admin/student-admissions/first-step",
             2: "/admin/student-admissions/second-step",
@@ -766,6 +857,45 @@ export default {
             this.$toast.error('An error occurred while fetching relationships');
          })
       },
+      handlePhotoUpload(event) {
+         const file = event.target.files[0];
+         if (file) {
+            this.form.student.photo = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+               this.photoPreview = e.target.result;
+            };
+            reader.readAsDataURL(file);
+         }
+      },
+      async startCamera() {
+         this.cameraActive = true;
+         try {
+            this.videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            this.$refs.video.srcObject = this.videoStream;
+         } catch (err) {
+            console.error("Error accessing camera: ", err);
+            this.$toast.error("Could not access camera.");
+            this.cameraActive = false;
+         }
+      },
+      stopCamera() {
+         if (this.videoStream) {
+            this.videoStream.getTracks().forEach(track => track.stop());
+            this.videoStream = null;
+         }
+         this.cameraActive = false;
+      },
+      capturePhoto() {
+         const video = this.$refs.video;
+         const canvas = this.$refs.canvas;
+         const context = canvas.getContext('2d');
+         context.drawImage(video, 0, 0, 320, 240);
+         const dataUrl = canvas.toDataURL('image/png');
+         this.photoPreview = dataUrl;
+         this.form.student.photo = dataUrl;
+         this.stopCamera();
+      },
       submitForm() {
          if (!this.form.student.admission_number) {
             this.$toast.error('Please generate an admission number first');
@@ -870,8 +1000,9 @@ export default {
 
 .stepIndicator {
    text-align: center;
-   flex: 1;
+   flex: 1 1 120px;
    position: relative;
+   padding: 10px 5px;
 }
 
 .stepIndicator .square {

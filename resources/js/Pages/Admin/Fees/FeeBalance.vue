@@ -176,6 +176,14 @@
                       </div>
                       <div class="row mt-3">
                         <div class="col-12">
+                          <button @click="openPaymentModal(selectedStudent)" class="btn btn-success btn-sm me-2" :disabled="loading">
+                            <i class="fas fa-mobile-alt me-1"></i> M-Pesa Push
+                          </button>
+
+                          <button @click="openCashPaymentModal(selectedStudent)" class="btn btn-warning btn-sm me-2" :disabled="loading">
+                            <i class="fas fa-money-bill-wave me-1"></i> Record Cash
+                          </button>
+
                           <button @click="printStudentStatement(selectedStudent)" class="btn btn-primary btn-sm me-2" :disabled="loading">
                             <i class="fas fa-print me-1"></i> Print Statement
                           </button>
@@ -242,10 +250,16 @@
                                 </span>
                               </td>
                               <td>
-                                <button @click="viewStudentDetails(student)" class="btn btn-sm btn-outline-primary me-1" :disabled="loading">
+                                <button @click="viewStudentDetails(student)" class="btn btn-sm btn-outline-primary me-1" title="View Details" :disabled="loading">
                                   <i class="fas fa-eye"></i>
                                 </button>
-                                <button @click="printStudentStatement(student)" class="btn btn-sm btn-outline-success" :disabled="loading">
+                                <button @click="openPaymentModal(student)" class="btn btn-sm btn-outline-success me-1" title="M-Pesa Push" :disabled="loading">
+                                  <i class="fas fa-mobile-alt"></i>
+                                </button>
+                                <button @click="openCashPaymentModal(student)" class="btn btn-sm btn-outline-warning me-1" title="Record Cash" :disabled="loading">
+                                  <i class="fas fa-money-bill-wave"></i>
+                                </button>
+                                <button @click="printStudentStatement(student)" class="btn btn-sm btn-outline-info" title="Print Statement" :disabled="loading">
                                   <i class="fas fa-print"></i>
                                 </button>
                               </td>
@@ -475,10 +489,110 @@
             </div>
           </div>
           <div class="modal-footer">
+            <button @click="openPaymentModal(detailedStudent)" class="btn btn-success text-white" :disabled="loading">
+              <i class="fas fa-mobile-alt me-1"></i> Initiate M-Pesa Payment
+            </button>
+            <button @click="openCashPaymentModal(detailedStudent)" class="btn btn-warning text-white" :disabled="loading">
+              <i class="fas fa-money-bill-wave me-1"></i> Record Cash Payment
+            </button>
             <button @click="printStudentStatement(detailedStudent)" class="btn btn-primary" :disabled="loading">
               <i class="fas fa-print me-1"></i> Print Statement
             </button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- M-Pesa Payment Modal (Admin) -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-mobile-alt me-2"></i>
+              Initiate M-Pesa Payment
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-info">
+              Using Paybill: <strong>{{ paybillNumber || 'Loading...' }}</strong>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Student</label>
+              <input type="text" class="form-control" :value="detailedStudent?.full_name" disabled>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Phone Number</label>
+              <input type="text" v-model="paymentForm.phone" class="form-control" placeholder="0712345678">
+              <small class="text-muted">Enter the phone number to receive the STK Push.</small>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Amount (KSh)</label>
+              <input type="number" v-model="paymentForm.amount" class="form-control">
+            </div>
+
+            <div v-if="paymentMessage" :class="{'alert-success': paymentSuccess, 'alert-danger': !paymentSuccess}" class="alert mt-3">
+              {{ paymentMessage }}
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" @click="initiatePayment" class="btn btn-success text-white" :disabled="processing">
+              <span v-if="processing" class="spinner-border spinner-border-sm me-1"></span>
+              {{ processing ? 'Processing...' : 'Send STK Push' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cash Payment Modal -->
+    <div class="modal fade" id="cashPaymentModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-money-bill-wave me-2"></i>
+              Record Cash Payment
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Student</label>
+              <input type="text" class="form-control" :value="detailedStudent?.full_name" disabled>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Amount (KSh)</label>
+              <input type="number" v-model="cashPaymentForm.amount" class="form-control" placeholder="0.00">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Payment Date</label>
+              <input type="date" v-model="cashPaymentForm.date" class="form-control">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Notes</label>
+              <textarea v-model="cashPaymentForm.notes" class="form-control" rows="2" placeholder="e.g. Receipt NO: 1234"></textarea>
+            </div>
+
+            <div v-if="cashPaymentMessage" :class="{'alert-success': cashPaymentSuccess, 'alert-danger': !cashPaymentSuccess}" class="alert mt-3">
+              {{ cashPaymentMessage }}
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" @click="submitCashPayment" class="btn btn-warning text-white" :disabled="processing">
+              <span v-if="processing" class="spinner-border spinner-border-sm me-1"></span>
+              {{ processing ? 'Recording...' : 'Record Payment' }}
+            </button>
           </div>
         </div>
       </div>
@@ -510,6 +624,173 @@ const feeStats = ref(props.initial_stats || {});
 const loading = ref(false);
 const loadingMessage = ref('Loading student fee data...');
 const debugInfo = ref(null);
+
+// Payment State
+const paymentForm = reactive({
+  phone: '',
+  amount: ''
+});
+const cashPaymentForm = reactive({
+  amount: '',
+  date: new Date().toISOString().split('T')[0],
+  notes: ''
+});
+const processing = ref(false);
+const paymentMessage = ref('');
+const paymentSuccess = ref(false);
+const cashPaymentMessage = ref('');
+const cashPaymentSuccess = ref(false);
+const paybillNumber = ref('Loading...'); // Could fetch from config
+
+const openPaymentModal = (student = null) => {
+  // If student is an event (from @click without args), don't use it
+  if (student && student.id) {
+    detailedStudent.value = student;
+  }
+  
+  if (!detailedStudent.value) {
+    alert('No student selected');
+    return;
+  }
+
+  paymentForm.phone = detailedStudent.value?.phone || '';
+  paymentForm.amount = '';
+  paymentMessage.value = '';
+  paymentSuccess.value = false;
+  
+  const modalEl = document.getElementById('paymentModal');
+  const paymentModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  paymentModal.show();
+};
+
+const openCashPaymentModal = (student = null) => {
+  // If student is an event, don't use it
+  if (student && student.id) {
+    detailedStudent.value = student;
+  }
+
+  if (!detailedStudent.value) {
+    alert('No student selected');
+    return;
+  }
+
+  cashPaymentForm.amount = '';
+  cashPaymentForm.date = new Date().toISOString().split('T')[0];
+  cashPaymentForm.notes = '';
+  cashPaymentMessage.value = '';
+  cashPaymentSuccess.value = false;
+  
+  const modalEl = document.getElementById('cashPaymentModal');
+  const cashModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  cashModal.show();
+};
+
+const initiatePayment = async () => {
+  if (!paymentForm.phone || !paymentForm.amount) {
+    alert('Please enter phone and amount');
+    return;
+  }
+  
+  processing.value = true;
+  paymentMessage.value = '';
+  
+  try {
+    const response = await axios.post(route('admin.fees.payments.mpesa.initiate-push'), {
+      phone_number: paymentForm.phone,
+      amount: paymentForm.amount,
+      student_id: detailedStudent.value.id,
+      account_reference: detailedStudent.value.admission_number
+    });
+
+    if (response.data.success) {
+      paymentSuccess.value = true;
+      paymentMessage.value = 'STK Push sent successfully!';
+      
+      // Reload student data silently
+      const detailedResponse = await axios.post(route('admin.fees.student-details'), {
+        student_id: detailedStudent.value.id,
+        academic_year: academicYear.value,
+        term: term.value
+      });
+      
+      if (detailedResponse.data.success) {
+        detailedStudent.value = detailedResponse.data.student;
+        if (selectedStudent.value && selectedStudent.value.id === detailedStudent.value.id) {
+          selectedStudent.value = { ...selectedStudent.value, ...detailedResponse.data.student };
+        }
+      }
+
+      setTimeout(() => {
+        const modalEl = document.getElementById('paymentModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        if (modal) modal.hide();
+      }, 3000);
+    } else {
+      paymentSuccess.value = false;
+      paymentMessage.value = response.data.message;
+    }
+  } catch (error) {
+    console.error(error);
+    paymentSuccess.value = false;
+    paymentMessage.value = error.response?.data?.message || 'Failed to initiate payment.';
+  } finally {
+    processing.value = false;
+  }
+};
+
+const submitCashPayment = async () => {
+  if (!cashPaymentForm.amount || !cashPaymentForm.date) {
+    alert('Please enter amount and date');
+    return;
+  }
+  
+  processing.value = true;
+  cashPaymentMessage.value = '';
+  
+  try {
+    const response = await axios.post(route('admin.fees.payments.record-cash'), {
+      amount: cashPaymentForm.amount,
+      payment_date: cashPaymentForm.date,
+      notes: cashPaymentForm.notes,
+      student_id: detailedStudent.value.id
+    });
+
+    if (response.data.success) {
+      cashPaymentSuccess.value = true;
+      cashPaymentMessage.value = 'Cash payment recorded successfully!';
+      
+      // Reload student data silently to show the new payment without re-opening modal
+      const detailedResponse = await axios.post(route('admin.fees.student-details'), {
+        student_id: detailedStudent.value.id,
+        academic_year: academicYear.value,
+        term: term.value
+      });
+      
+      if (detailedResponse.data.success) {
+        detailedStudent.value = detailedResponse.data.student;
+        // Also update selectedStudent if matches
+        if (selectedStudent.value && selectedStudent.value.id === detailedStudent.value.id) {
+            selectedStudent.value = { ...selectedStudent.value, ...detailedResponse.data.student };
+        }
+      }
+      
+      setTimeout(() => {
+        const modalEl = document.getElementById('cashPaymentModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        if (modal) modal.hide();
+      }, 2000);
+    } else {
+      cashPaymentSuccess.value = false;
+      cashPaymentMessage.value = response.data.message;
+    }
+  } catch (error) {
+    console.error(error);
+    cashPaymentSuccess.value = false;
+    cashPaymentMessage.value = error.response?.data?.message || 'Failed to record cash payment.';
+  } finally {
+    processing.value = false;
+  }
+};
 
 // Computed properties
 const selectedClassName = computed(() => {
@@ -751,8 +1032,9 @@ const viewStudentDetails = async (student) => {
     
     if (response.data.success) {
       detailedStudent.value = response.data.student;
-      await nextTick(); // Wait for DOM update
-      const modal = new bootstrap.Modal(document.getElementById('studentDetailsModal'));
+      await nextTick();
+      const modalEl = document.getElementById('studentDetailsModal');
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
       modal.show();
     }
   } catch (error) {

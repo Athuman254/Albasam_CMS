@@ -1,0 +1,28 @@
+
+   INFO  Seeding database.  
+
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`school_management`.`employee_class`, CONSTRAINT `employee_class_teacher_id_foreign` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE) (Connection: mysql, SQL: insert into `employee_class` (`employee_id`, `class_id`, `subject_id`, `academic_year_id`, `is_class_teacher`, `notes`, `teacher_id`, `updated_at`, `created_at`) values (8, 2, 9, 2, 1, Class Teacher for Grade 2, 8, 2025-12-24 15:28:19, 2025-12-24 15:28:19))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:825
+    821▕                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    822▕                 );
+    823▕             }
+    824▕ 
+  ➜ 825▕             throw new QueryException(
+    826▕                 $this->getName(), $query, $this->prepareBindings($bindings), $e
+    827▕             );
+    828▕         }
+    829▕     }
+
+      [2m+21 vendor frames [22m
+
+  22  database/seeders/TeachersSeeder.php:159
+      Illuminate\Database\Eloquent\Model::__callStatic()
+      [2m+23 vendor frames [22m
+
+  46  artisan:16
+      Illuminate\Foundation\Application::handleCommand()
+

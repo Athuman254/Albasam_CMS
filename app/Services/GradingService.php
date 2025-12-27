@@ -2,26 +2,23 @@
 
 namespace App\Services;
 
+use App\Models\GradingScale;
+use App\Models\GradingEntry;
+
 class GradingService
 {
     /**
-     * Get grade based on percentage following Kenyan KCSE system.
-     * 
-     * A  (12 pts): 80 - 100
-     * A- (11 pts): 75 - 79
-     * B+ (10 pts): 70 - 74
-     * B  (9 pts):  65 - 69
-     * B- (8 pts):  60 - 64
-     * C+ (7 pts):  55 - 59
-     * C  (6 pts):  50 - 54
-     * C- (5 pts):  45 - 49
-     * D+ (4 pts):  40 - 44
-     * D  (3 pts):  35 - 39
-     * D- (2 pts):  30 - 34
-     * E  (1 pt):   0 - 29
+     * Get grade based on percentage using dynamic scales or default KCSE system.
      */
-    public static function getGrade(float $percentage): string
+    public static function getGrade(float $percentage, ?int $gradingScaleId = null): string
     {
+        $entry = self::getMatchingEntry($percentage, $gradingScaleId);
+
+        if ($entry) {
+            return $entry->grade;
+        }
+
+        // Hardcoded Kenyan KCSE system fallback if no scale/entry found
         return match (true) {
             $percentage >= 80 => 'A',
             $percentage >= 75 => 'A-',
@@ -39,10 +36,30 @@ class GradingService
     }
 
     /**
-     * Get points based on grade.
+     * Get points based on grade and scale.
      */
-    public static function getPoints(string $grade): int
+    public static function getPoints(string $grade, ?int $gradingScaleId = null): int
     {
+        if ($gradingScaleId) {
+            $entry = GradingEntry::where('grading_scale_id', $gradingScaleId)
+                ->where('grade', $grade)
+                ->first();
+            if ($entry) {
+                return $entry->points;
+            }
+        }
+
+        $defaultScale = GradingScale::where('is_default', true)->first();
+        if ($defaultScale) {
+            $entry = GradingEntry::where('grading_scale_id', $defaultScale->id)
+                ->where('grade', $grade)
+                ->first();
+            if ($entry) {
+                return $entry->points;
+            }
+        }
+
+        // Hardcoded KCSE points fallback
         return match (strtoupper($grade)) {
             'A' => 12,
             'A-' => 11,
@@ -58,5 +75,51 @@ class GradingService
             'E' => 1,
             default => 0,
         };
+    }
+
+    /**
+     * Get automated remarks based on percentage and scale.
+     */
+    public static function getRemarks(float $percentage, ?int $gradingScaleId = null): string
+    {
+        $entry = self::getMatchingEntry($percentage, $gradingScaleId);
+
+        if ($entry && $entry->remarks) {
+            return $entry->remarks;
+        }
+
+        // Default remarks fallback
+        return match (true) {
+            $percentage >= 80 => 'Exceeded Expectations',
+            $percentage >= 70 => 'Met Expectations',
+            $percentage >= 60 => 'Approached Expectations',
+            $percentage >= 40 => 'Satisfactory',
+            default => 'Below Expectations',
+        };
+    }
+
+    /**
+     * Helper to find matching entry.
+     */
+    private static function getMatchingEntry(float $percentage, ?int $gradingScaleId = null): ?GradingEntry
+    {
+        if ($gradingScaleId) {
+            $entry = GradingEntry::where('grading_scale_id', $gradingScaleId)
+                ->where('min_score', '<=', $percentage)
+                ->where('max_score', '>=', $percentage)
+                ->first();
+            if ($entry) return $entry;
+        }
+
+        $defaultScale = GradingScale::where('is_default', true)->active()->first();
+        if ($defaultScale) {
+            $entry = GradingEntry::where('grading_scale_id', $defaultScale->id)
+                ->where('min_score', '<=', $percentage)
+                ->where('max_score', '>=', $percentage)
+                ->first();
+            if ($entry) return $entry;
+        }
+
+        return null;
     }
 }

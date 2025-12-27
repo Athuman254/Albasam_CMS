@@ -313,7 +313,13 @@ class TimetableSeeder extends Seeder
     {
         TimetableConstraint::where('academic_year_id', $academicYear->id)->delete();
 
-        $teachers = \App\Models\Teacher::all();
+        // Get users who have teacher records (same as in seedAllocations)
+        $teachers = User::whereHas('teacher')->take(20)->get();
+
+        if ($teachers->isEmpty()) {
+            $this->command->warn('No teachers found. Skipping constraint seeding.');
+            return;
+        }
 
         $rooms = TimetableRoom::where('status', 'available')->get();
         $constraintsCount = 0;

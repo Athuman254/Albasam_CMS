@@ -22,6 +22,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Omaralalwi\Gpdf\Facade\Gpdf as GpdfFacade;
 
 class EmployeeController extends Controller
 {
@@ -54,7 +55,11 @@ class EmployeeController extends Controller
             'employmentStatus',
             'gender',
             'honorific',
-            'classes'
+            'maritalStatus',
+            'religion',
+            'classes',
+            'user.roles',
+            'media'
         ]);
 
         // Add search functionality
@@ -132,6 +137,11 @@ class EmployeeController extends Controller
             'employment_status_id' => 'required|exists:employment_statuses,id',
             'identification_number' => 'required|string|max:50|unique:employees',
             'tax_identification_pin' => 'nullable|string|max:50',
+            'tsc_number' => 'nullable|string|max:255',
+            'hobbies' => 'nullable|string',
+            'photo' => 'nullable|image|max:2048',
+            'documents' => 'nullable|array',
+            'documents.*' => 'nullable|file|max:5120',
 
             // Role & System Access
             'role_id' => 'required|exists:roles,id',
@@ -220,6 +230,18 @@ class EmployeeController extends Controller
             }
 
             $employee = Employee::create($validated);
+
+            // Handle photo upload
+            if ($request->hasFile('photo')) {
+                $employee->addMediaFromRequest('photo')->toMediaCollection('employee_photos');
+            }
+
+            // Handle documents upload
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $employee->addMedia($file)->toMediaCollection('employee_documents');
+                }
+            }
 
             // Create user account if system access granted
             if ($request->boolean('has_system_access')) {
@@ -368,6 +390,11 @@ class EmployeeController extends Controller
             'employment_status_id' => 'required|exists:employment_statuses,id',
             'identification_number' => 'required|string|max:50|unique:employees,identification_number,' . $employee->id,
             'tax_identification_pin' => 'nullable|string|max:50',
+            'tsc_number' => 'nullable|string|max:255|unique:employees,tsc_number,' . $employee->id,
+            'hobbies' => 'nullable|string',
+            'photo' => 'nullable|image|max:2048',
+            'documents' => 'nullable|array',
+            'documents.*' => 'nullable|file|max:5120',
 
             // Role & System Access
             'role_id' => 'required|exists:roles,id',
@@ -433,6 +460,19 @@ class EmployeeController extends Controller
             }
 
             $employee->update($validated);
+
+            // Handle photo upload
+            if ($request->hasFile('photo')) {
+                $employee->clearMediaCollection('employee_photos');
+                $employee->addMediaFromRequest('photo')->toMediaCollection('employee_photos');
+            }
+
+            // Handle documents upload
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $employee->addMedia($file)->toMediaCollection('employee_documents');
+                }
+            }
 
             // Update role if provided and employee has a user account
             if ($employee->user) {
@@ -544,6 +584,52 @@ class EmployeeController extends Controller
             Log::error('Employee deletion failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to delete employee: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Export employee profile to PDF
+     */
+    public function exportPdf(Employee $employee)
+    {
+        $employee->load([
+            'honorific',
+            'gender',
+            'maritalStatus',
+            'religion',
+            'employmentType',
+            'employmentStatus',
+            'user.roles'
+        ]);
+
+        $institution = \App\Models\Institution::first();
+
+        // Handle photo base64 for PDF
+        $photoBase64 = null;
+        if ($employee->hasMedia('employee_photos')) {
+            $media = $employee->getFirstMedia('employee_photos');
+            $path = $media->getPath();
+            if (file_exists($path)) {
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $data = file_get_contents($path);
+                $photoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            }
+        }
+
+        $html = view('reports.employee-profile', [
+            'employee' => $employee,
+            'institution' => $institution,
+            'photoBase64' => $photoBase64,
+            'generated_at' => now()->format('d/m/Y H:i:s'),
+        ])->render();
+
+        $filename = 'Employee_Profile_' . str_replace(' ', '_', $employee->first_name . '_' . $employee->last_name) . '.pdf';
+
+        $pdfContent = GpdfFacade::generate($html);
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"'
+        ]);
     }
 
     /**

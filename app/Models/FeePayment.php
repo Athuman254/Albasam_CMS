@@ -8,9 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class FeePayment extends Model
 {
     protected $fillable = [
-        'fee_id', 'student_id', 'amount', 'payment_method', 'reference_number',
-        'transaction_id', 'payment_date', 'status', 'notes', 'verified_by', 'verified_at',
-        'auto_recorded_payment_id' 
+        'fee_id',
+        'student_id',
+        'amount',
+        'payment_method',
+        'reference_number',
+        'transaction_id',
+        'payment_date',
+        'status',
+        'notes',
+        'verified_by',
+        'verified_at',
+        'auto_recorded_payment_id'
     ];
 
     protected $casts = [
@@ -74,7 +83,12 @@ class FeePayment extends Model
     {
         return $query->where('payment_method', 'cash');
     }
-    
+
+    public function scopeMobileDirect($query)
+    {
+        return $query->where('payment_method', 'mobile_direct');
+    }
+
     public function getIsAutoAllocatedAttribute(): bool
     {
         return !is_null($this->auto_recorded_payment_id);
@@ -82,10 +96,11 @@ class FeePayment extends Model
 
     public function getFormattedPaymentMethodAttribute(): string
     {
-        return match($this->payment_method) {
+        return match ($this->payment_method) {
             'mpesa' => 'M-Pesa',
             'bank' => 'Bank Transfer',
             'cash' => 'Cash',
+            'mobile_direct' => 'Mobile Direct',
             default => ucfirst($this->payment_method)
         };
     }

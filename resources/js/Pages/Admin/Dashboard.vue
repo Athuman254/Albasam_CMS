@@ -61,6 +61,59 @@
                </div>
             </div>
          </div>
+      </div> <!-- Closing div for the first row -->
+
+      <div class="row mt-4">
+         <div class="col-12">
+            <div class="card h-100">
+               <div class="card-header d-flex align-items-center justify-content-between">
+                  <h5 class="card-title m-0 text-primary"><i class="bx bx-table me-2"></i>Student Distribution per Class</h5>
+                  <small class="text-muted">Breakdown of students across active classes</small>
+               </div>
+               <div class="card-body">
+                  <div class="table-responsive text-nowrap">
+                     <table class="table table-hover border-top">
+                        <thead class="bg-light">
+                           <tr>
+                              <th>Class Name</th>
+                              <th>Number of Students</th>
+                              <th>Capacity Visualization</th>
+                           </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                           <tr v-for="(item, index) in studentDistribution" :key="index">
+                              <td>
+                                 <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-3">
+                                       <span class="avatar-initial rounded-circle bg-label-primary">{{ item.class_name.charAt(0) }}</span>
+                                    </div>
+                                    <span class="fw-bold text-heading">{{ item.class_name }}</span>
+                                 </div>
+                              </td>
+                              <td>
+                                 <span class="badge bg-label-primary px-3">{{ item.student_count }} Students</span>
+                              </td>
+                              <td style="min-width: 200px;">
+                                 <div class="progress" style="height: 10px;">
+                                    <div 
+                                       class="progress-bar bg-primary shadow-none" 
+                                       role="progressbar" 
+                                       :style="{ width: (item.student_count > 0 ? (item.student_count / Math.max(...studentDistribution.map(i => i.student_count), 50)) * 100 : 0) + '%' }"
+                                    ></div>
+                                 </div>
+                              </td>
+                           </tr>
+                           <tr v-if="!studentDistribution?.length">
+                              <td colspan="3" class="text-center py-4">
+                                 <div class="text-muted">No active classes found</div>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+            </div>
+         </div>
       </div>
    </DefaultLayout>
 </template>
@@ -73,6 +126,7 @@ import { Head, Link } from "@inertiajs/vue3";
 defineProps({
    studentsCount: Number,
    teachersCount: Number,
-   classesCount: Number
+   classesCount: Number,
+   studentDistribution: Array
 });
 </script>

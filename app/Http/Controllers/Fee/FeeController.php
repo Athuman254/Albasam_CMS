@@ -15,8 +15,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
+use App\Services\MessageService;
+
 class FeeController extends Controller
 {
+    protected $messageService;
+
+    public function __construct(MessageService $messageService)
+    {
+        $this->messageService = $messageService;
+    }
+
     public function index()
     {
         return Inertia::render('Admin/Fees/Index', [
@@ -42,7 +51,8 @@ class FeeController extends Controller
         Log::info('Fee creation started', $request->all());
 
         $request->validate([
-            'rank_id' => 'required|exists:ranks,id',
+            'rank_id' => 'required_without:student_id|exists:ranks,id',
+            'student_id' => 'nullable|exists:students,id',
             'fee_type' => 'required|string|in:tuition,activity,exam,library,sports,transport,hostel,other',
             'amount' => 'required|numeric|min:0',
             'academic_year' => 'required|string',
@@ -54,10 +64,14 @@ class FeeController extends Controller
         try {
             DB::beginTransaction();
 
-            // Get all students in the selected class
-            $students = Student::where('rank_id', $request->rank_id)->get();
-
-            Log::info("Students found in class {$request->rank_id}: " . $students->count());
+            // Determine students to apply fee to
+            if ($request->student_id) {
+                $students = Student::where('id', $request->student_id)->get();
+                Log::info("Individual fee targeted for student ID: {$request->student_id}");
+            } else {
+                $students = Student::where('rank_id', $request->rank_id)->get();
+                Log::info("Class-wide fee targeted for class ID: {$request->rank_id}, Students found: " . $students->count());
+            }
 
             $createdCount = 0;
             $updatedCount = 0;
@@ -69,17 +83,19 @@ class FeeController extends Controller
                     try {
                         // Check if fee already exists for this student, academic year, term, and fee type
                         $existingFee = Fee::where('student_id', $student->id)
-                            ->where('rank_id', $request->rank_id)
+                            ->where('rank_id', $request->rank_id ?? $student->rank_id)
                             ->where('fee_type', $request->fee_type)
                             ->where('academic_year', $request->academic_year)
                             ->where('term', $request->term)
                             ->first();
 
+                        $targetFee = null;
+
                         if (!$existingFee) {
                             // Create new fee
-                            Fee::create([
+                            $targetFee = Fee::create([
                                 'student_id' => $student->id,
-                                'rank_id' => $request->rank_id,
+                                'rank_id' => $request->rank_id ?? $student->rank_id,
                                 'original_fee_structure_id' => null,
                                 'fee_type' => $request->fee_type,
                                 'amount' => $request->amount,
@@ -105,8 +121,19 @@ class FeeController extends Controller
                                 'description' => $request->description,
                                 'status' => $newBalance <= 0 ? 'paid' : ($existingFee->paid_amount > 0 ? 'partial' : 'pending'),
                             ]);
+                            $targetFee = $existingFee;
                             $updatedCount++;
                             Log::info("Updated fee for student: {$student->first_name} {$student->last_name} (Amount: {$request->amount}, Paid: {$existingFee->paid_amount}, New Balance: {$newBalance})");
+                        }
+
+                        // Trigger SMS for ALL fee assignments (individual and class-wide)
+                        if ($targetFee) {
+                            try {
+                                Log::info("Triggering SMS for fee: {$targetFee->id} to student: {$student->id}");
+                                $this->messageService->sendFeeAssignmentNotification($student, $targetFee);
+                            } catch (\Exception $smsEx) {
+                                Log::error("Failed to trigger fee SMS: " . $smsEx->getMessage());
+                            }
                         }
                     } catch (\Exception $e) {
                         $errorMsg = "Error processing fee for {$student->first_name} {$student->last_name}: " . $e->getMessage();
@@ -114,8 +141,8 @@ class FeeController extends Controller
                         Log::error($errorMsg);
                     }
                 }
-            } else {
-                // No students in class - create fee structure template
+            } elseif (!$request->student_id) {
+                // No students in class and NOT an individual fee - create fee structure template
                 try {
                     $feeStructure = FeeStructure::create([
                         'rank_id' => $request->rank_id,
@@ -148,10 +175,32 @@ class FeeController extends Controller
             DB::commit();
 
             // Success message based on what was created/updated
-            if ($students->isEmpty()) {
+            if ($students->isEmpty() && !$request->student_id) {
                 $successMessage = "Class fee template created successfully! This fee structure will apply to future students in this class.";
             } else {
-                $successMessage = "Fees processed successfully! Created: {$createdCount}, Updated: {$updatedCount}";
+                $successMessage = $request->student_id
+                    ? "Fee processed successfully for the student."
+                    : "Fees processed successfully! Created: {$createdCount}, Updated: {$updatedCount}";
+
+                // Trigger SMS for individual fee if it's a new or updated assignment
+                if ($request->student_id && $students->isNotEmpty()) {
+                    try {
+                        $student = $students->first();
+                        $latestFee = Fee::where('student_id', $student->id)
+                            ->where('fee_type', $request->fee_type)
+                            ->where('academic_year', $request->academic_year)
+                            ->where('term', $request->term)
+                            ->latest()
+                            ->first();
+
+                        if ($latestFee) {
+                            $this->messageService->sendFeeAssignmentNotification($student, $latestFee);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error("Failed to trigger individual fee SMS: " . $e->getMessage());
+                    }
+                }
+
                 if (!empty($errors)) {
                     $successMessage .= " Note: " . implode(', ', array_slice($errors, 0, 3));
                     if (count($errors) > 3) {
@@ -242,13 +291,27 @@ class FeeController extends Controller
     public function destroy(Fee $fee)
     {
         try {
+            // Check if fee has any payments
+            if ($fee->paid_amount > 0 || $fee->payments()->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete a fee that has already been partially or fully paid.'
+                ], 422);
+            }
+
+            Log::info("Deleting fee ID: {$fee->id} for student: {$fee->student_id}");
             $fee->delete();
-            Log::info("Fee deleted successfully: {$fee->id}");
-            return redirect()->route('admin.fees.index')
-                ->with('success', 'Fee deleted successfully!');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Fee deleted successfully.'
+            ]);
         } catch (\Exception $e) {
-            Log::error('Error deleting fee: ' . $e->getMessage());
-            return back()->with('error', 'Error deleting fee: ' . $e->getMessage());
+            Log::error("Error deleting fee: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting fee: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -321,7 +384,7 @@ class FeeController extends Controller
                 'payment_date' => $request->payment_date,
                 'status' => 'completed',
                 'notes' => $request->notes,
-                'verified_by' => auth()->id(),
+                'verified_by' => \auth()->id(),
                 'verified_at' => now(),
             ]);
 
@@ -410,7 +473,7 @@ class FeeController extends Controller
             })
             ->latest();
 
-        return datatables()->eloquent($fees)
+        return \datatables()->eloquent($fees)
             ->addColumn('student_name', function ($fee) {
                 $name = $fee->student ? $fee->student->first_name . ' ' . $fee->student->last_name : 'N/A';
 
@@ -470,7 +533,7 @@ class FeeController extends Controller
             ->where('student_id', $student->id)
             ->latest();
 
-        return datatables()->eloquent($fees)
+        return \datatables()->eloquent($fees)
             ->addColumn('class', function ($fee) {
                 return $fee->rank->name;
             })
@@ -1607,7 +1670,7 @@ class FeeController extends Controller
                 <div class='mt-4 text-center text-muted'>
                     <small>
                         This is a computer-generated report. No signature is required.<br>
-                        Generated by: " . (auth()->user()->name ?? 'System') . "
+                        Generated by: " . (\auth()->user()->name ?? 'System') . "
                     </small>
                 </div>
             </div>
@@ -1755,6 +1818,10 @@ class FeeController extends Controller
             'custom_message' => $request->message,
         ]);
 
+        if ($request->reminder_type === 'sms' || $request->reminder_type === 'both') {
+            $this->messageService->sendFeeReminder($student, $outstandingBalance, $request->message);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Fee reminder sent successfully!',
@@ -1800,6 +1867,10 @@ class FeeController extends Controller
                 'reminder_type' => $request->reminder_type,
                 'outstanding_balance' => $outstandingBalance,
             ]);
+
+            if ($request->reminder_type === 'sms' || $request->reminder_type === 'both') {
+                $this->messageService->sendFeeReminder($student, $outstandingBalance, $request->message);
+            }
 
             $sentCount++;
         }

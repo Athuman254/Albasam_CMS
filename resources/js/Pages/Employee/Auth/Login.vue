@@ -22,26 +22,9 @@
             <!-- Logo -->
             <div class="app-brand justify-content-center mb-4">
                <a href="#" class="app-brand-link gap-2">
-                  <span v-if="logo" class="app-brand-logo demo">
-                     <img :src="logo" alt="logo" style="width:200px; height:auto;">
+                  <span class="app-brand-logo demo">
+                     <img src="/images/ecobiz_logo_new.jpeg" alt="logo" style="max-width: 300px; width: 100%; height: auto; filter: invert(1) hue-rotate(180deg);">
                   </span>
-                  <div v-else class="d-flex align-items-center">
-                     <span class="app-brand-logo demo">
-                        <svg
-                           width="32"
-                           height="32"
-                           viewBox="0 0 32 32"
-                           fill="none"
-                           xmlns="http://www.w3.org/2000/svg">
-                           <path d="M16 2L20 8H12L16 2Z" fill="#696cff"/>
-                           <path d="M12 8H20L24 14H8L12 8Z" fill="#696cff"/>
-                           <path d="M8 14H24L28 20H4L8 14Z" fill="#696cff"/>
-                           <path d="M4 20H28L32 26H0L4 20Z" fill="#696cff"/>
-                           <path d="M0 26H32V32H0V26Z" fill="#696cff"/>
-                        </svg>
-                     </span>
-                     <span class="app-brand-text demo menu-text fw-bold ms-2" style="font-size: 1.5rem;">Ecobiz</span>
-                  </div>
                </a>
             </div>
             <!-- /Logo -->

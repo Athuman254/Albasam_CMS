@@ -151,49 +151,12 @@ class StudentAdmissionController extends Controller
     }
 
     /**
-     * Generate the next admission number in format ADM01, ADM02, etc.
-     */
-    private function generateAdmissionNumber(): string
-    {
-        try {
-            // Get the latest admission number
-            $latestStudent = Student::orderBy('id', 'desc')->first();
-
-            if ($latestStudent && !empty($latestStudent->admission_number)) {
-                // Extract the numeric part from the latest admission number
-                $latestNumber = preg_replace('/[^0-9]/', '', $latestStudent->admission_number);
-
-                if ($latestNumber !== '') {
-                    $nextNumber = (int)$latestNumber + 1;
-                } else {
-                    // If no numeric part found, start from 1
-                    $nextNumber = 1;
-                }
-            } else {
-                // If no students exist yet, start from 1
-                $nextNumber = 1;
-            }
-
-            // Format the number with leading zeros (at least 2 digits)
-            $formattedNumber = str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
-
-            return "ADM{$formattedNumber}";
-        } catch (\Exception $e) {
-            Log::error('Error generating admission number: ' . $e->getMessage());
-
-            // Fallback: use timestamp-based number
-            $fallbackNumber = date('YmdHis');
-            return "ADM{$fallbackNumber}";
-        }
-    }
-
-    /**
      * API endpoint to generate admission number for frontend
      */
     public function generateAdmissionNumberApi()
     {
         try {
-            $admissionNumber = $this->generateAdmissionNumber();
+            $admissionNumber = Student::generateAdmissionNumber();
 
             return response()->json([
                 'success' => true,
@@ -217,11 +180,12 @@ class StudentAdmissionController extends Controller
         DB::beginTransaction();
         try {
             // Generate admission number if not provided (for backward compatibility)
-            $admissionNumber = $validated['student']['admission_number'] ?? $this->generateAdmissionNumber();
+            $admissionNumber = $validated['student']['admission_number'] ?? Student::generateAdmissionNumber();
 
             // Create admission - REMOVE 'date' field
             $admission = StudentAdmission::create([
                 'division_id' => $validated['registration_details']['division_id'],
+                'registered_at' => $validated['registration_details']['registered_at'] ?? now(),
             ]);
 
             // Generate default password (Admission Number + Current Year)
@@ -230,6 +194,7 @@ class StudentAdmissionController extends Controller
             $student = Student::create([
                 'student_admission_id' => $admission->id,
                 'admission_number' => $admissionNumber,
+                'assessment_number' => $validated['student']['assessment_number'] ?? null,
                 // Authentication Fields
                 'username' => $admissionNumber,
                 'password' => Hash::make($defaultPassword),
@@ -254,7 +219,14 @@ class StudentAdmissionController extends Controller
                 'hobby' => $validated['other_details']['hobby'],
                 'medical_details' => $validated['other_details']['medical_details'] ?? null,
                 'character_book' => $validated['other_details']['character_book'] ?? null,
+                'scholarship_type' => $validated['student']['scholarship_type'] ?? 'none',
+                'scholarship_rate' => $validated['student']['scholarship_rate'] ?? 0,
             ]);
+
+            // Handle Photo
+            if (isset($validated['student']['photo'])) {
+                $this->handleStudentPhoto($student, $validated['student']['photo']);
+            }
 
             // TODO: Send SMS with credentials to parent
             // $this->sendCredentialsSms($student, $defaultPassword);
@@ -372,6 +344,9 @@ class StudentAdmissionController extends Controller
         Log::info('📁 Student Admission ID: ' . $id);
 
         try {
+            // Fetch institution details for branding (e.g. for print)
+            $institution = \App\Models\Institution::first();
+
             // Find by ID but don't load the student relationship with computed properties
             $admission = StudentAdmission::with([
                 'division',
@@ -407,6 +382,7 @@ class StudentAdmissionController extends Controller
                     'has_student' => $admission->has_student,
                 ],
                 'student' => null,
+            'institution' => $institution,
             ];
 
             // Manually build student data without computed properties
@@ -418,6 +394,7 @@ class StudentAdmissionController extends Controller
                     'middle_name' => $student->middle_name,
                     'last_name' => $student->last_name,
                     'admission_number' => $student->admission_number,
+                    'assessment_number' => $student->assessment_number,
                     'date_of_birth' => $student->date_of_birth,
                     'birth_certificate_number' => $student->birth_certificate_number,
                     'citizenship' => $student->citizenship,
@@ -429,6 +406,7 @@ class StudentAdmissionController extends Controller
                     'physical_disability' => $student->physical_disability,
                     'hobby' => $student->hobby,
                     'medical_details' => $student->medical_details,
+                    'photo_url' => $student->photo_url ? parse_url($student->photo_url, PHP_URL_PATH) : null,
                     'character_book' => $student->character_book,
                     'full_name' => $student->full_name,
                     'age' => $student->age,
@@ -561,6 +539,7 @@ class StudentAdmissionController extends Controller
             // Update admission
             $studentAdmission->update([
                 'division_id' => $request->input('registration_details.division_id'),
+                'registered_at' => $request->input('registration_details.registered_at'),
             ]);
 
             Log::info('✅ Admission updated');
@@ -570,6 +549,7 @@ class StudentAdmissionController extends Controller
                 'first_name' => $request->input('student.first_name'),
                 'middle_name' => $request->input('student.middle_name', ''),
                 'last_name' => $request->input('student.last_name'),
+                'assessment_number' => $request->input('student.assessment_number'),
                 'rank_id' => $request->input('student.rank_id'),
                 'date_of_birth' => $request->input('student.date_of_birth'),
                 'birth_certificate_number' => $request->input('student.birth_certificate_number', ''),
@@ -585,11 +565,18 @@ class StudentAdmissionController extends Controller
                 'hobby' => $request->input('other_details.hobby', ''),
                 'medical_details' => $request->input('other_details.medical_details', ''),
                 'character_book' => $request->input('other_details.character_book', ''),
+                'scholarship_type' => $request->input('student.scholarship_type', $student->scholarship_type),
+                'scholarship_rate' => $request->input('student.scholarship_rate', $student->scholarship_rate),
             ];
 
             Log::info('📦 Student Update Data:', $studentData);
 
             $student->update($studentData);
+
+            // Handle Photo
+            if ($request->has('student.photo')) {
+                $this->handleStudentPhoto($student, $request->input('student.photo'));
+            }
             Log::info('✅ Student updated');
 
             // Handle guardians
@@ -993,6 +980,27 @@ class StudentAdmissionController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Something went wrong. Please try again.')
                 ->withInput();
+        }
+    }
+
+    /**
+     * Handle student photo upload or base64
+     */
+    private function handleStudentPhoto($student, $photo)
+    {
+        if (empty($photo)) return;
+
+        try {
+            if (is_string($photo) && str_starts_with($photo, 'data:image')) {
+                $student->addMediaFromBase64($photo)
+                    ->usingFileName('photo_' . $student->admission_number . '.png')
+                    ->toMediaCollection('student_photos');
+            } elseif ($photo instanceof \Illuminate\Http\UploadedFile) {
+                $student->addMedia($photo)
+                    ->toMediaCollection('student_photos');
+            }
+        } catch (\Exception $e) {
+            Log::error('Photo upload failed: ' . $e->getMessage());
         }
     }
 }

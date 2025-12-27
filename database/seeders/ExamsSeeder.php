@@ -79,9 +79,6 @@ class ExamsSeeder extends Seeder
                             'subject_id' => $subject->id,
                         ],
                         [
-                            'exam_date' => now()->addDays($examData['start_offset'] + $index),
-                            'start_time' => '08:00:00',
-                            'end_time' => '10:00:00',
                             'max_marks' => 100,
                         ]
                     );
@@ -109,6 +106,10 @@ class ExamsSeeder extends Seeder
                             $marksObtained = $this->generateRealisticMarks();
                             $grade = $this->calculateGrade($marksObtained);
 
+                            // Decide if this mark should be approved or just submitted
+                            $isApproved = rand(0, 100) < 70; // 70% chance of being approved
+                            $status = $isApproved ? 'approved' : 'submitted';
+
                             ExamMark::firstOrCreate(
                                 [
                                     'exam_id' => $exam->id,
@@ -121,11 +122,11 @@ class ExamsSeeder extends Seeder
                                     'marks_obtained' => $marksObtained,
                                     'maximum_marks' => 100,
                                     'grade' => $grade,
-                                    'status' => 'approved',
+                                    'status' => $status,
                                     'submitted_by' => $teacher->user_id,
                                     'submitted_at' => now()->subDays(rand(1, 10)),
-                                    'approved_by' => $teacher->user_id,
-                                    'approved_at' => now()->subDays(rand(1, 5)),
+                                    'approved_by' => $isApproved ? $teacher->user_id : null,
+                                    'approved_at' => $isApproved ? now()->subDays(rand(1, 5)) : null,
                                     'remarks' => $this->generateRemarks($marksObtained),
                                 ]
                             );

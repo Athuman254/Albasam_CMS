@@ -62,6 +62,7 @@ class TeacherController extends Controller
             'personal_details.postal_address' => ['nullable', 'string'],
             'personal_details.identification_number' => ['nullable', 'string', 'max:255'],
             'personal_details.tax_identification_pin' => ['nullable', 'string', 'max:255'],
+            'photo' => ['nullable', 'image', 'max:2048'],
         ], $errorMessages);
 
         if ($employee) {
@@ -117,7 +118,8 @@ class TeacherController extends Controller
         $request->validate([
             'other_details.specialization_area_id' => ['nullable', Rule::exists('specializations', 'id')],
             'other_details.job_title_id' => ['nullable', Rule::exists('job_titles', 'id')],
-            'other_details.tsc_number' => ['required', 'string', 'max:255'],
+            'other_details.tsc_number' => ['nullable', 'string', 'max:255'],
+            'other_details.hobbies' => ['nullable', 'string'],
             'other_details.years_of_experience' => ['nullable', 'integer', 'min:0'],
             'other_details.qualifications' => ['nullable', 'array'],
             'other_details.qualifications.*.institution_name' => ['nullable', 'string', 'max:255'],
@@ -128,7 +130,8 @@ class TeacherController extends Controller
             'other_details.work_histories.*.institution_name' => ['nullable', 'string', 'max:255'],
             'other_details.work_histories.*.start_date' => ['nullable', 'date'],
             'other_details.work_histories.*.end_date' => ['nullable', 'date'],
-            //            'other_details.work_histories.*.year_of_completion' => ['nullable', 'string', 'max:255'],
+            'documents' => ['nullable', 'array'],
+            'documents.*' => ['nullable', 'file', 'max:5120'],
         ], $errorMessages);
 
         return to_route('admin.teachers.create');
@@ -159,9 +162,10 @@ class TeacherController extends Controller
     public function otherDetailsValidation(Request $request): array
     {
         return $request->validate([
-            'other_details.specialization_area_id' => ['required', Rule::exists('specialization_areas', 'id')],
+            'other_details.specialization_area_id' => ['nullable', Rule::exists('specializations', 'id')],
             'other_details.job_title_id' => ['nullable', Rule::exists('job_titles', 'id')],
-            'other_details.tsc_number' => ['required', 'string', 'max:255'],
+            'other_details.tsc_number' => ['nullable', 'string', 'max:255'],
+            'other_details.hobbies' => ['nullable', 'string'],
             'other_details.years_of_experience' => ['nullable', 'integer', 'min:0'],
             'other_details.qualifications' => ['nullable', 'array'],
             'other_details.qualifications.*.institution_name' => ['nullable', 'string', 'max:255'],

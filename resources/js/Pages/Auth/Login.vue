@@ -12,7 +12,7 @@
             <div class="app-brand justify-content-center mb-4">
                <a href="#" class="app-brand-link gap-2">
                   <span class="app-brand-logo demo">
-                     <img src="/images/ecobiz_logo_colored.png" alt="EcoBiz Logo" style="width:120px; height:auto;">
+                     <img src="/images/ecobiz_logo_new.jpeg" alt="EcoBiz Logo" style="max-width: 250px; width: 100%; height: auto; filter: invert(1) hue-rotate(180deg);">
                   </span>
                </a>
             </div>

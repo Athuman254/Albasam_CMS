@@ -15,20 +15,31 @@ class Exam extends Model
 
     protected $fillable = [
         'name',
+        'term',
+        'exam_type',
         'academic_year_id',
+        'grading_scale_id',
         'start_date',
         'end_date',
-        'status'
+        'status',
+        'publisher',
+        'exam_date',
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
+        'exam_date' => 'date',
     ];
 
     public function academicYear()
     {
         return $this->belongsTo(AcademicYear::class, 'academic_year_id');
+    }
+
+    public function gradingScale()
+    {
+        return $this->belongsTo(GradingScale::class);
     }
 
     public function subjects()

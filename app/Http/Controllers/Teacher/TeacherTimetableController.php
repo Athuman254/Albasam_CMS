@@ -90,6 +90,7 @@ class TeacherTimetableController extends Controller
             'allocations' => $allocations,
             'daysOfWeek' => config('timetable.days_of_week'),
             'teacherName' => $user->name,
+            'teacherId' => $user->id,
             'versionId' => $version ? $version->id : null,
         ]);
     }

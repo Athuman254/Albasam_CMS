@@ -10,11 +10,14 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Support\Facades\Log;
 
 class RankController extends Controller
 {
     public function dataTable()
     {
+        \Log::info('RankController::dataTable called');
+
         $classes = QueryBuilder::for(
             Rank::with(['division', 'stream', 'teacher.honorific'])
                 ->withCount('students')
@@ -26,6 +29,8 @@ class RankController extends Controller
             AllowedFilter::partial('name'),
             AllowedFilter::scope('search', 'Search'),
         ])->jsonPaginate();
+
+        \Log::info('RankController found classes: ' . $classes->count());
 
         return Resource::collection($classes);
     }

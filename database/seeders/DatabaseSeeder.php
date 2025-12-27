@@ -53,11 +53,9 @@ class DatabaseSeeder extends Seeder
 
         $this->relationships();
 
-        // $this->divisions();
-
-        // $this->streams();
-
-        // $this->ranks(); // Skip secondary classes for now
+        $this->divisions();
+        $this->streams();
+        $this->ranks();
 
         $this->maritalStatuses();
 
@@ -106,26 +104,26 @@ class DatabaseSeeder extends Seeder
         }
 
         // Seed primary school classes and students
-        // $this->call(PrimarySchoolClassesSeeder::class);
-        // $this->call(PrimarySchoolStudentsSeeder::class);
+        $this->call(PrimarySchoolClassesSeeder::class);
+        $this->call(PrimarySchoolStudentsSeeder::class);
 
         // Seed subjects
-        // $this->call(SubjectsSeeder::class);
+        $this->call(SubjectsSeeder::class);
 
         // Seed skills
         $this->call(SkillsSeeder::class);
 
         // Seed teachers with qualifications and assignments
-        // $this->call(TeachersSeeder::class);
+        $this->call(TeachersSeeder::class);
 
         // Seed teacher qualifications (subject assignments)
-        // $this->call(TeacherQualificationsSeeder::class);
+        $this->call(TeacherQualificationsSeeder::class);
 
         // Seed exams with subjects and marks
-        // $this->call(ExamsSeeder::class);
+        $this->call(ExamsSeeder::class);
 
         // Seed timetable data
-        // $this->call(TimetableSeeder::class);
+        $this->call(TimetableSeeder::class);
 
         Schema::enableForeignKeyConstraints();
     }
@@ -184,7 +182,7 @@ class DatabaseSeeder extends Seeder
         Division::truncate();
 
         Division::insert([
-            // ['name' => 'High School', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Primary School', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 
@@ -193,9 +191,8 @@ class DatabaseSeeder extends Seeder
         Stream::truncate();
 
         Stream::insert([
-            // ['name' => 'Aberdare', 'created_at' => now(), 'updated_at' => now()],
-            // ['name' => 'Satima', 'created_at' => now(), 'updated_at' => now()],
-            // ['name' => 'Kinangop', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Stream A', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Stream B', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 
@@ -207,25 +204,18 @@ class DatabaseSeeder extends Seeder
 
         Rank::insert([
             [
-                // 'name' => 'Form 1',
-                // 'division_id' => $divisionId,
-                // 'stream_id' => $streams->firstWhere('name', '=', 'Aberdare')->id,
-                // 'created_at' => now(),
-                // 'updated_at' => now()
+                'name' => 'Grade 1',
+                'division_id' => $divisionId,
+                'stream_id' => $streams->firstWhere('name', '=', 'Stream A')->id,
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
-                // 'name' => 'Form 1',
-                // 'division_id' => $divisionId,
-                // 'stream_id' => $streams->firstWhere('name', '=', 'Satima')->id,
-                // 'created_at' => now(),
-                // 'updated_at' => now()
-            ],
-            [
-                // 'name' => 'Form 1',
-                // 'division_id' => $divisionId,
-                // 'stream_id' => $streams->firstWhere('name', '=', 'Kinangop')->id,
-                // 'created_at' => now(),
-                // 'updated_at' => now()
+                'name' => 'Grade 2',
+                'division_id' => $divisionId,
+                'stream_id' => $streams->firstWhere('name', '=', 'Stream B')->id,
+                'created_at' => now(),
+                'updated_at' => now()
             ],
         ]);
     }

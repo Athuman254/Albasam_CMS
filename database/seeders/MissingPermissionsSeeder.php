@@ -33,6 +33,8 @@ class MissingPermissionsSeeder extends Seeder
             ['name' => 'upload-exam-results', 'display_name' => 'Upload Exam Results', 'description' => 'Upload student exam results'],
             ['name' => 'approve-exam-results', 'display_name' => 'Approve Exam Results', 'description' => 'Approve submitted exam results'],
             ['name' => 'view-exam-results', 'display_name' => 'View Exam Results', 'description' => 'View exam results and reports'],
+            ['name' => 'manage-grading-scales', 'display_name' => 'Manage Grading Scales', 'description' => 'Manage exam grading scales'],
+            ['name' => 'generate-report-cards', 'display_name' => 'Generate Report Cards', 'description' => 'Generate student academic report cards'],
 
             // Payroll Management Permissions
             ['name' => 'access-payroll-workspace', 'display_name' => 'Access Payroll Workspace', 'description' => 'Access payroll management workspace'],
@@ -41,20 +43,30 @@ class MissingPermissionsSeeder extends Seeder
             ['name' => 'view-payroll', 'display_name' => 'View Payroll', 'description' => 'View payroll records'],
             ['name' => 'edit-payroll-adjustments', 'display_name' => 'Edit Payroll Adjustments', 'description' => 'Modify payroll adjustments'],
             ['name' => 'approve-payroll', 'display_name' => 'Approve Payroll', 'description' => 'Approve payroll runs'],
+            ['name' => 'access-payroll-reports', 'display_name' => 'Access Payroll Reports', 'description' => 'View detailed payroll reports'],
+            ['name' => 'manage-allowances', 'display_name' => 'Manage Allowances', 'description' => 'Manage employee allowances'],
+            ['name' => 'manage-deductions', 'display_name' => 'Manage Deductions', 'description' => 'Manage employee deductions'],
+
+            // HR & Employee Management
+            ['name' => 'access-hr-dashboard', 'display_name' => 'Access HR Dashboard', 'description' => 'Access HR specific dashboard'],
+            ['name' => 'manage-leave-requests', 'display_name' => 'Manage Leave Requests', 'description' => 'Manage staff leave applications'],
+            ['name' => 'approve-leave-requests', 'display_name' => 'Approve Leave Requests', 'description' => 'Approve/Reject staff leave requests'],
+
+            // Finance Management (Extended)
+            ['name' => 'access-financial-reports', 'display_name' => 'Access Financial Reports', 'description' => 'View financial and audit reports'],
+            ['name' => 'manage-bank-accounts', 'display_name' => 'Manage Bank Accounts', 'description' => 'Manage institution bank accounts'],
+            ['name' => 'manage-expenses', 'display_name' => 'Manage Expenses', 'description' => 'Track and manage institution expenses'],
+
+            // Academic & Attendance
+            ['name' => 'manage-attendance', 'display_name' => 'Manage Attendance', 'description' => 'Manage student and staff attendance'],
+            ['name' => 'export-attendance', 'display_name' => 'Export Attendance', 'description' => 'Export attendance records'],
+            ['name' => 'manage-gradings', 'display_name' => 'Manage Gradings', 'description' => 'Manage grading schemes and scales'],
 
             // Reports Permissions
             ['name' => 'access-reports', 'display_name' => 'Access Reports', 'description' => 'Access reports workspace'],
             ['name' => 'generate-reports', 'display_name' => 'Generate Reports', 'description' => 'Generate system reports'],
             ['name' => 'export-reports', 'display_name' => 'Export Reports', 'description' => 'Export reports to PDF/Excel'],
             ['name' => 'view-reports', 'display_name' => 'View Reports', 'description' => 'View generated reports'],
-
-            // Timetable Permissions
-            ['name' => 'access-timetable-workspace', 'display_name' => 'Access Timetable Workspace', 'description' => 'Access timetable management'],
-            ['name' => 'create-timetable', 'display_name' => 'Create Timetable', 'description' => 'Create new timetables'],
-            ['name' => 'edit-timetable', 'display_name' => 'Edit Timetable', 'description' => 'Modify timetables'],
-            ['name' => 'delete-timetable', 'display_name' => 'Delete Timetable', 'description' => 'Remove timetables'],
-            ['name' => 'view-timetable', 'display_name' => 'View Timetable', 'description' => 'View timetables'],
-            ['name' => 'publish-timetable', 'display_name' => 'Publish Timetable', 'description' => 'Publish timetables for students/teachers'],
 
             // Website Management Permissions
             ['name' => 'access-website-workspace', 'display_name' => 'Access Website Workspace', 'description' => 'Access website management'],
@@ -72,6 +84,11 @@ class MissingPermissionsSeeder extends Seeder
             ['name' => 'edit-guardians', 'display_name' => 'Edit Guardians', 'description' => 'Modify guardian records'],
             ['name' => 'delete-guardians', 'display_name' => 'Delete Guardians', 'description' => 'Remove guardian records'],
             ['name' => 'view-guardians', 'display_name' => 'View Guardians', 'description' => 'View guardian records'],
+
+            // System Management
+            ['name' => 'access-activity-logs', 'display_name' => 'Access Activity Logs', 'description' => 'View system activity logs'],
+            ['name' => 'manage-backups', 'display_name' => 'Manage Backups', 'description' => 'Manager system backups'],
+            ['name' => 'manage-settings', 'display_name' => 'Manage System Settings', 'description' => 'Manage global institution settings'],
         ];
 
         foreach ($permissions as $permissionData) {
@@ -82,6 +99,6 @@ class MissingPermissionsSeeder extends Seeder
         }
 
         $this->command->info('Missing permissions added successfully!');
-        $this->command->info('Total new permissions: ' . count($permissions));
+        $this->command->info('Total updated permissions: ' . count($permissions));
     }
 }

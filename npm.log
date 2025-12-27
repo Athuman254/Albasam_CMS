@@ -1,0 +1,42 @@
+
+> dev
+> vite
+
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+Port 5175 is in use, trying another one...
+Port 5176 is in use, trying another one...
+
+  VITE v6.2.0  ready in 295 ms
+
+  ➜  Local:   http://localhost:5177/
+  ➜  Network: use --host to expose
+
+  LARAVEL v11.46.1  plugin v1.2.0
+
+  ➜  APP_URL: http://127.0.0.1:8001
+node:internal/fs/watchers:254
+    const error = new UVException({
+                  ^
+
+Error: ENOSPC: System limit for number of file watchers reached, watch '/home/ecobiz/Documents/Software/School-Management-System-CMS/vendor/aws/aws-sdk-php/src/data/sagemaker'
+    at FSWatcher.<computed> (node:internal/fs/watchers:254:19)
+    at Object.watch (node:fs:2515:36)
+    at createFsWatchInstance (file:///home/ecobiz/Documents/Software/School-Management-System-CMS/node_modules/vite/dist/node/chunks/dep-ByPKlqZ5.js:27834:17)
+    at setFsWatchListener (file:///home/ecobiz/Documents/Software/School-Management-System-CMS/node_modules/vite/dist/node/chunks/dep-ByPKlqZ5.js:27881:15)
+    at NodeFsHandler._watchWithNodeFs (file:///home/ecobiz/Documents/Software/School-Management-System-CMS/node_modules/vite/dist/node/chunks/dep-ByPKlqZ5.js:28036:14)
+    at NodeFsHandler._handleDir (file:///home/ecobiz/Documents/Software/School-Management-System-CMS/node_modules/vite/dist/node/chunks/dep-ByPKlqZ5.js:28272:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async NodeFsHandler._addToNodeFs (file:///home/ecobiz/Documents/Software/School-Management-System-CMS/node_modules/vite/dist/node/chunks/dep-ByPKlqZ5.js:28322:16)
+Emitted 'error' event on FSWatcher instance at:
+    at FSWatcher._handleError (file:///home/ecobiz/Documents/Software/School-Management-System-CMS/node_modules/vite/dist/node/chunks/dep-ByPKlqZ5.js:29535:10)
+    at NodeFsHandler._addToNodeFs (file:///home/ecobiz/Documents/Software/School-Management-System-CMS/node_modules/vite/dist/node/chunks/dep-ByPKlqZ5.js:28350:18)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errno: -28,
+  syscall: 'watch',
+  code: 'ENOSPC',
+  path: '/home/ecobiz/Documents/Software/School-Management-System-CMS/vendor/aws/aws-sdk-php/src/data/sagemaker',
+  filename: '/home/ecobiz/Documents/Software/School-Management-System-CMS/vendor/aws/aws-sdk-php/src/data/sagemaker'
+}
+
+Node.js v25.0.0

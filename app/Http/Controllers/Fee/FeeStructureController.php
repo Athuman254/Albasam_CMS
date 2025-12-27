@@ -926,6 +926,37 @@ class FeeStructureController extends Controller
                 $totalAmount += $fee['amount'];
             }
 
+            // Apply scholarship discount
+            $scholarshipDiscount = 0;
+            $scholarshipType = $student->scholarship_type ?? 'none';
+
+            if ($scholarshipType !== 'none') {
+                $discountPercentage = 0;
+
+                switch ($scholarshipType) {
+                    case 'full':
+                        $discountPercentage = 100;
+                        break;
+                    case 'half':
+                        $discountPercentage = 50;
+                        break;
+                    case 'custom':
+                        $discountPercentage = $student->scholarship_rate ?? 0;
+                        break;
+                }
+
+                // Calculate scholarship discount (only on tuition, not additional fees or previous balance)
+                $scholarshipDiscount = ($fee_structure->amount * $discountPercentage) / 100;
+                $totalAmount -= $scholarshipDiscount;
+
+                Log::info("Scholarship applied to student {$student->id}", [
+                    'type' => $scholarshipType,
+                    'percentage' => $discountPercentage,
+                    'discount_amount' => $scholarshipDiscount,
+                    'original_tuition' => $fee_structure->amount
+                ]);
+            }
+
             if ($previousBalance != 0) {
                 $totalAmount += $previousBalance;
             }
@@ -947,8 +978,20 @@ class FeeStructureController extends Controller
                 'notes' => $this->generateFeeDescription($fee_structure, $previousBalance),
             ]);
 
-            // Add main tuition fee item
-            $this->addInvoiceItem($invoice, 'Tuition Fee', $fee_structure->amount, $fee_structure->description);
+            // Add main tuition fee item (after scholarship discount)
+            $tuitionAfterScholarship = $fee_structure->amount - ($scholarshipDiscount ?? 0);
+            $this->addInvoiceItem($invoice, 'Tuition Fee', $tuitionAfterScholarship, $fee_structure->description);
+
+            // Add scholarship discount as a separate line item if applicable
+            if (isset($scholarshipDiscount) && $scholarshipDiscount > 0) {
+                $scholarshipLabel = match ($scholarshipType) {
+                    'full' => 'Full Scholarship (100%)',
+                    'half' => 'Half Scholarship (50%)',
+                    'custom' => "Scholarship ({$student->scholarship_rate}%)",
+                    default => 'Scholarship Discount'
+                };
+                $this->addInvoiceItem($invoice, $scholarshipLabel, -$scholarshipDiscount, 'Scholarship discount applied');
+            }
 
             // Add additional fee items
             foreach ($additionalFees as $fee) {

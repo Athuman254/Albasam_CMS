@@ -12,15 +12,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Settings\AcademicYear;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 
-class Employee extends Authenticatable
+class Employee extends Authenticatable implements HasMedia
 {
-    use HasApiTokens, Notifiable, SoftDeletes, HasHashid, HashidRouting, HasFactory;
+    use HasApiTokens, Notifiable, SoftDeletes, HasHashid, HashidRouting, HasFactory, InteractsWithMedia;
 
     protected $guard = 'employee';
 
@@ -33,7 +36,10 @@ class Employee extends Authenticatable
         'assigned_classes_count',
         'assigned_subjects_count',
         'current_assignments_count',
-        'is_teacher'
+        'is_teacher',
+        'photo_url',
+        'role_id',
+        'document_details'
     ];
 
     protected $casts = [
@@ -71,6 +77,7 @@ class Employee extends Authenticatable
         'secondary_physical_address',
         'postal_address',
         'identification_number',
+        'tsc_number',
         'tax_identification_pin',
         'has_system_access',
         'password',
@@ -82,6 +89,7 @@ class Employee extends Authenticatable
         'nssf_no',
         'pays_housing_levy',
         'username',
+        'hobbies',
     ];
 
     protected $hidden = [
@@ -310,6 +318,67 @@ class Employee extends Authenticatable
     public function staffAttendances(): HasMany
     {
         return $this->hasMany(StaffAttendance::class);
+    }
+
+    /**
+     * Register media collections for the employee
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('employee_photos')
+            ->singleFile()
+            ->useDisk('public');
+
+        $this->addMediaCollection('employee_documents')
+            ->useDisk('public');
+    }
+
+    /**
+     * Get all employee media - Required by Spatie Media Library
+     */
+    public function media(): MorphMany
+    {
+        return $this->morphMany('Spatie\MediaLibrary\MediaCollections\Models\Media', 'model');
+    }
+
+    /**
+     * Get the employee's photo URL
+     */
+    public function getPhotoUrlAttribute()
+    {
+        $media = $this->getFirstMedia('employee_photos');
+        return $media ? $media->getUrl() : null;
+    }
+
+    /**
+     * Get the first role ID of the associated user
+     */
+    public function getRoleIdAttribute()
+    {
+        return $this->user?->roles->first()?->id;
+    }
+
+    /**
+     * Check if the employee's associated user has a specific role
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->user ? $this->user->hasRole($role) : false;
+    }
+
+    /**
+     * Get documents with details
+     */
+    public function getDocumentDetailsAttribute()
+    {
+        return $this->getMedia('employee_documents')->map(function ($media) {
+            return [
+                'id' => $media->id,
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+                'size' => $media->human_readable_size,
+            ];
+        });
     }
 
 

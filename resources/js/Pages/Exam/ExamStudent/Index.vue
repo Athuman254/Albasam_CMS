@@ -28,12 +28,12 @@
                            <v-select class="flex-1" v-model="selectedClass" :options="classes" label="name"
                               :reduce="option => option.id" placeholder="Select Class">
                                <template #option="{ name, stream }">
-                              <strong>{{ name }}</strong> - <small>{{ stream.name }}</small>
+                              <strong>{{ name }}</strong> - <small>{{ stream?.name || 'No Stream' }}</small>
                            </template>
 
 
                            <template #selected-option="props">
-                              {{ props.name }} - {{ props.stream?.name }}
+                              {{ props.name }} - {{ props.stream?.name || 'No Stream' }}
                            </template>
                            </v-select>
 

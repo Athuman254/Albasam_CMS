@@ -248,15 +248,15 @@ export const VueTable = {
          <div class="custom-pagination p-3 border-top" v-if="pagination.last_page > 1 || rows.length > 0">
             <div class="row align-items-center">
                <!-- Showing Info -->
-               <div class="col-md-6 mb-2 mb-md-0">
+               <div class="col-12 col-md-6 mb-3 mb-md-0 text-center text-md-start">
                   <div class="text-muted small">
                      {{ showingInfo }}
                   </div>
                </div>
                
                <!-- Page Size Selector -->
-               <div class="col-md-6 text-md-end">
-                  <div class="d-flex align-items-center justify-content-md-end gap-3">
+               <div class="col-12 col-md-6 text-center text-md-end">
+                  <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-end gap-2 gap-md-3">
                      <!-- Items per page -->
                      <div class="d-flex align-items-center">
                         <label class="form-label-sm mb-0 me-2 text-muted">Show:</label>
